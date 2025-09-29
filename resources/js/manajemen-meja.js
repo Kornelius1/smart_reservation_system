@@ -16,23 +16,7 @@ function initializeEventListeners() {
         searchInput.addEventListener('input', handleSearch);
     }
 
-    // Add button
-    const btnTambah = document.getElementById('btn-tambah-meja');
-    if (btnTambah) {
-        btnTambah.addEventListener('click', openTambahModal);
-    }
-
-    // Form submit
-    const formMeja = document.getElementById('form-meja');
-    if (formMeja) {
-        formMeja.addEventListener('submit', handleFormSubmit);
-    }
-
-    // Confirm delete
-    const btnKonfirmasiHapus = document.getElementById('btn-konfirmasi-hapus');
-    if (btnKonfirmasiHapus) {
-        btnKonfirmasiHapus.addEventListener('click', handleConfirmDelete);
-    }
+    
 
     // Setup table event listeners
     setupTableEventListeners();
@@ -50,25 +34,7 @@ function setupCSRFToken() {
     window.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 }
 
-// Setup event listeners for table actions (delegated events)
-function setupTableEventListeners() {
-    document.addEventListener('click', function(e) {
-        // Edit button
-        if (e.target.closest('.btn-edit')) {
-            e.preventDefault();
-            const id = e.target.closest('.btn-edit').getAttribute('data-id');
-            closeAllDropdowns();
-            openEditModal(id);
-        }
 
-        // Delete button
-        if (e.target.closest('.btn-hapus')) {
-            e.preventDefault();
-            const id = e.target.closest('.btn-hapus').getAttribute('data-id');
-            closeAllDropdowns();
-            openDeleteModal(id);
-        }
-    });
 
     // Toggle status change
     document.addEventListener('change', function(e) {
@@ -77,7 +43,7 @@ function setupTableEventListeners() {
             handleToggleStatus(id, e.target);
         }
     });
-}
+
 
 // Search functionality with debouncing
 function handleSearch(e) {
