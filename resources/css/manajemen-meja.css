@@ -87,8 +87,8 @@
 
 /* Modal Styling */
 .modal-backdrop {
-    backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
 }
 
 /* Dropdown Styling */
