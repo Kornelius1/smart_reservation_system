@@ -5,9 +5,20 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: [
+                'resources/css/app.css',
+                'resources/css/manajemen-meja.css',
+                'resources/js/app.js',
+                'resources/js/bootstrap.js',
+                'resources/js/manajemen-meja.js'
+            ],
             refresh: true,
         }),
-        tailwindcss(),
+        tailwindcss(), // ← INI YANG KURANG!
     ],
+    resolve: {
+        alias: {
+            '@': '/resources/js',
+        },
+    },
 });
