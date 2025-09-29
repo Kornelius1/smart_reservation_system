@@ -30,6 +30,8 @@ Route::get('/private-room', function () {
     return view('private_room'); 
 });
 
+Route::view('/private-room', 'private_room');
+
 Route::get('/reservasi-meja', function () {
     return view('reservasi_meja'); // nanti kamu buat file ini juga
 });
