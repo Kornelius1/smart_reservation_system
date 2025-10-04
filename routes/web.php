@@ -1,15 +1,19 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TableController; // Tambahkan ini
+use App\Http\Controllers\TableController;
+use App\Http\Controllers\ReservationController; // Pastikan ini ada
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// ROUTE BARU UNTUK MANAJEMEN MEJA
+// Route untuk manajemen meja yang sudah ada
 Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
+
+// Route BARU untuk manajemen reservasi
+Route::get('/manajemen-reservasi', [ReservationController::class, 'index'])->name('manajemen-reservasi');
 
 
 Route::get('/dashboard', function () {

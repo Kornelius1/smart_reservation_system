@@ -7,7 +7,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                'resources/js/manajemen-meja.js', 
+                'resources/js/manajemen-reservasi.js', 
             ],
             refresh: true,
         }),
