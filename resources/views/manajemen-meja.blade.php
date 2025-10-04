@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Meja</title>
     @vite(['resources/css/app.css', 'resources/js/manajemen-meja.js'])
+
+    {{-- CSS DIPAKSA DI SINI AGAR 100% BERHASIL --}}
+    <style>
+        /* Mengubah warna bulatan (handle) toggle menjadi PUTIH */
+        .toggle {
+            --toggle-handle-color: white !important; /* Ini memaksa bulatan jadi putih */
+        }
+
+        /* Menghilangkan ikon centang bawaan daisyUI */
+        .toggle:checked {
+            background-image: none !important;
+        }
+    </style>
 </head>
 <body class="bg-brand-background">
 
@@ -69,13 +82,12 @@
                                         <td>{{ $table['kapasitas'] }} Orang</td>
                                         <td>{{ $table['lokasi'] }}</td>
                                         <td>
-                                            {{-- Badge ini akan dikontrol oleh JS --}}
                                             <span class="badge badge-sm" style="border: none;"></span>
                                         </td>
                                         <td>
                                             <div class="flex items-center justify-center space-x-2">
-                                                {{-- Toggle ini akan dikontrol oleh JS --}}
-                                                <input type="checkbox" class="toggle toggle-sm" {{ $table['tersedia'] ? 'checked' : '' }} />
+                                                {{-- Toggle DIBESARKAN (md) dan dicek berdasarkan 'tersedia' --}}
+                                                <input type="checkbox" class="toggle toggle-md" {{ $table['tersedia'] ? 'checked' : '' }} />
                                             </div>
                                         </td>
                                     </tr>
