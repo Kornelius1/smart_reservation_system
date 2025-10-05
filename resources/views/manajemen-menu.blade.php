@@ -34,7 +34,6 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             <input id="searchInput" type="text" placeholder="Search..." class="input input-sm input-bordered w-72 pl-10" />
                         </div>
-                        {{-- Tambahkan ID agar bisa diakses JavaScript --}}
                         <button id="tambahMenuBtn" class="btn text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Tambah Menu</button>
                     </div>
 
@@ -51,7 +50,6 @@
 
                     <div class="overflow-x-auto">
                         <table id="menuTable" class="table w-full">
-                           {{-- ... Tabel Head ... --}}
                             <thead>
                                 <tr class="text-brand-text text-center">
                                     <th>No</th>
@@ -87,8 +85,15 @@
                                         </td>
                                         <td>
                                             <div class="flex items-center justify-center space-x-2">
-                                                <input type="checkbox" class="toggle toggle-sm toggle-neutral" {{ $item['tersedia'] ? 'checked' : '' }} />
-                                                <button class="btn btn-xs text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Ubah Detail</button>
+                                                <input type="checkbox" class="toggle toggle-sm toggle-natural" {{ $item['tersedia'] ? 'checked' : '' }} />
+                                                <button 
+                                                    class="btn btn-xs text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none btn-ubah-detail"
+                                                    data-nama="{{ $item['nama'] }}"
+                                                    data-harga="{{ $item['harga'] }}"
+                                                    data-kategori="{{ $item['kategori'] }}"
+                                                    data-foto="{{ $item['foto'] }}">
+                                                    Ubah Detail
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -103,51 +108,29 @@
 
     <dialog id="modal_tambah_menu" class="modal">
         <div class="modal-box bg-white">
-            <form method="dialog">
-                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-            </form>
+            <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button></form>
             <h3 class="font-bold text-lg text-brand-text">Tambah Menu</h3>
-            
             <div class="py-4">
-                <div class="form-control w-full">
-                    <label class="label"><span class="label-text text-brand-text">Nama Menu</span></label>
-                    <input type="text" placeholder="Masukkan Nama Menu" class="input input-bordered w-full" />
-                </div>
-
-                <div class="form-control w-full mt-4">
-                    <label class="label"><span class="label-text text-brand-text">Harga</span></label>
-                    <label class="input-group">
-                        <span>Rp</span>
-                        <input type="number" placeholder="15000" class="input input-bordered w-full" />
-                    </label>
-                </div>
-                
-                <div class="form-control w-full mt-4">
-                    <label class="label"><span class="label-text text-brand-text">Kategori</span></label>
-                     <select class="select select-bordered w-full">
-                        <option disabled selected>Pilih Kategori</option>
-                        <option>Snacks</option>
-                        <option>Heavy Meal</option>
-                        <option>Traditional</option>
-                        <option>Juice</option>
-                        <option>Fresh Drink</option>
-                        <option>Special Taste</option>
-                        <option>Ice Cream</option>
-                        <option>Coffee</option>
-                    </select>
-                </div>
-
-                <div class="form-control w-full mt-4">
-                    <label class="label"><span class="label-text text-brand-text">Gambar</span></label>
-                    <input type="file" class="file-input file-input-bordered w-full" />
-                </div>
+                <div class="form-control w-full"><label class="label"><span class="label-text text-brand-text">Nama Menu</span></label><input type="text" placeholder="Masukkan Nama Menu" class="input input-bordered w-full" /></div>
+                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Harga</span></label><label class="input-group"><span>Rp</span><input type="number" placeholder="15000" class="input input-bordered w-full" /></label></div>
+                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Kategori</span></label><select class="select select-bordered w-full"><option disabled selected>Pilih Kategori</option><option>Snacks</option><option>Heavy Meal</option><option>Traditional</option><option>Juice</option><option>Fresh Drink</option><option>Special Taste</option><option>Ice Cream</option><option>Coffee</option></select></div>
+                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Gambar</span></label><input type="file" class="file-input file-input-bordered w-full" /></div>
             </div>
-
-            <div class="modal-action">
-                <form method="dialog" class="w-full">
-                    <button class="btn w-full text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Simpan</button>
-                </form>
+            <div class="modal-action"><form method="dialog" class="w-full"><button class="btn w-full text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Simpan</button></form></div>
+        </div>
+    </dialog>
+    
+    <dialog id="modal_ubah_detail" class="modal">
+        <div class="modal-box bg-white">
+            <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button></form>
+            <h3 class="font-bold text-lg text-brand-text">Ubah Detail</h3>
+            <div class="py-4">
+                <div class="form-control w-full"><label class="label"><span class="label-text text-brand-text">Nama Menu</span></label><input id="ubah_nama_menu" type="text" class="input input-bordered w-full" /></div>
+                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Harga</span></label><label class="input-group"><span>Rp</span><input id="ubah_harga_menu" type="number" class="input input-bordered w-full" /></label></div>
+                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Kategori</span></label><select id="ubah_kategori_menu" class="select select-bordered w-full"><option>Snacks</option><option>Heavy Meal</option><option>Traditional</option><option>Juice</option><option>Fresh Drink</option><option>Special Taste</option><option>Ice Cream</option><option>Coffee</option></select></div>
+                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Gambar</span></label><input type="file" class="file-input file-input-bordered w-full" /></div>
             </div>
+            <div class="modal-action"><form method="dialog" class="w-full"><button class="btn w-full text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Simpan</button></form></div>
         </div>
     </dialog>
 
