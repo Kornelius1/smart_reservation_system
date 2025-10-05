@@ -6,14 +6,10 @@
     <title>Manajemen Meja</title>
     @vite(['resources/css/app.css', 'resources/js/manajemen-meja.js'])
 
-    {{-- CSS DIPAKSA DI SINI AGAR 100% BERHASIL --}}
     <style>
-        /* Mengubah warna bulatan (handle) toggle menjadi PUTIH */
         .toggle {
-            --toggle-handle-color: white !important; /* Ini memaksa bulatan jadi putih */
+            --toggle-handle-color: white !important; 
         }
-
-        /* Menghilangkan ikon centang bawaan daisyUI */
         .toggle:checked {
             background-image: none !important;
         }
