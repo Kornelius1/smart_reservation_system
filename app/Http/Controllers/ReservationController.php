@@ -14,7 +14,7 @@ class ReservationController extends Controller
     {
         // Data statis untuk reservasi
         $reservations = [
-            ['id_reservasi' => 'RSV001', 'id_transaksi' => 'TR5001', 'nomor_meja' => 1, 'nama_customer' => 'Sylva', 'nomor_telepon' => '0812 xxx xxx', 'jumlah_orang' => 4, 'tanggal' => '17/01/24', 'waktu_reservasi' => '11.00 WIB', 'status' => false],
+            ['id_reservasi' => 'RSV001', 'id_transaksi' => 'TR5001', 'nomor_meja' => 1, 'nama_customer' => 'Sylya', 'nomor_telepon' => '0812 xxx xxx', 'jumlah_orang' => 4, 'tanggal' => '17/01/24', 'waktu_reservasi' => '11.00 WIB', 'status' => false],
             ['id_reservasi' => 'RSV002', 'id_transaksi' => 'TR5002', 'nomor_meja' => 7, 'nama_customer' => 'Gulum', 'nomor_telepon' => '0852 xxx xxx', 'jumlah_orang' => 1, 'tanggal' => '08/08/24', 'waktu_reservasi' => '15.00 WIB', 'status' => false],
             ['id_reservasi' => 'RSV003', 'id_transaksi' => 'TR5003', 'nomor_meja' => 3, 'nama_customer' => 'Zayya', 'nomor_telepon' => '0813 xxx xxx', 'jumlah_orang' => 2, 'tanggal' => '10/10/24', 'waktu_reservasi' => '19.00 WIB', 'status' => true],
             ['id_reservasi' => 'RSV004', 'id_transaksi' => 'TR5004', 'nomor_meja' => 5, 'nama_customer' => 'Fahira', 'nomor_telepon' => '0814 xxx xxx', 'jumlah_orang' => 5, 'tanggal' => '12/11/24', 'waktu_reservasi' => '20.00 WIB', 'status' => false],
