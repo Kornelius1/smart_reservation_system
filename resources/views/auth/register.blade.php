@@ -4,92 +4,103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Akun</title>
-    {{-- Tailwind CSS CDN untuk styling kustom --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-            background-color: #F8F4EA; /* Warna latar belakang krem */
-            color: #3C4B44; /* Warna teks utama */
+            background: 
+                linear-gradient(rgba(248, 244, 234, 0.85), rgba(248, 244, 234, 0.85)),
+                url('/images/background.jpg');
+            background-size: cover;
+            background-position: center 20%;
+            background-attachment: fixed;
+            color: #3C4B44;
             margin: 0;
             display: flex;
             flex-direction: column;
-            min-height: 100vh; /* Pastikan body mengambil tinggi penuh viewport */
+            min-height: 100vh;
         }
-        .bg-dark-green {
-            background-color: #3C4B44; /* Warna hijau gelap */
-        }
-        .bg-light-green {
-            background-color: #9EC0B3; /* Warna hijau terang untuk elemen bentuk */
-        }
-        .text-dark-green {
-            color: #3C4B44;
-        }
-        .text-light-green {
-            color: #9EC0B3;
-        }
+
+        .bg-dark-green { background-color: #3C4B44; }
+        .bg-light-green { background-color: #9EC0B3; }
+        .text-dark-green { color: #3C4B44; }
+        .text-light-green { color: #9EC0B3; }
         .form-input-custom {
-            background-color: #E0E2DA; /* Warna abu kehijauan untuk input */
-            border-radius: 9999px; /* Bentuk pil */
+            background-color: #E0E2DA;
+            border-radius: 9999px;
             border: none;
-            padding: 0.75rem 1.5rem; /* Padding lebih banyak */
+            padding: 0.75rem 1.5rem;
             width: 100%;
         }
         .btn-custom {
-            background-color: #9EC0B3; /* Warna tombol hijau terang */
-            color: #3C4B44; /* Warna teks tombol hijau gelap */
-            border-radius: 9999px; /* Bentuk pil */
+            background-color: #9EC0B3;
+            color: #3C4B44;
+            border-radius: 9999px;
             padding: 0.75rem 1.5rem;
             width: 100%;
-            font-weight: 600; /* Tebal */
-            transition: background-color 0.2s ease-in-out;
+            font-weight: 600;
+            transition: all 0.25s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(0);
+
+            /* Animasi muncul saat load */
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+            animation-delay: 0.4s;
         }
         .btn-custom:hover {
-            background-color: #88A699; /* Sedikit lebih gelap saat hover */
+            background-color: #88A699;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+            transform: translateY(-3px) scale(1.03);
         }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .card-custom {
-            background-color: #9EC0B3; /* Warna kartu hijau terang */
-            border-radius: 2rem; /* Sudut lebih membulat */
+            background-color: #9EC0B3;
+            border-radius: 0.75rem;
             padding: 3rem 2rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .abstract-shape-1 {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 250px; /* Ukuran bisa disesuaikan */
-            height: 250px;
-            background-color: #9EC0B3; /* Warna hijau terang */
-            border-radius: 0 0 9999px 0; /* Bentuk melengkung di sudut kanan bawah */
-            transform: rotate(-15deg) translateX(-50px) translateY(-50px); /* Rotasi dan posisi */
+            top: 0; left: 0;
+            width: 250px; height: 250px;
+            background-color: #9EC0B3;
+            border-radius: 0 0 9999px 0;
+            transform: rotate(-15deg) translateX(-50px) translateY(-50px);
             z-index: 0;
         }
         .abstract-shape-2 {
             position: absolute;
-            top: 150px;
-            left: 100px;
-            width: 180px;
-            height: 180px;
+            top: 150px; left: 100px;
+            width: 180px; height: 180px;
             background-color: #9EC0B3;
-            border-radius: 9999px 0 0 9999px; /* Bentuk melengkung di sudut kiri atas */
+            border-radius: 9999px 0 0 9999px;
             transform: rotate(25deg) translateX(-70px) translateY(-30px);
             z-index: 0;
-            opacity: 0.7; /* Sedikit transparan */
+            opacity: 0.7;
         }
         .footer-link {
-            color: #E0E2DA; /* Warna teks footer */
+            color: #E0E2DA;
             text-decoration: none;
             font-weight: 500;
         }
-        .footer-link:hover {
-            text-decoration: underline;
-        }
+        .footer-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body class="relative min-h-screen flex flex-col">
 
     {{-- Header --}}
-    <header class="bg-dark-green text-light-green p-4 text-center text-sm relative z-10">
+    <header class="bg-dark-green text-light-green p-4 text-center text-lg font-bold">
         Register
     </header>
 
@@ -97,43 +108,54 @@
     <div class="abstract-shape-1"></div>
     <div class="abstract-shape-2"></div>
 
-
     <div class="flex-grow flex items-center justify-center p-4 relative z-10">
-        <div class="w-full max-w-sm card-custom text-dark-green text-center">
+        <div class="w-full max-w-lg card-custom text-dark-green text-center">
+
+            {{-- Logo Homey --}}
+            <div class="mb-6 flex justify-center">
+                <img src="/images/HOMEYY.png" 
+                    alt="Logo Homey" 
+                    class="h-16 w-auto brightness-110"
+                    style="filter: drop-shadow(0 0 1px black) drop-shadow(0 0 1px black);">
+            </div>
+
             <h2 class="text-3xl font-bold mb-8">Create An Account</h2>
-            
+
             {{-- Form --}}
-            {{-- Arahkan action ke route pendaftaran Anda --}}
             <form action="{{ route('register') }}" method="POST" class="space-y-6">
                 @csrf
 
+                {{-- Username --}}
                 <div>
-                    {{-- <label for="username" class="sr-only">Username</label> --}}
                     <input type="text" class="form-input-custom @error('name') border-red-500 @enderror" 
-                           id="name" name="name" value="{{ old('name') }}" required autofocus 
-                           placeholder="Username">
+                        id="name" name="name" value="{{ old('name') }}" required autofocus 
+                        placeholder="Username">
                     @error('name')
                         <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p>
                     @enderror
                 </div>
 
+                {{-- Password --}}
                 <div>
-                    {{-- <label for="password" class="sr-only">Password</label> --}}
                     <input type="password" class="form-input-custom @error('password') border-red-500 @enderror" 
-                           id="password" name="password" required 
-                           placeholder="Password">
+                        id="password" name="password" required placeholder="Password">
                     @error('password')
                         <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p>
                     @enderror
                 </div>
-                
-                {{-- Email dan Konfirmasi Password dihilangkan sementara sesuai gambar --}}
-                {{-- Jika Anda butuh, bisa ditambahkan kembali dengan styling serupa --}}
+
+                {{-- Konfirmasi Password --}}
+                <div>
+                    <input type="password" class="form-input-custom @error('password_confirmation') border-red-500 @enderror" 
+                        id="password_confirmation" name="password_confirmation" required placeholder="Konfirmasi Password">
+                    @error('password_confirmation')
+                        <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <button type="submit" class="btn-custom">Create Account</button>
 
                 <div class="text-center mt-4">
-                    {{-- Jika Anda ingin link login, uncomment ini --}}
                     {{-- <a href="{{ route('login') }}" class="text-dark-green hover:underline text-sm">Sudah punya akun? Login</a> --}}
                 </div>
             </form>
