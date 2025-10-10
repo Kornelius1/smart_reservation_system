@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Menu</title>
     @vite(['resources/css/app.css', 'resources/js/manajemen-menu.js'])
+    
+    <style>
+        .toggle {
+            --toggle-handle-color: white !important; 
+        }
+        .toggle:checked {
+            background-image: none !important;
+        }
+        input[type='number']::-webkit-outer-spin-button,
+        input[type='number']::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type='number'] {
+            -moz-appearance: textfield;
+        }
+    </style>
 </head>
 <body class="bg-brand-background">
 
@@ -15,7 +32,7 @@
             <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
             <ul class="menu p-4 w-20 min-h-full bg-white text-base-content items-center">
                 <li class="mb-4" title="Homey Cafe"><div class="p-2 bg-brand-primary rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" /></svg></div></li>
-                <li class="bg-brand-background rounded-lg" title="Manajemen Menu"><a><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg></a></li>
+                <li class="bg-brand-primary rounded-lg" title="Manajemen Menu"><a><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg></a></li>
                 <li class="mt-2" title="Manajemen Meja"><a><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 8.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 8.25 20.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25A2.25 2.25 0 0 1 13.5 8.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg></a></li>
                 <li class="mt-2" title="Manajemen Reservasi"><a><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0h18M12 15.75h.008v.008H12v-.008Z" /></svg></a></li>
                 <li class="mt-2" title="Laporan"><a><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" /></svg></a></li>
@@ -77,15 +94,11 @@
                                         <td>Rp {{ number_format($item['harga'], 0, ',', '.') }}</td>
                                         <td>{{ $item['kategori'] }}</td>
                                         <td>
-                                            @if ($item['tersedia'])
-                                                <span class="badge badge-sm bg-green-200 text-green-800 border-none">Available</span>
-                                            @else
-                                                <span class="badge badge-sm bg-gray-200 text-gray-700 border-none">Not Available</span>
-                                            @endif
+                                            <span class="badge badge-sm"></span>
                                         </td>
                                         <td>
                                             <div class="flex items-center justify-center space-x-2">
-                                                <input type="checkbox" class="toggle toggle-sm toggle-primary" {{ $item['tersedia'] ? 'checked' : '' }} />
+                                                <input type="checkbox" class="toggle toggle-md" {{ $item['tersedia'] ? 'checked' : '' }} />
                                                 <button 
                                                     class="btn btn-xs text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none btn-ubah-detail"
                                                     data-nama="{{ $item['nama'] }}"
@@ -110,11 +123,36 @@
         <div class="modal-box bg-white">
             <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button></form>
             <h3 class="font-bold text-lg text-brand-text">Tambah Menu</h3>
-            <div class="py-4">
-                <div class="form-control w-full"><label class="label"><span class="label-text text-brand-text">Nama Menu</span></label><input type="text" placeholder="Masukkan Nama Menu" class="input input-bordered w-full" /></div>
-                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Harga</span></label><label class="input-group"><span>Rp</span><input type="number" placeholder="15000" class="input input-bordered w-full" /></label></div>
-                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Kategori</span></label><select class="select select-bordered w-full"><option disabled selected>Pilih Kategori</option><option>Snacks</option><option>Heavy Meal</option><option>Traditional</option><option>Juice</option><option>Fresh Drink</option><option>Special Taste</option><option>Ice Cream</option><option>Coffee</option></select></div>
-                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Gambar</span></label><input type="file" class="file-input file-input-bordered w-full" /></div>
+            <div class="py-4 space-y-4">
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text text-brand-text">Nama Menu</span></label>
+                    <input type="text" placeholder="Masukkan Nama Menu" class="input input-bordered w-full" />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text text-brand-text">Harga</span></label>
+                    <div class="flex items-center space-x-3">
+                        <span class="font-semibold text-brand-text">Rp</span>
+                        <input type="number" min="0" placeholder="15000" class="input input-bordered w-full" />
+                    </div>
+                </div>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text text-brand-text">Kategori</span></label>
+                    <select class="select select-bordered w-full">
+                        <option disabled selected>Pilih Kategori</option>
+                        <option>Snacks</option>
+                        <option>Heavy Meal</option>
+                        <option>Traditional</option>
+                        <option>Juice</option>
+                        <option>Fresh Drink</option>
+                        <option>Special Taste</option>
+                        <option>Ice Cream</option>
+                        <option>Coffee</option>
+                    </select>
+                </div>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text text-brand-text">Gambar</span></label>
+                    <input type="file" class="file-input file-input-bordered w-full" />
+                </div>
             </div>
             <div class="modal-action"><form method="dialog" class="w-full"><button class="btn w-full text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Simpan</button></form></div>
         </div>
@@ -124,11 +162,35 @@
         <div class="modal-box bg-white">
             <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button></form>
             <h3 class="font-bold text-lg text-brand-text">Ubah Detail</h3>
-            <div class="py-4">
-                <div class="form-control w-full"><label class="label"><span class="label-text text-brand-text">Nama Menu</span></label><input id="ubah_nama_menu" type="text" class="input input-bordered w-full" /></div>
-                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Harga</span></label><label class="input-group"><span>Rp</span><input id="ubah_harga_menu" type="number" class="input input-bordered w-full" /></label></div>
-                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Kategori</span></label><select id="ubah_kategori_menu" class="select select-bordered w-full"><option>Snacks</option><option>Heavy Meal</option><option>Traditional</option><option>Juice</option><option>Fresh Drink</option><option>Special Taste</option><option>Ice Cream</option><option>Coffee</option></select></div>
-                <div class="form-control w-full mt-4"><label class="label"><span class="label-text text-brand-text">Gambar</span></label><input type="file" class="file-input file-input-bordered w-full" /></div>
+            <div class="py-4 space-y-4">
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text text-brand-text">Nama Menu</span></label>
+                    <input id="ubah_nama_menu" type="text" class="input input-bordered w-full" />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text text-brand-text">Harga</span></label>
+                    <div class="flex items-center space-x-3">
+                        <span class="font-semibold text-brand-text">Rp</span>
+                        <input id="ubah_harga_menu" type="number" min="0" placeholder="15000" class="input input-bordered w-full" />
+                    </div>
+                </div>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text text-brand-text">Kategori</span></label>
+                    <select id="ubah_kategori_menu" class="select select-bordered w-full">
+                        <option>Snacks</option>
+                        <option>Heavy Meal</option>
+                        <option>Traditional</option>
+                        <option>Juice</option>
+                        <option>Fresh Drink</option>
+                        <option>Special Taste</option>
+                        <option>Ice Cream</option>
+                        <option>Coffee</option>
+                    </select>
+                </div>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text text-brand-text">Gambar</span></label>
+                    <input type="file" class="file-input file-input-bordered w-full" />
+                </div>
             </div>
             <div class="modal-action"><form method="dialog" class="w-full"><button class="btn w-full text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Simpan</button></form></div>
         </div>
