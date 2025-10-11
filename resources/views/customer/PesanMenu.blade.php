@@ -1,3 +1,4 @@
+{{--
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -5,8 +6,7 @@
     <meta charset="utf-g">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Reservasi-Pemesanan Menu</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
 
     @vite('resources/js/app.js')
 </head>
@@ -17,4 +17,21 @@
 
 </body>
 
-</html>
+</html> --}}
+
+{{-- 1. Memberitahu Blade untuk menggunakan layout dari layouts/app.blade.php --}}
+@extends('layouts.app')
+
+{{-- 2. Mengisi placeholder 'title' yang ada di layout --}}
+@section('title', 'Reservasi - Pemesanan Menu')
+
+{{-- 3. Mengisi placeholder 'content' dengan konten spesifik halaman ini --}}
+@section('content')
+
+    {{-- Konten unik Anda sekarang ada di dalam section ini --}}
+    <div id="pesanmenu"></div>
+
+    {{-- Jika halaman ini dijalankan oleh Vue/React, elemen dengan id="pesanmenu"
+    akan menjadi titik mount-nya, yang dimuat oleh app.js dari layout. --}}
+
+@endsection

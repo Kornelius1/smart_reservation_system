@@ -16,9 +16,7 @@ Route::get('/', function () {
 
 Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');
 
-Route::get('/pembayaran', [BayarController::class, 'show'])->name('bayar')->name('bayar.show');
-
-
+Route::post('/bayar', [BayarController::class, 'index'])->name('bayar.index');
 
 
 Route::get('/dashboard', function () {
