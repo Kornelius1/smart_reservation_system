@@ -1,12 +1,25 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Customer\BayarController;
+use App\Http\Controllers\Customer\PesanMenuController;
+
+
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');
+
+Route::get('/pembayaran', [BayarController::class, 'show'])->name('bayar')->name('bayar.show');
+
+
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
