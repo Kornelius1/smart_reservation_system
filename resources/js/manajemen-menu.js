@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('searchInput');
     const entriesSelect = document.getElementById('entries');
 
-    // --- FUNGSI GABUNGAN UNTUK FILTER & PAGINATION ---
     function applyFilters() {
         const searchTerm = searchInput.value.toLowerCase();
         const selectedValue = parseInt(entriesSelect.value, 10);
@@ -12,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         tableRows.forEach(row => {
             const menuNameCell = row.querySelector('td:nth-child(2)');
-            let matchesSearch = true; // Anggap cocok dulu
+            let matchesSearch = true;
 
             if (menuNameCell) {
                 const menuName = menuNameCell.textContent.toLowerCase();
@@ -20,10 +19,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (matchesSearch && visibleCount < selectedValue) {
-                row.style.display = ''; // Tampilkan baris jika cocok & masih dalam limit
+                row.style.display = '';
                 visibleCount++;
             } else {
-                row.style.display = 'none'; // Sembunyikan jika tidak cocok atau sudah melebihi limit
+                row.style.display = 'none';
             }
         });
     }
@@ -31,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if(searchInput) searchInput.addEventListener('keyup', applyFilters);
     if(entriesSelect) entriesSelect.addEventListener('change', applyFilters);
 
-    // --- LOGIKA UNTUK TOGGLE DAN BADGE STATUS ---
     const statusToggles = document.querySelectorAll('#menuTable .toggle');
     const themeColors = {
         available: '#A9B89D',
@@ -42,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const row = toggle.closest('tr');
         const badge = row.querySelector('.badge');
         
-        badge.classList.remove('bg-green-200', 'text-green-800', 'bg-gray-200', 'text-gray-700');
         badge.style.border = 'none';
 
         if (toggle.checked) {
@@ -61,25 +58,57 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     statusToggles.forEach(updateAppearance);
-
     statusToggles.forEach(toggle => {
-        toggle.addEventListener('change', function() {
-            updateAppearance(this);
-        });
+        toggle.addEventListener('change', function() { updateAppearance(this); });
     });
 
-    // --- FUNGSI MODAL "TAMBAH MENU" (YANG SEBELUMNYA HILANG) ---
-    const tambahMenuBtn = document.getElementById('tambahMenuBtn');
+    // --- LOGIKA MODAL "TAMBAH MENU" ---
     const modalTambah = document.getElementById('modal_tambah_menu');
-    if (tambahMenuBtn && modalTambah) {
-        tambahMenuBtn.addEventListener('click', () => {
-            modalTambah.showModal();
+    const formTambah = document.getElementById('form_tambah_menu');
+    const tambahMenuBtn = document.getElementById('tambahMenuBtn');
+
+    if (tambahMenuBtn) {
+        tambahMenuBtn.addEventListener('click', () => modalTambah.showModal());
+    }
+    
+    if (formTambah) {
+        formTambah.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const namaInput = document.getElementById('tambah_nama_menu');
+            const hargaInput = document.getElementById('tambah_harga_menu');
+            const kategoriInput = document.getElementById('tambah_kategori_menu');
+            const gambarInput = document.getElementById('tambah_gambar_menu');
+
+            const errorNama = document.getElementById('error_tambah_nama');
+            const errorHarga = document.getElementById('error_tambah_harga');
+            const errorKategori = document.getElementById('error_tambah_kategori');
+            const errorGambar = document.getElementById('error_tambah_gambar');
+
+            errorNama.textContent = '';
+            errorHarga.textContent = '';
+            errorKategori.textContent = '';
+            errorGambar.textContent = '';
+
+            let isValid = true;
+
+            if (namaInput.value.trim() === '') { errorNama.textContent = 'Nama menu tidak boleh kosong.'; isValid = false; }
+            if (hargaInput.value.trim() === '') { errorHarga.textContent = 'Harga tidak boleh kosong.'; isValid = false; }
+            if (kategoriInput.value === '') { errorKategori.textContent = 'Kategori harus dipilih.'; isValid = false; }
+            if (gambarInput.files.length === 0) { errorGambar.textContent = 'Gambar harus dipilih.'; isValid = false; }
+
+            if (isValid) {
+                console.log('Form Tambah Menu valid!');
+                modalTambah.close();
+                formTambah.reset();
+            }
         });
     }
 
-    // --- FUNGSI MODAL "UBAH DETAIL" (YANG SEBELUMNYA HILANG) ---
-    const ubahDetailButtons = document.querySelectorAll('.btn-ubah-detail');
+    // --- LOGIKA MODAL "UBAH DETAIL" ---
     const modalUbah = document.getElementById('modal_ubah_detail');
+    const formUbah = document.getElementById('form_ubah_detail');
+    const ubahDetailButtons = document.querySelectorAll('.btn-ubah-detail');
 
     if (ubahDetailButtons && modalUbah) {
         const formUbahNama = document.getElementById('ubah_nama_menu');
@@ -88,19 +117,22 @@ document.addEventListener('DOMContentLoaded', function () {
         
         ubahDetailButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const nama = this.dataset.nama;
-                const harga = this.dataset.harga;
-                const kategori = this.dataset.kategori;
-
-                formUbahNama.value = nama;
-                formUbahHarga.value = harga;
-                formUbahKategori.value = kategori;
-                
+                formUbahNama.value = this.dataset.nama;
+                formUbahHarga.value = this.dataset.harga;
+                formUbahKategori.value = this.dataset.kategori;
                 modalUbah.showModal();
             });
         });
     }
 
-    // Panggil filter sekali saat halaman dimuat
+    if (formUbah) {
+        formUbah.addEventListener('submit', function(event) {
+            event.preventDefault();
+            // Anda bisa menambahkan validasi di sini juga jika perlu
+            console.log('Form Ubah Detail valid!');
+            modalUbah.close();
+        });
+    }
+
     applyFilters();
 });
