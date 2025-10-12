@@ -8,4 +8,5 @@ Route::get('/', function () {
 });
 
 Route::get('/reschedule', [RescheduleController::class, 'showForm'])->name('reschedule.form');
-Route::post('/reschedule/find', [RescheduleController::class, 'findReservation'])->name('reschedule.find');
+Route::get('/reschedule/find', [RescheduleController::class, 'findReservation'])->name('reschedule.find');
+Route::post('/reschedule/update', [RescheduleController::class, 'updateSchedule'])->name('reschedule.update');
