@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Reservasi</title>
-    @vite(['resources/css/app.css', 'resources/js/manajemen-reservasi.js'])
+    <title>Manajemen Reschedule</title>
+    @vite(['resources/css/app.css', 'resources/js/manajemen-reschedule.js'])
 
     {{-- CSS --}}
     <style>
@@ -45,7 +45,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 8.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 8.25 20.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25A2.25 2.25 0 0 1 13.5 8.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
                         </svg></a></li>
-                <li class="bg-brand-background rounded-lg" title="Manajemen Reservasi"><a><svg
+                <li class="bg-brand-background rounded-lg" title="Manajemen Reschedule"><a><svg
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -70,7 +70,7 @@
             <div class="card w-full bg-white shadow-xl">
                 <div class="card-body">
                     <h1 class="text-2xl font-bold text-brand-text border-b-4 border-brand-primary pb-2">MANAJEMEN
-                        RESERVASI</h1>
+                        RESCHEDULE</h1>
                     <div class="flex justify-start items-center my-4 space-x-4">
                         <div class="form-control relative">
                             <svg xmlns="http://www.w3.org/2000/svg"
@@ -91,37 +91,37 @@
                             {{-- HEADER TABEL --}}
                             <thead>
                                 <tr class="text-brand-text text-center" style="background-color: #C6D2B9;">
-                                    <th>ID Reservasi</th>
+                                    <th>ID Reschedule</th>
                                     <th>ID Transaksi</th>
                                     <th>Nomor Meja</th>
                                     <th>Nama Customer</th>
                                     <th>Nomor Telepon</th>
                                     <th>Jumlah Orang</th>
                                     <th>Tanggal</th>
-                                    <th>Waktu Reservasi</th>
+                                    <th>Waktu Reschedule</th>
                                     <th>Status</th>
                                     <th>Aksi</th> 
                                 </tr>
                             </thead>
                             {{-- ISI TABEL --}}
                             <tbody class="text-brand-text">
-                                @foreach ($reservations as $reservation)
+                                @foreach ($reschedule as $reschedule)
                                     <tr class="text-center">
-                                        <th>{{ $reservation['id_reservasi'] }}</th>
-                                        <td>{{ $reservation['id_transaksi'] }}</td>
-                                        <td>{{ $reservation['nomor_meja'] }}</td>
-                                        <td>{{ $reservation['nama_customer'] }}</td>
-                                        <td>{{ $reservation['nomor_telepon'] }}</td>
-                                        <td>{{ $reservation['jumlah_orang'] }} Orang</td>
-                                        <td>{{ $reservation['tanggal'] }}</td>
-                                        <td>{{ $reservation['waktu_reservasi'] }}</td>
+                                        <th>{{ $reschedule['id_reschedule'] }}</th>
+                                        <td>{{ $reschedule['id_transaksi'] }}</td>
+                                        <td>{{ $reschedule['nomor_meja'] }}</td>
+                                        <td>{{ $reschedule['nama_customer'] }}</td>
+                                        <td>{{ $reschedule['nomor_telepon'] }}</td>
+                                        <td>{{ $reschedule['jumlah_orang'] }} Orang</td>
+                                        <td>{{ $reschedule['tanggal'] }}</td>
+                                        <td>{{ $reschedule['waktu_reschedule'] }}</td>
                                         <td>
                                             <span class="badge badge-sm" style="border: none;"></span>
                                         </td>
                                         <td>
                                             <div class="flex items-center justify-center">
                                                 <input type="checkbox" class="toggle toggle-md"
-                                                    {{ $reservation['status'] ? 'checked' : '' }} />
+                                                    {{ $reschedule['status'] ? 'checked' : '' }} />
                                             </div>
                                         </td>
                                     </tr>
