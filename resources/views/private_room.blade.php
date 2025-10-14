@@ -8,7 +8,12 @@
     <style>
         body {
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-            background-color: #F8F4EA;
+            background: 
+                linear-gradient(rgba(248, 244, 234, 0.85), rgba(248, 244, 234, 0.85)),
+                url('/images/background.jpg');
+            background-size: cover;
+            background-position: center 20%;
+            background-attachment: fixed;
             color: #3C4B44;
             margin: 0;
             display: flex;
