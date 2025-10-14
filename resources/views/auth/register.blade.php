@@ -115,8 +115,12 @@
             <div class="mb-6 flex justify-center">
                 <img src="/images/HOMEYY.png" 
                     alt="Logo Homey" 
+<<<<<<< HEAD
                     class="h-16 w-auto brightness-110"
                     style="filter: drop-shadow(0 0 1px black) drop-shadow(0 0 1px black);">
+=======
+                    class="h-16 w-auto drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">
+>>>>>>> Register
             </div>
 
             <h2 class="text-3xl font-bold mb-8">Create An Account</h2>
