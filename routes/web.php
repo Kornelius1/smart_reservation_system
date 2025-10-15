@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ManajemenMejaController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
@@ -33,3 +34,12 @@ Route::get('/customer/dashboard', function () {
 })->name('customer.dashboard')->middleware('auth');
 
 require __DIR__.'/auth.php';
+
+
+// Routes untuk Manajemen Meja
+Route::prefix('manajemen-meja')->name('manajemen-meja.')->group(function () {
+    Route::get('/', [ManajemenMejaController::class, 'index'])->name('index');
+    Route::put('/{id}', [ManajemenMejaController::class, 'update'])->name('update');
+    Route::get('/search', [ManajemenMejaController::class, 'search'])->name('search');
+    Route::patch('/{id}/toggle-status', [ManajemenMejaController::class, 'toggleStatus'])->name('toggle-status');
+});
