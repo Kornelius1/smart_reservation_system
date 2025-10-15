@@ -1,32 +1,29 @@
-import defaultTheme from "tailwindcss/defaultTheme";
 import forms from "@tailwindcss/forms";
-import daisyui from "daisyui"; // <-- Tambahkan import daisyui di sini
+import daisyui from "daisyui";
 
 /** @type {import('tailwindcss').Config} */
 export default {
-    content: [
-        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './storage/framework/views/*.php',
-        './resources/views/**/*.blade.php',
-        './resources/js/**/*.vue',
-        './resources/js/**/*.js', 
-    ],
+  content: [
+    "./resources/**/*.blade.php",
+    "./resources/**/*.js",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [forms, daisyui],
 
-    theme: {
-        
-        extend: {
-            colors: {
-                'brand-background': '#dfe6da',
-                'brand-text': '#414939',
-                'brand-primary': '#9CAF88',
-                'brand-primary-dark': '#414939',
-            },
-            fontFamily: {
-                sans: ["Figtree", ...defaultTheme.fontFamily.sans],
-            },
+  daisyui: {
+    themes: [
+      {
+        homey: {
+          "primary": "#414939",   // Warna gelap untuk tombol dan teks utama
+          "secondary": "#9CAF88",  // Warna terang untuk ornamen dan tombol
+          "accent": "#9CAF88",     // Warna ornamen
+          "base-100": "#FFFFFF",  // Warna untuk card
+          "neutral": "#2b3124",   // Warna footer
         },
-    },
+      },
+    ],
+  },
+} 
 
-    // Gabungkan semua plugin ke dalam satu array
-    plugins: [forms, daisyui],
-};

@@ -12,6 +12,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Customer\DenahMejaController;
 use App\Http\Controllers\Customer\BayarController;
 use App\Http\Controllers\Customer\PesanMenuController;
+use App\Http\Controllers\RescheduleController;
 
 
 
@@ -32,6 +33,10 @@ Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajeme
 Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');
 
 Route::post('/bayar', [BayarController::class, 'index'])->name('bayar.index');
+
+Route::get('/reschedule', [RescheduleController::class, 'showForm'])->name('reschedule.form');
+Route::get('/reschedule/find', [RescheduleController::class, 'findReservation'])->name('reschedule.find');
+Route::post('/reschedule/update', [RescheduleController::class, 'updateSchedule'])->name('reschedule.update');
 
 
 // === Landing Page ===
