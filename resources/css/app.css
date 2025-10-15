@@ -1,3 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* Remove @plugin "daisyui"; from CSS and add it to your tailwind.config.js plugins section */
+
+

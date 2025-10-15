@@ -1,7 +1,8 @@
 import './bootstrap';
+import { createApp } from 'vue';
+import MenuManagement from './components/MenuManagement.vue';
 
-import Alpine from 'alpinejs';
+const app = createApp({});
+app.component('manajemen-menu', MenuManagement);
 
-window.Alpine = Alpine;
-
-Alpine.start();
+app.mount('#app');

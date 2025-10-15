@@ -2,12 +2,17 @@
 
 use App\Http\Controllers\ManajemenMejaController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TableController; // Tambahkan ini
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+// ROUTE BARU UNTUK MANAJEMEN MEJA
+Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -19,6 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+<<<<<<< HEAD
 // === Login dengan Google ===
 Route::get('auth/google', [LoginController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('auth/google/callback', [LoginController::class, 'handleGoogleCallback']);
@@ -43,3 +49,6 @@ Route::prefix('manajemen-meja')->name('manajemen-meja.')->group(function () {
     Route::get('/search', [ManajemenMejaController::class, 'search'])->name('search');
     Route::patch('/{id}/toggle-status', [ManajemenMejaController::class, 'toggleStatus'])->name('toggle-status');
 });
+=======
+require __DIR__.'/auth.php';
+>>>>>>> ManajemenMeja1
