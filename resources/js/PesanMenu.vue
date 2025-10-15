@@ -179,7 +179,7 @@ function handleMouseMove(e) {
                 >
                     <figure class="px-8 pt-8">
                         <img
-                            :src="product.imageUrl"
+                            :src="product.image_url"
                             alt="Product Image"
                             class="rounded-xl h-36 w-full object-cover pointer-events-none"
                         />
@@ -234,7 +234,7 @@ function handleMouseMove(e) {
                 >
                     <figure class="px-8 pt-8">
                         <img
-                            :src="product.imageUrl"
+                            :src="product.image_url"
                             alt="Product Image"
                             class="rounded-xl h-36 w-full object-cover pointer-events-none"
                         />
