@@ -2,9 +2,13 @@
 
 use App\Http\Controllers\ManajemenMejaController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TableController; // Tambahkan ini
+use App\Http\Controllers\TableController; 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\Customer\BayarController;
+use App\Http\Controllers\Customer\PesanMenuController;
+
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -12,6 +16,11 @@ Route::get('/', function () {
 
 // ROUTE BARU UNTUK MANAJEMEN MEJA
 Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
+Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');
+
+Route::get('/pembayaran', [BayarController::class, 'show'])->name('bayar')->name('bayar.show');
+
+
 
 
 Route::get('/dashboard', function () {

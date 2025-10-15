@@ -1,0 +1,95 @@
+.frame {
+  position: relative;
+  width: 1440px;
+  height: 700px;
+  background: linear-gradient(
+    0deg,
+    rgba(156, 175, 136, 0.44) 0%,
+    rgba(156, 175, 136, 0.44) 100%
+  );
+}
+
+.frame .momen-santai-meja {
+  position: absolute;
+  width: 488px;
+  top: 207px;
+  left: 120px;
+  font-family: "Poltawski Nowy-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 64px;
+  letter-spacing: 0;
+  line-height: 60px;
+}
+
+.frame .cek-ketersediaan {
+  position: absolute;
+  width: 643px;
+  top: 357px;
+  left: 120px;
+  font-family: "Plus Jakarta Sans-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 30px;
+  letter-spacing: 0;
+  line-height: 40px;
+}
+
+.frame .button-cek-meja {
+  position: absolute;
+  width: 291px;
+  height: 53px;
+  top: 485px;
+  left: 120px;
+  background-color: #9caf88;
+  border-radius: 10px;
+}
+
+.frame .text-wrapper {
+  position: absolute;
+  width: 281px;
+  top: 6px;
+  left: 5px;
+  font-family: "Plus Jakarta Sans-Regular", Helvetica;
+  font-weight: 400;
+  color: #ffffff;
+  font-size: 25px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+/* Original CSS code should be injected here */
+
+.hero-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.button-cek-meja {
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.button-cek-meja:hover {
+  background-color: #8ba076;
+  transform: translateY(-2px);
+}
+
+.button-cek-meja:active {
+  transform: translateY(0);
+}
+
+.button-cek-meja:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.text-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}

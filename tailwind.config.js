@@ -1,5 +1,6 @@
 import defaultTheme from "tailwindcss/defaultTheme";
 import forms from "@tailwindcss/forms";
+import daisyui from "daisyui"; // <-- Tambahkan import daisyui di sini
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -12,6 +13,7 @@ export default {
     ],
 
     theme: {
+        
         extend: {
             colors: {
                 'brand-background': '#dfe6da',
@@ -25,8 +27,6 @@ export default {
         },
     },
 
-    plugins: [
-        forms,
-        require('daisyui'),
-    ],
+    // Gabungkan semua plugin ke dalam satu array
+    plugins: [forms, daisyui],
 };
