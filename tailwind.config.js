@@ -25,17 +25,8 @@ export default {
         },
     },
 
-<<<<<<< HEAD
-    plugins: [forms, require("daisyui")],
-
-    daisyui: {
-        themes: ["light"],
-    },
-};
-=======
     plugins: [
         forms,
         require('daisyui'),
     ],
 };
->>>>>>> ManajemenMeja1
