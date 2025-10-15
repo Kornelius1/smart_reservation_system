@@ -24,7 +24,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-<<<<<<< HEAD
 // === Login dengan Google ===
 Route::get('auth/google', [LoginController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('auth/google/callback', [LoginController::class, 'handleGoogleCallback']);
@@ -49,6 +48,4 @@ Route::prefix('manajemen-meja')->name('manajemen-meja.')->group(function () {
     Route::get('/search', [ManajemenMejaController::class, 'search'])->name('search');
     Route::patch('/{id}/toggle-status', [ManajemenMejaController::class, 'toggleStatus'])->name('toggle-status');
 });
-=======
 require __DIR__.'/auth.php';
->>>>>>> ManajemenMeja1
