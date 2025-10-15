@@ -22,46 +22,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// ROUTE BARU UNTUK MANAJEMEN MEJA
+// Route untuk manajemen meja yang sudah ada
 Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
-Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');
-
-Route::post('/bayar', [BayarController::class, 'index'])->name('bayar.index');
-
-
-// ROUTE BARU UNTUK MANAJEMEN MEJA
-Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
-Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');
-
-Route::post('/bayar', [BayarController::class, 'index'])->name('bayar.index');
-
-Route::get('/reschedule', [RescheduleController::class, 'showForm'])->name('reschedule.form');
-Route::get('/reschedule/find', [RescheduleController::class, 'findReservation'])->name('reschedule.find');
-Route::post('/reschedule/update', [RescheduleController::class, 'updateSchedule'])->name('reschedule.update');
+// Route BARU untuk manajemen reservasi
+Route::get('/manajemen-reservasi', [ReservationController::class, 'index'])->name('manajemen-reservasi');
 
 
-// === Landing Page ===
-Route::get('/landing-page', [LandingPageController::class, 'index'])
-    ->name('landing.page');
-
-// === Pemesanan Menu ===
-Route::get('/pemesanan-menu', [PemesananMenuController::class, 'index'])
-    ->name('pemesanan.menu');
-
-// === Dashboard Customer (tanpa login) ===
-Route::get('/customer/dashboard', [CustomerController::class, 'dashboard'])
-    ->name('customer.dashboard');
-
-// === Denah Meja (tanpa login) ===
-Route::get('/customer/denah-meja', [DenahMejaController::class, 'index'])
-    ->name('customer.denah-meja');
-
-// === Dashboard Admin (hanya admin login) ===
-Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
-    ->name('admin.dashboard')
-    ->middleware('auth');
-
-// === Redirect /dashboard ke dashboard customer ===
 Route::get('/dashboard', function () {
     return redirect()->route('customer.dashboard');
 })->name('dashboard');
