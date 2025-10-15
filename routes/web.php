@@ -13,6 +13,7 @@ use App\Http\Controllers\Customer\DenahMejaController;
 use App\Http\Controllers\Customer\BayarController;
 use App\Http\Controllers\Customer\PesanMenuController;
 use App\Http\Controllers\RescheduleController;
+use App\Http\Controllers\ReservationController; 
 
 
 
@@ -98,4 +99,24 @@ Route::prefix('manajemen-meja')->name('manajemen-meja.')->group(function () {
     Route::get('/search', [ManajemenMejaController::class, 'search'])->name('search');
     Route::patch('/{id}/toggle-status', [ManajemenMejaController::class, 'toggleStatus'])->name('toggle-status');
 });
+
+
+//Pilih Reservasi Route
+Route::get('/reservasi', [ReservationController::class, 'create'])
+    ->middleware(['auth'])->name('reservasi.create');
+
+    Route::get('/reservasi-ruangan', function () {
+    return view('reservasi');
+});
+
+Route::get('/private-room', function () {
+    return view('private_room'); 
+});
+
+Route::view('/private-room', 'private_room');
+
+Route::get('/reservasi-meja', function () {
+    return view('reservasi_meja'); // nanti kamu buat file ini juga
+});
+
 require __DIR__.'/auth.php';
