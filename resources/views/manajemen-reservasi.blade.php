@@ -56,6 +56,7 @@
                                     <th>ID Reservasi</th>
                                     <th>ID Transaksi</th>
                                     <th>Nomor Meja</th>
+                                     <th>Nomor Ruangan</th>
                                     <th>Nama Customer</th>
                                     <th>Nomor Telepon</th>
                                     <th>Jumlah Orang</th>
@@ -72,6 +73,7 @@
                                         <th>{{ $reservation['id_reservasi'] }}</th>
                                         <td>{{ $reservation['id_transaksi'] }}</td>
                                         <td>{{ $reservation['nomor_meja'] }}</td>
+                                         <td>{{ $reservation['nomor_ruangan'] }}</td>
                                         <td>{{ $reservation['nama_customer'] }}</td>
                                         <td>{{ $reservation['nomor_telepon'] }}</td>
                                         <td>{{ $reservation['jumlah_orang'] }} Orang</td>
