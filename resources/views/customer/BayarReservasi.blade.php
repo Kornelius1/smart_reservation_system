@@ -1,14 +1,13 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Konfirmasi Pesanan</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body>
@@ -19,17 +18,21 @@
             <div>
                 <h2 class="text-lg font-semibold mb-2">Detail Pesanan</h2>
                 <div class="space-y-2 text-sm">
-                    @foreach ($items as $item)
-                    <div class="flex justify-between">
-                        <span>{{ $item['name'] }}</span>
-                        <span>{{ $item['quantity'] }}x</span>
-                        <span>Rp {{ number_format($item['price'], 0, ',', '.') }}</span>
+                    {{-- 1. Loop melalui variabel $cartItems yang baru --}}
+                    @foreach ($cartItems as $item)
+                    <div class="grid grid-cols-3 gap-2 items-center">
+                        {{-- Tampilkan nama item --}}
+                        <span class="col-span-1">{{ $item['name'] }}</span>
+                        
+                        {{-- Tampilkan kuantitas dan harga satuan --}}
+                        <span class="text-center">{{ $item['quantity'] }} x Rp {{ number_format($item['price'], 0, ',', '.') }}</span>
+                        
+                        {{-- Tampilkan subtotal --}}
+                        <span class="text-right font-medium">Rp {{ number_format($item['subtotal'], 0, ',', '.') }}</span>
                     </div>
                     @endforeach
                 </div>
             </div>
-
-            <div class="divider before:bg-white/25 after:bg-white/25 my-6"></div>
 
             <div class="divider before:bg-white/25 after:bg-white/25 my-6"></div>
 
@@ -38,14 +41,15 @@
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between font-bold text-base mt-2">
                         <span>Total Pembayaran</span>
-                        <span>Rp {{ number_format($total, 0, ',', '.') }}</span>
+                        {{-- 2. Gunakan variabel $totalPrice yang baru --}}
+                        <span>Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
 
             <div class="mt-8">
                 <button class="btn bg-[#364132] hover:bg-[#2a3327] border-none text-white w-full">
-                    Bayar Sekarang
+                    Bayar Sekarang 🛒
                 </button>
             </div>
         </div>

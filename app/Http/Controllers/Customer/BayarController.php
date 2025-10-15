@@ -8,38 +8,49 @@ use App\Http\Controllers\Controller;
 
 class BayarController extends Controller
 {
-  public function show(Request $request)
+  public function index(Request $request)
     {
-        // 1. Validasi request
-        $request->validate([
-            'items' => 'required|array'
-        ]);
+        // Ambil array [id => quantity] dari form
+        $itemsFromRequest = $request->input('items', []);
 
-        $cartData = $request->input('items'); // Contoh: ['1' => 2, '10' => 1] (productId => quantity)
-
-        $orderItems = [];
-        $totalPrice = 0;
-
-        // 2. Loop melalui data keranjang
-        foreach ($cartData as $productId => $quantity) {
-            // Ambil detail produk dari DATABASE untuk keamanan (jangan percaya harga dari client)
-            $product = Product::find($productId);
-
-            if ($product) {
-                $orderItems[] = [
-                    'name'      => $product->name,
-                    'quantity'  => $quantity,
-                    'price'     => $product->price,
-                    'subtotal'  => $product->price * $quantity,
-                ];
-                $totalPrice += $product->price * $quantity;
-            }
+        // Jika keranjang kosong, kembalikan ke halaman sebelumnya atau halaman menu
+        if (empty($itemsFromRequest)) {
+            return redirect('/menu')->with('error', 'Keranjang Anda kosong!');
         }
 
-        // 3. Kirim data yang sudah aman ke view Blade
+        // 2. Ambil semua ID produk dari request
+        $productIds = array_keys($itemsFromRequest);
+
+        // 3. Ambil semua detail produk dari database dalam satu query
+        $products = Product::findMany($productIds);
+
+        $cartItems = [];
+        $totalPrice = 0;
+
+        // 4. Loop melalui produk yang ditemukan untuk membangun data keranjang
+        foreach ($products as $product) {
+            $quantity = $itemsFromRequest[$product->id];
+            $subtotal = $product->price * $quantity;
+
+            $cartItems[] = [
+                'id'       => $product->id,
+                'name'     => $product->name,
+                'price'    => $product->price,
+                'quantity' => $quantity,
+                'subtotal' => $subtotal,
+            ];
+
+            $totalPrice += $subtotal;
+        }
+
+
+        // dd($cartItems);
+        // dd($totalPrice);
+
+        // 5. Hapus dd() dan kirim data yang sudah lengkap ke view
         return view('customer.BayarReservasi', [
-            'items' => $orderItems,
-            'total' => $totalPrice
+            'cartItems'  => $cartItems,
+            'totalPrice' => $totalPrice
         ]);
     }
 }
