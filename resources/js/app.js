@@ -1,17 +1,21 @@
-import './bootstrap';
-import { createApp } from 'vue';
-import MenuManagement from './components/MenuManagement.vue';
+import "./bootstrap";
+import { createApp } from "vue";
+import Alpine from "alpinejs";
 
+// Impor semua komponen Vue Anda di sini
+import MenuManagement from "./components/MenuManagement.vue";
+import PesanMenu from "./PesanMenu.vue";
+
+// Buat satu aplikasi Vue
 const app = createApp({});
-app.component('manajemen-menu', MenuManagement);
 
-app.mount('#app');
+// Daftarkan semua komponen Anda di sini
+app.component("manajemen-menu", MenuManagement);
+app.component("pesan-menu", PesanMenu); // Nama komponen diubah menjadi kebab-case
+
+// Mount aplikasi utama ke elemen root, biasanya #app
+app.mount("#app");
+
+// Inisialisasi Alpine.js (tetap sama)
 window.Alpine = Alpine;
-
 Alpine.start();
-
-import { createApp } from 'vue';
-
-import PesanMenu from './PesanMenu.vue'; 
-
-createApp(PesanMenu).mount('#pesanmenu');

@@ -9,7 +9,7 @@
 @section('content')
 
     {{-- Konten unik Anda sekarang ada di dalam section ini --}}
-    <div id="pesanmenu"></div>
+    <div id="pesan-menu"></div>
 
     {{-- Jika halaman ini dijalankan oleh Vue/React, elemen dengan id="pesanmenu"
     akan menjadi titik mount-nya, yang dimuat oleh app.js dari layout. --}}
