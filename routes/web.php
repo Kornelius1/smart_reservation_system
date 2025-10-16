@@ -22,6 +22,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Routes untuk pesanmenu dan pembayaran
+Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');
+Route::get('/pembayaran', [BayarController::class, 'show'])->name('bayar')->name('bayar.show');
+
+
+
 // Route Untuk Reschedule
 Route::get('/reschedule', [RescheduleController::class, 'showForm'])->name('reschedule.form');
 Route::get('/reschedule/find', [RescheduleController::class, 'findReservation'])->name('reschedule.find');
