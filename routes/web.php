@@ -22,6 +22,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Route Untuk Reschedule
+Route::get('/reschedule', [RescheduleController::class, 'showForm'])->name('reschedule.form');
+Route::get('/reschedule/find', [RescheduleController::class, 'findReservation'])->name('reschedule.find');
+Route::post('/reschedule/update', [RescheduleController::class, 'updateSchedule'])->name('reschedule.update');
 
 // === Landing Page ===
 Route::get('/landing-page', [LandingPageController::class, 'index'])
