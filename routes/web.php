@@ -181,10 +181,16 @@ Route::middleware('auth')->group(function () {
 Route::get('auth/google', [LoginController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('auth/google/callback', [LoginController::class, 'handleGoogleCallback']);
 
+Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
+    ->name('admin.dashboard')
+    ->middleware('auth');
+
 // === Dashboard Admin ===
 Route::get('/admin/dashboard', function () {
     return view('admin.dashboard'); // ganti "admin.dashboard" sesuai nama file blade kamu
 })->name('admin.dashboard')->middleware('auth');
+
+
 
 // === Dashboard Customer ===
 Route::get('/customer/dashboard', function () {
