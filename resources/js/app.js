@@ -3,7 +3,7 @@ import { createApp } from "vue";
 import Alpine from "alpinejs";
 
 // Impor semua komponen Vue Anda di sini
-import MenuManagement from "./components/MenuManagement.vue";
+import MenuManagement from "./manajemen-menu.js";
 import PesanMenu from "./PesanMenu.vue";
 
 // Buat satu aplikasi Vue

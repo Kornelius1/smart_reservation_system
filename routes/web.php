@@ -17,37 +17,50 @@ use App\Http\Controllers\ReservationController;
 
 
 
-// === Halaman Awal ===
-Route::get('/', function () {
-    return view('welcome');
+// === ROUTES UNTUK HALAMAN CUSTOMER ===
+// 1. Landing Page
+Route::get('/', [LandingPageController::class, 'index'])
+    ->name('landing.page');
+
+// 2. Manajemen Reservasi - Masuk ke Admin ini
+Route::get('/reservasi', [ReservationController::class, 'create'])
+    ->middleware(['auth'])->name('reservasi.create');
+
+// 3. Pilih Jenis Reservasi
+Route::get('/pilih-reservasi', function () {
+    return view('reservasi');
 });
 
-// Routes untuk pesanmenu dan pembayaran
+// 3a. Pilih Ruangan
+Route::get('/private-room', function () {
+    return view('private_room'); 
+});
+
+// 3b. Pilih Meja
+Route::get('/customer/denah-meja', [DenahMejaController::class, 'index'])
+    ->name('customer.denah-meja'); // nanti nama di view reservasi ganti jadi route ini
+
+// 4. Routes untuk pesanmenu
 Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');
+
+// 5. Routes untuk pembayaran
 Route::get('/pembayaran', [BayarController::class, 'show'])->name('bayar')->name('bayar.show');
 
-
-
-// Route Untuk Reschedule
+// 6. Route Apabila ingin Reschedule
 Route::get('/reschedule', [RescheduleController::class, 'showForm'])->name('reschedule.form');
 Route::get('/reschedule/find', [RescheduleController::class, 'findReservation'])->name('reschedule.find');
 Route::post('/reschedule/update', [RescheduleController::class, 'updateSchedule'])->name('reschedule.update');
 
-// === Landing Page ===
-Route::get('/landing-page', [LandingPageController::class, 'index'])
-    ->name('landing.page');
 
-// === Pemesanan Menu ===
-Route::get('/pemesanan-menu', [PemesananMenuController::class, 'index'])
-    ->name('pemesanan.menu');
+// // === Pemesanan Menu ===
+// Route::get('/pemesanan-menu', [PemesananMenuController::class, 'index'])
+//     ->name('pemesanan.menu');
 
-// === Dashboard Customer (tanpa login) ===
-Route::get('/customer/dashboard', [CustomerController::class, 'dashboard'])
-    ->name('customer.dashboard');
+// // === Dashboard Customer (tanpa login) ===
+// Route::get('/customer/dashboard', [CustomerController::class, 'dashboard'])
+//     ->name('customer.dashboard');
 
-// === Denah Meja (tanpa login) ===
-Route::get('/customer/denah-meja', [DenahMejaController::class, 'index'])
-    ->name('customer.denah-meja');
+
 
 // Route untuk manajemen meja yang sudah ada
 Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
@@ -207,22 +220,5 @@ Route::prefix('manajemen-meja')->name('manajemen-meja.')->group(function () {
 });
 
 
-//Pilih Reservasi Route
-Route::get('/reservasi', [ReservationController::class, 'create'])
-    ->middleware(['auth'])->name('reservasi.create');
-
-    Route::get('/reservasi-ruangan', function () {
-    return view('reservasi');
-});
-
-Route::get('/private-room', function () {
-    return view('private_room'); 
-});
-
-Route::view('/private-room', 'private_room');
-
-Route::get('/reservasi-meja', function () {
-    return view('reservasi_meja'); // nanti kamu buat file ini juga
-});
 
 require __DIR__.'/auth.php';
