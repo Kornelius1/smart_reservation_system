@@ -22,6 +22,23 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
+// === Landing Page ===
+Route::get('/landing-page', [LandingPageController::class, 'index'])
+    ->name('landing.page');
+
+// === Pemesanan Menu ===
+Route::get('/pemesanan-menu', [PemesananMenuController::class, 'index'])
+    ->name('pemesanan.menu');
+
+// === Dashboard Customer (tanpa login) ===
+Route::get('/customer/dashboard', [CustomerController::class, 'dashboard'])
+    ->name('customer.dashboard');
+
+// === Denah Meja (tanpa login) ===
+Route::get('/customer/denah-meja', [DenahMejaController::class, 'index'])
+    ->name('customer.denah-meja');
+
 // Route untuk manajemen meja yang sudah ada
 Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
 // Route BARU untuk manajemen reservasi
