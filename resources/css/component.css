@@ -13,3 +13,26 @@
     border: none;
     color: #e5eedb;
 }
+
+
+.join-item.btn-disabled {
+    background-color: white !important;
+    color: black !important;
+    border-color: #d2d6dc !important;
+}
+
+/* BARU: CSS untuk menyembunyikan scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+/* BARU: Mengubah kursor saat item ditarik */
+.cursor-grab.active {
+    cursor: grabbing;
+    cursor: -webkit-grabbing;
+}
