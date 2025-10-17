@@ -1,0 +1,15 @@
+.btn-gradient {
+    background-image: linear-gradient(to right, #9caf88, #414939);
+    border: none;
+    color: #e5eedb;
+}
+
+.btn-gradient:hover {
+    opacity: 0.9;
+}
+
+.navbar-gradient {
+    background-image: linear-gradient(to right, #e5eedb, #414939);
+    border: none;
+    color: #e5eedb;
+}

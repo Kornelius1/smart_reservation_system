@@ -11,6 +11,6 @@ class PesanMenuController extends Controller
      */
     public function index()
     {
-        return view('customer.PesanMenu'); 
+        return view('customer.pesanmenu.PesanMenuMeja'); 
     }
 }

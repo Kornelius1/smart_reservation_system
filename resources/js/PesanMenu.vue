@@ -190,7 +190,7 @@ function handleMouseMove(e) {
                         <div class="card-actions mt-2">
                             <button
                                 v-if="product.quantity === 0"
-                                class="btn bg-gradient-to-r from-[#9CAF88] to-[#414939] border-none text-white"
+                                class="btn bg-gradient border-none text-white"
                                 @click="increaseQuantity(product)"
                             >
                                 Add to Cart

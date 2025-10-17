@@ -20,7 +20,7 @@ use App\Http\Controllers\ReservationController;
 // === ROUTES UNTUK HALAMAN CUSTOMER ===
 // 1. Landing Page
 Route::get('/', [LandingPageController::class, 'index'])
-    ->name('landing.page');
+    ->name('customer.landing.page');
 
 // 2. Manajemen Reservasi - Masuk ke Admin ini
 Route::get('/reservasi', [ReservationController::class, 'create'])
@@ -28,16 +28,16 @@ Route::get('/reservasi', [ReservationController::class, 'create'])
 
 // 3. Pilih Jenis Reservasi
 Route::get('/pilih-reservasi', function () {
-    return view('reservasi');
+    return view('customer.reservasi');
 });
 
 // 3a. Pilih Ruangan
-Route::get('/private-room', function () {
-    return view('private_room'); 
+Route::get('/reservasi-ruangan', function () {
+    return view('customer.reservasi-ruangan'); 
 });
 
 // 3b. Pilih Meja
-Route::get('/customer/denah-meja', [DenahMejaController::class, 'index'])
+Route::get('/reservasi-meja', [DenahMejaController::class, 'index'])
     ->name('customer.denah-meja'); // nanti nama di view reservasi ganti jadi route ini
 
 // 4. Routes untuk pesanmenu

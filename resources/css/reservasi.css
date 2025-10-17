@@ -1,0 +1,31 @@
+.body-custom {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Roboto;
+    background: linear-gradient(
+            rgba(248, 244, 234, 0.85),
+            rgba(248, 244, 234, 0.85)
+        ),
+        url("../images/background.jpg");
+    background-size: cover;
+    background-position: center 20%;
+    background-attachment: fixed;
+    color: #3c4b44;
+}
+
+/* Kelas-kelas custom yang digunakan di kedua halaman */
+.bg-dark-green {
+    background-color: #3c4b44;
+}
+
+.btn-custom {
+    background-color: #3c4b44;
+    color: #fff;
+    border-radius: 9999px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-custom:hover {
+    background-color: #2e3833;
+}
