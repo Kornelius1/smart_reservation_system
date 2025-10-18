@@ -18,8 +18,12 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
+        // $this->call([
+        //     MejaSeeder::class,
+        // ]);
+
         $this->call([
-            MejaSeeder::class,
-        ]);
+        ProductSeeder::class,
+    ]);
     }
 }

@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class LoginController extends Controller
 {
@@ -24,7 +25,7 @@ class LoginController extends Controller
         try {
             // Coba pakai mode "sessionful" dulu
             $googleUser = Socialite::driver('google')->user();
-        } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
+        } catch (InvalidStateException $e) {
             // Kalau state/session bermasalah, fallback ke stateless
             $googleUser = Socialite::driver('google')->stateless()->user();
         } catch (\Throwable $e) {

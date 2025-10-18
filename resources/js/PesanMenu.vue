@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import axios from "axios";
-import ProductCard from "@/components/ProductCard.vue"; // 1. Impor komponen ProductCard
+import ProductCard from "@/components/ProductCard.vue";
 
 // --- STATE MANAGEMENT ---
 const allProducts = ref([]);
@@ -11,12 +11,29 @@ const searchQuery = ref("");
 const debouncedSearchQuery = ref("");
 let debounceTimer = null;
 
+// --- STATE BARU UNTUK RESERVASI ---
+const roomName = ref(null);
+const minimumOrder = ref(0);
+
 const csrfToken = ref(
     document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
 );
 
-// --- PENGAMBILAN DATA API ---
+// --- PENGAMBILAN DATA API & BACA URL ---
 onMounted(async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const room = urlParams.get("room_name");
+    const minOrder = urlParams.get("min_order");
+
+    if (!room || !minOrder) {
+        alert("Silakan pilih jenis reservasi terlebih dahulu.");
+        window.location.href = "/pilih-reservasi";
+        return;
+    }
+
+    roomName.value = room;
+    minimumOrder.value = parseInt(minOrder, 10);
+
     try {
         const response = await axios.get("/api/products");
         allProducts.value = response.data.map((product) => ({
@@ -32,16 +49,14 @@ onMounted(async () => {
 });
 
 // --- DEBOUNCE UNTUK PENCARIAN ---
-// 2. Terapkan debounce pada input pencarian
 watch(searchQuery, (newVal) => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
         debouncedSearchQuery.value = newVal;
-    }, 300); // Filter akan dijalankan 300ms setelah pengguna berhenti mengetik
+    }, 300);
 });
 
 // --- COMPUTED PROPERTIES UNTUK KATEGORI & FILTER ---
-// 3. Fungsi filter dibuat generik agar bisa dipakai ulang
 const getFilteredProductsByCategory = (category) => {
     return computed(() => {
         let products = allProducts.value.filter((p) => p.category === category);
@@ -56,26 +71,18 @@ const getFilteredProductsByCategory = (category) => {
     });
 };
 
+// =================================================================
+// --- TAMBAHKAN SEMUA KATEGORI DI SINI ---
 const filteredCoffees = getFilteredProductsByCategory("coffee");
 const filteredSnacks = getFilteredProductsByCategory("snack");
 const filteredHeavyMeals = getFilteredProductsByCategory("heavy-meal");
+const filteredTraditional = getFilteredProductsByCategory("traditional");
+const filteredFreshDrinks = getFilteredProductsByCategory("fresh-drink");
+const filteredJuice = getFilteredProductsByCategory("juice");
+const filteredSpecialTastes = getFilteredProductsByCategory("special-taste");
+const filteredIceCreams = getFilteredProductsByCategory("ice-cream");
+// =================================================================
 
-// --- COMPUTED PROPERTIES UNTUK KERANJANG ---
-const totalItems = computed(() => {
-    return allProducts.value.reduce((total, p) => total + p.quantity, 0);
-});
-
-const totalPrice = computed(() => {
-    const total = allProducts.value.reduce(
-        (total, p) => total + p.price * p.quantity,
-        0
-    );
-    return new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        minimumFractionDigits: 0,
-    }).format(total);
-});
 
 // --- METHODS ---
 function increaseQuantity(product) {
@@ -116,11 +123,62 @@ function handleMouseMove(e) {
     const walk = (x - startX.value) * 2;
     slider.scrollLeft = scrollLeft.value - walk;
 }
+
+// --- COMPUTED PROPERTIES UNTUK KERANJANG ---
+const totalItems = computed(() => {
+    return allProducts.value.reduce((total, p) => total + p.quantity, 0);
+});
+
+const totalPriceRaw = computed(() => {
+    return allProducts.value.reduce(
+        (total, p) => total + p.price * p.quantity,
+        0
+    );
+});
+
+const totalPriceFormatted = computed(() => {
+    return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        minimumFractionDigits: 0,
+    }).format(totalPriceRaw.value);
+});
+
+const isOrderMinimumMet = computed(() => {
+    if (minimumOrder.value === 0) {
+        return true;
+    }
+    return totalPriceRaw.value >= minimumOrder.value;
+});
 </script>
 
 <template>
     <main class="text-[#738764] bg-[#ffffff]">
         <div class="md:px-12 py-8 px-4">
+            <div v-if="roomName" class="alert alert-info shadow-lg mb-8">
+                <div>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        class="stroke-current flex-shrink-0 w-6 h-6"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        ></path>
+                    </svg>
+                    <span>
+                        Anda memesan untuk <b>{{ roomName }}</b
+                        >. Minimal pemesanan adalah
+                        <b>Rp {{ minimumOrder.toLocaleString("id-ID") }}</b
+                        >.
+                    </span>
+                </div>
+            </div>
+
             <label class="input input-bordered flex items-center gap-2">
                 <input
                     type="text"
@@ -150,71 +208,101 @@ function handleMouseMove(e) {
             </div>
 
             <template v-if="!isLoading && !error">
-                <h2 class="text-2xl font-semibold px-4 mb-4">Coffee</h2>
-                <div
-                    v-if="filteredCoffees.length > 0"
-                    class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                    @mousedown="handleMouseDown"
-                    @mouseleave="handleMouseLeave"
-                    @mouseup="handleMouseUp"
-                    @mousemove="handleMouseMove"
-                >
-                    <ProductCard
-                        v-for="product in filteredCoffees"
-                        :key="product.id"
-                        :product="product"
-                        @increase-quantity="increaseQuantity"
-                        @decrease-quantity="decreaseQuantity"
-                    />
+                
+                <div v-if="filteredCoffees.length > 0">
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Coffee</h2>
+                    <div
+                        class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
+                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                    >
+                        <ProductCard v-for="product in filteredCoffees" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                    </div>
                 </div>
-                <p v-else class="px-4 text-gray-500">Menu tidak ditemukan.</p>
 
-                <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Snacks</h2>
-                <div
-                    v-if="filteredSnacks.length > 0"
-                    class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                    @mousedown="handleMouseDown"
-                    @mouseleave="handleMouseLeave"
-                    @mouseup="handleMouseUp"
-                    @mousemove="handleMouseMove"
-                >
-                    <ProductCard
-                        v-for="product in filteredSnacks"
-                        :key="product.id"
-                        :product="product"
-                        @increase-quantity="increaseQuantity"
-                        @decrease-quantity="decreaseQuantity"
-                    />
+                <div v-if="filteredHeavyMeals.length > 0">
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Heavy Meals</h2>
+                    <div
+                        class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
+                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                    >
+                        <ProductCard v-for="product in filteredHeavyMeals" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                    </div>
                 </div>
-                <p v-else class="px-4 text-gray-500">Menu tidak ditemukan.</p>
 
-                <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">
-                    Heavy Meals
-                </h2>
-                <div
-                    v-if="filteredHeavyMeals.length > 0"
-                    class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                    @mousedown="handleMouseDown"
-                    @mouseleave="handleMouseLeave"
-                    @mouseup="handleMouseUp"
-                    @mousemove="handleMouseMove"
-                >
-                    <ProductCard
-                        v-for="product in filteredHeavyMeals"
-                        :key="product.id"
-                        :product="product"
-                        @increase-quantity="increaseQuantity"
-                        @decrease-quantity="decreaseQuantity"
-                    />
+                <div v-if="filteredSnacks.length > 0">
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Snacks</h2>
+                    <div
+                        class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
+                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                    >
+                        <ProductCard v-for="product in filteredSnacks" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                    </div>
                 </div>
-                <p v-else class="px-4 text-gray-500">Menu tidak ditemukan.</p>
+
+                <div v-if="filteredSpecialTastes.length > 0">
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Special Taste</h2>
+                    <div
+                        class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
+                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                    >
+                        <ProductCard v-for="product in filteredSpecialTastes" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                    </div>
+                </div>
+
+                <div v-if="filteredFreshDrinks.length > 0">
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Fresh Drinks</h2>
+                    <div
+                        class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
+                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                    >
+                        <ProductCard v-for="product in filteredFreshDrinks" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                    </div>
+                </div>
+                
+                <div v-if="filteredJuice.length > 0">
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Juice</h2>
+                    <div
+                        class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
+                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                    >
+                        <ProductCard v-for="product in filteredJuice" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                    </div>
+                </div>
+
+                <div v-if="filteredTraditional.length > 0">
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Traditional</h2>
+                    <div
+                        class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
+                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                    >
+                        <ProductCard v-for="product in filteredTraditional" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                    </div>
+                </div>
+                
+                <div v-if="filteredIceCreams.length > 0">
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Ice Cream</h2>
+                    <div
+                        class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
+                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                    >
+                        <ProductCard v-for="product in filteredIceCreams" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                    </div>
+                </div>
+
+                 <div v-if="allProducts.length > 0 && 
+                    !filteredCoffees.length && !filteredHeavyMeals.length && 
+                    !filteredSnacks.length && !filteredSpecialTastes.length &&
+                    !filteredFreshDrinks.length && !filteredJuice.length &&
+                    !filteredTraditional.length && !filteredIceCreams.length">
+                    <p class="px-4 text-gray-500 text-center">Menu '{{ debouncedSearchQuery }}' tidak ditemukan.</p>
+                </div>
             </template>
         </div>
     </main>
-
+    
     <form
         v-if="totalItems > 0"
-        action="/bayar"
+        action="/konfirmasi-pesanan"
         method="POST"
         class="sticky bottom-0"
     >
@@ -227,28 +315,52 @@ function handleMouseMove(e) {
                 :value="product.quantity"
             />
         </template>
-        <div
-            class="z-50 grid grid-cols-2 items-center gap-4 bg-base-100 p-4 shadow-[0_-2px_5px_rgba(0,0,0,0.1)]"
-        >
-            <div class="stat p-0">
-                <div class="stat-title">Total Harga</div>
-                <div class="stat-value text-[#414939]">{{ totalPrice }}</div>
-                <div class="stat-desc">{{ totalItems }} item ditambahkan</div>
-            </div>
-            <div class="text-right">
-                <button
-                    type="submit"
-                    class="btn bg-gradient-to-r from-[#9CAF88] to-[#414939] border-none text-white"
-                >
-                    Lanjut ke Pembayaran 🛒
-                </button>
+
+        <input
+            v-if="roomName"
+            type="hidden"
+            name="reservation_room_name"
+            :value="roomName"
+        />
+
+        <div class="z-50 bg-base-100 p-4 shadow-[0_-2px_5px_rgba(0,0,0,0.1)]">
+            <p
+                v-if="!isOrderMinimumMet"
+                class="text-center text-red-600 mb-2 text-sm font-semibold"
+            >
+                Total belanja belum memenuhi minimal pemesanan (Rp
+                {{ minimumOrder.toLocaleString("id-ID") }})
+            </p>
+
+            <div class="grid grid-cols-2 items-center gap-4">
+                <div class="stat p-0">
+                    <div class="stat-title">Total Harga</div>
+                    <div class="stat-value text-[#414939]">
+                        {{ totalPriceFormatted }}
+                    </div>
+                    <div class="stat-desc">
+                        {{ totalItems }} item ditambahkan
+                    </div>
+                </div>
+                <div class="text-right">
+                    <button
+                        type="submit"
+                        class="btn bg-gradient-to-r from-[#9CAF88] to-[#414939] border-none text-white"
+                        :disabled="!isOrderMinimumMet"
+                        :class="{
+                            'opacity-50 cursor-not-allowed': !isOrderMinimumMet,
+                        }"
+                    >
+                        Lanjut ke Pembayaran 🛒
+                    </button>
+                </div>
             </div>
         </div>
     </form>
 </template>
 
 <style scoped>
-/* CSS untuk menyembunyikan scrollbar */
+/* CSS (Tidak berubah) */
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
@@ -256,7 +368,6 @@ function handleMouseMove(e) {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
 }
-/* Mengubah kursor saat item ditarik */
 .cursor-grab.active {
     cursor: grabbing;
     cursor: -webkit-grabbing;

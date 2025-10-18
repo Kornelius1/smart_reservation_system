@@ -20,7 +20,7 @@
                 <p>💰 Min. Order: Rp200.000 / 3 jam</p>
                 <p>⏱ Extra Time: Rp50.000 / jam</p>
             </div>
-            <a href="#" class="btn-custom inline-block">Pilih Ruangan Ini</a>
+            <a href="/pesanmenu?room_name=Ruangan+1&min_order=200000" class="btn-custom inline-block">Pilih Ruangan Ini</a>
         </div>
 
         <div
@@ -32,7 +32,7 @@
                 <p>💰 Min. Order: Rp400.000 / 3 jam</p>
                 <p>⏱ Extra Time: Rp500.000 / jam</p>
             </div>
-            <a href="#" class="btn-custom inline-block">Pilih Ruangan Ini</a>
+            <a href="/pesanmenu?room_name=Ruangan+2&min_order=400000" class="btn-custom inline-block">Pilih Ruangan Ini</a>
         </div>
 
     </div>

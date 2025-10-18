@@ -44,7 +44,11 @@ Route::get('/reservasi-meja', [DenahMejaController::class, 'index'])
 Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');
 
 // 5. Routes untuk pembayaran
-Route::get('/pembayaran', [BayarController::class, 'show'])->name('bayar')->name('bayar.show');
+// Rute untuk MENAMPILKAN halaman konfirmasi (dari PesanMenu.vue)
+Route::post('/konfirmasi-pesanan', [BayarController::class, 'show'])->name('payment.confirmation');
+
+// Rute untuk MEMPROSES PEMBAYARAN (dari halaman konfirmasi)
+Route::post('/proses-pembayaran', [BayarController::class, 'processPayment'])->name('payment.process');
 
 // 6. Route Apabila ingin Reschedule
 Route::get('/reschedule', [RescheduleController::class, 'showForm'])->name('reschedule.form');
