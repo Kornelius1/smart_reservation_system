@@ -26,7 +26,7 @@ const emit = defineEmits(["increase-quantity", "decrease-quantity"]);
             <div class="card-actions mt-2">
                 <button
                     v-if="product.quantity === 0"
-                    class="btn bg-gradient-to-r from-[#9CAF88] to-[#414939] border-none text-white"
+                    class="btn btn-gradient-card"
                     @click="emit('increase-quantity', product)"
                 >
                     Add to Cart

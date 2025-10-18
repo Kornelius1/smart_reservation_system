@@ -4,6 +4,12 @@
     color: #e5eedb;
 }
 
+.btn-gradient-card {
+    background-image: linear-gradient(to right, #9caf88, #414939);
+    border: none;
+    color: white;
+}
+
 .btn-gradient:hover {
     opacity: 0.9;
 }

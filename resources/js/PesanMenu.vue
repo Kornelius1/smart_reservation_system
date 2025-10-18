@@ -345,7 +345,7 @@ const isOrderMinimumMet = computed(() => {
                 <div class="text-right">
                     <button
                         type="submit"
-                        class="btn bg-gradient-to-r from-[#9CAF88] to-[#414939] border-none text-white"
+                        class="btn btn-gradient-card"
                         :disabled="!isOrderMinimumMet"
                         :class="{
                             'opacity-50 cursor-not-allowed': !isOrderMinimumMet,
