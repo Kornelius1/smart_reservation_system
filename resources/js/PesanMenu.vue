@@ -12,7 +12,8 @@ const debouncedSearchQuery = ref("");
 let debounceTimer = null;
 
 // --- STATE BARU UNTUK RESERVASI ---
-const roomName = ref(null);
+const reservationType = ref(null); // Akan berisi 'meja' atau 'ruangan'
+const reservationDetail = ref(null); // Akan berisi nomor meja atau nama ruangan
 const minimumOrder = ref(0);
 
 const csrfToken = ref(
@@ -23,17 +24,31 @@ const csrfToken = ref(
 onMounted(async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const room = urlParams.get("room_name");
-    const minOrder = urlParams.get("min_order");
+    const tableNumber = urlParams.get("table_number");
+    const minOrder = urlParams.get("min_order"); // Variabel ini sekarang bisa datang dari meja atau ruangan
 
-    if (!room || !minOrder) {
+    // --- LOGIKA CERDAS BARU DI SINI ---
+    if (tableNumber && minOrder) {
+        // Ini adalah reservasi MEJA
+        reservationType.value = "meja";
+        reservationDetail.value = tableNumber;
+        minimumOrder.value = parseInt(minOrder, 10);
+    } else if (room && minOrder) {
+        // Ini adalah reservasi RUANGAN
+        reservationType.value = "ruangan";
+        reservationDetail.value = room;
+        minimumOrder.value = parseInt(minOrder, 10);
+    } else {
+        // Jika tidak ada parameter reservasi sama sekali, alihkan
         alert("Silakan pilih jenis reservasi terlebih dahulu.");
-        window.location.href = "/pilih-reservasi";
+        window.location.href = "/pilih-reservasi"; // Ganti dengan URL halaman pemilihan utama Anda
         return;
     }
 
-    roomName.value = room;
-    minimumOrder.value = parseInt(minOrder, 10);
+    // roomName.value = room;
+    // minimumOrder.value = parseInt(minOrder, 10);
 
+    //fetch produk
     try {
         const response = await axios.get("/api/products");
         allProducts.value = response.data.map((product) => ({
@@ -82,7 +97,6 @@ const filteredJuice = getFilteredProductsByCategory("juice");
 const filteredSpecialTastes = getFilteredProductsByCategory("special-taste");
 const filteredIceCreams = getFilteredProductsByCategory("ice-cream");
 // =================================================================
-
 
 // --- METHODS ---
 function increaseQuantity(product) {
@@ -155,24 +169,20 @@ const isOrderMinimumMet = computed(() => {
 <template>
     <main class="text-[#738764] bg-[#ffffff]">
         <div class="md:px-12 py-8 px-4">
-            <div v-if="roomName" class="alert alert-info shadow-lg mb-8">
+            <div v-if="reservationType" class="alert alert-info shadow-lg mb-8">
                 <div>
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        class="stroke-current flex-shrink-0 w-6 h-6"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        ></path>
-                    </svg>
                     <span>
-                        Anda memesan untuk <b>{{ roomName }}</b
-                        >. Minimal pemesanan adalah
+                        <template v-if="reservationType === 'meja'">
+                            Anda memesan untuk
+                            <b>Meja {{ reservationDetail }}</b
+                            >.
+                        </template>
+                        <template v-else-if="reservationType === 'ruangan'">
+                            Anda memesan untuk <b>{{ reservationDetail }}</b
+                            >.
+                        </template>
+                        <br />
+                        Minimal pemesanan adalah
                         <b>Rp {{ minimumOrder.toLocaleString("id-ID") }}</b
                         >.
                     </span>
@@ -208,98 +218,193 @@ const isOrderMinimumMet = computed(() => {
             </div>
 
             <template v-if="!isLoading && !error">
-                
                 <div v-if="filteredCoffees.length > 0">
-                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Coffee</h2>
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">
+                        Coffee
+                    </h2>
                     <div
                         class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                        @mousedown="handleMouseDown"
+                        @mouseleave="handleMouseLeave"
+                        @mouseup="handleMouseUp"
+                        @mousemove="handleMouseMove"
                     >
-                        <ProductCard v-for="product in filteredCoffees" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                        <ProductCard
+                            v-for="product in filteredCoffees"
+                            :key="product.id"
+                            :product="product"
+                            @increase-quantity="increaseQuantity"
+                            @decrease-quantity="decreaseQuantity"
+                        />
                     </div>
                 </div>
 
                 <div v-if="filteredHeavyMeals.length > 0">
-                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Heavy Meals</h2>
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">
+                        Heavy Meals
+                    </h2>
                     <div
                         class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                        @mousedown="handleMouseDown"
+                        @mouseleave="handleMouseLeave"
+                        @mouseup="handleMouseUp"
+                        @mousemove="handleMouseMove"
                     >
-                        <ProductCard v-for="product in filteredHeavyMeals" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                        <ProductCard
+                            v-for="product in filteredHeavyMeals"
+                            :key="product.id"
+                            :product="product"
+                            @increase-quantity="increaseQuantity"
+                            @decrease-quantity="decreaseQuantity"
+                        />
                     </div>
                 </div>
 
                 <div v-if="filteredSnacks.length > 0">
-                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Snacks</h2>
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">
+                        Snacks
+                    </h2>
                     <div
                         class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                        @mousedown="handleMouseDown"
+                        @mouseleave="handleMouseLeave"
+                        @mouseup="handleMouseUp"
+                        @mousemove="handleMouseMove"
                     >
-                        <ProductCard v-for="product in filteredSnacks" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                        <ProductCard
+                            v-for="product in filteredSnacks"
+                            :key="product.id"
+                            :product="product"
+                            @increase-quantity="increaseQuantity"
+                            @decrease-quantity="decreaseQuantity"
+                        />
                     </div>
                 </div>
 
                 <div v-if="filteredSpecialTastes.length > 0">
-                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Special Taste</h2>
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">
+                        Special Taste
+                    </h2>
                     <div
                         class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                        @mousedown="handleMouseDown"
+                        @mouseleave="handleMouseLeave"
+                        @mouseup="handleMouseUp"
+                        @mousemove="handleMouseMove"
                     >
-                        <ProductCard v-for="product in filteredSpecialTastes" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                        <ProductCard
+                            v-for="product in filteredSpecialTastes"
+                            :key="product.id"
+                            :product="product"
+                            @increase-quantity="increaseQuantity"
+                            @decrease-quantity="decreaseQuantity"
+                        />
                     </div>
                 </div>
 
                 <div v-if="filteredFreshDrinks.length > 0">
-                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Fresh Drinks</h2>
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">
+                        Fresh Drinks
+                    </h2>
                     <div
                         class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                        @mousedown="handleMouseDown"
+                        @mouseleave="handleMouseLeave"
+                        @mouseup="handleMouseUp"
+                        @mousemove="handleMouseMove"
                     >
-                        <ProductCard v-for="product in filteredFreshDrinks" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                        <ProductCard
+                            v-for="product in filteredFreshDrinks"
+                            :key="product.id"
+                            :product="product"
+                            @increase-quantity="increaseQuantity"
+                            @decrease-quantity="decreaseQuantity"
+                        />
                     </div>
                 </div>
-                
+
                 <div v-if="filteredJuice.length > 0">
                     <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Juice</h2>
                     <div
                         class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                        @mousedown="handleMouseDown"
+                        @mouseleave="handleMouseLeave"
+                        @mouseup="handleMouseUp"
+                        @mousemove="handleMouseMove"
                     >
-                        <ProductCard v-for="product in filteredJuice" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                        <ProductCard
+                            v-for="product in filteredJuice"
+                            :key="product.id"
+                            :product="product"
+                            @increase-quantity="increaseQuantity"
+                            @decrease-quantity="decreaseQuantity"
+                        />
                     </div>
                 </div>
 
                 <div v-if="filteredTraditional.length > 0">
-                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Traditional</h2>
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">
+                        Traditional
+                    </h2>
                     <div
                         class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
+                        @mousedown="handleMouseDown"
+                        @mouseleave="handleMouseLeave"
+                        @mouseup="handleMouseUp"
+                        @mousemove="handleMouseMove"
                     >
-                        <ProductCard v-for="product in filteredTraditional" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
-                    </div>
-                </div>
-                
-                <div v-if="filteredIceCreams.length > 0">
-                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">Ice Cream</h2>
-                    <div
-                        class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
-                        @mousedown="handleMouseDown" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp" @mousemove="handleMouseMove"
-                    >
-                        <ProductCard v-for="product in filteredIceCreams" :key="product.id" :product="product" @increase-quantity="increaseQuantity" @decrease-quantity="decreaseQuantity" />
+                        <ProductCard
+                            v-for="product in filteredTraditional"
+                            :key="product.id"
+                            :product="product"
+                            @increase-quantity="increaseQuantity"
+                            @decrease-quantity="decreaseQuantity"
+                        />
                     </div>
                 </div>
 
-                 <div v-if="allProducts.length > 0 && 
-                    !filteredCoffees.length && !filteredHeavyMeals.length && 
-                    !filteredSnacks.length && !filteredSpecialTastes.length &&
-                    !filteredFreshDrinks.length && !filteredJuice.length &&
-                    !filteredTraditional.length && !filteredIceCreams.length">
-                    <p class="px-4 text-gray-500 text-center">Menu '{{ debouncedSearchQuery }}' tidak ditemukan.</p>
+                <div v-if="filteredIceCreams.length > 0">
+                    <h2 class="text-2xl font-semibold px-4 mt-8 mb-4">
+                        Ice Cream
+                    </h2>
+                    <div
+                        class="flex overflow-x-auto space-x-4 p-4 rounded-box no-scrollbar cursor-grab select-none"
+                        @mousedown="handleMouseDown"
+                        @mouseleave="handleMouseLeave"
+                        @mouseup="handleMouseUp"
+                        @mousemove="handleMouseMove"
+                    >
+                        <ProductCard
+                            v-for="product in filteredIceCreams"
+                            :key="product.id"
+                            :product="product"
+                            @increase-quantity="increaseQuantity"
+                            @decrease-quantity="decreaseQuantity"
+                        />
+                    </div>
+                </div>
+
+                <div
+                    v-if="
+                        allProducts.length > 0 &&
+                        !filteredCoffees.length &&
+                        !filteredHeavyMeals.length &&
+                        !filteredSnacks.length &&
+                        !filteredSpecialTastes.length &&
+                        !filteredFreshDrinks.length &&
+                        !filteredJuice.length &&
+                        !filteredTraditional.length &&
+                        !filteredIceCreams.length
+                    "
+                >
+                    <p class="px-4 text-gray-500 text-center">
+                        Menu '{{ debouncedSearchQuery }}' tidak ditemukan.
+                    </p>
                 </div>
             </template>
         </div>
     </main>
-    
+
     <form
         v-if="totalItems > 0"
         action="/konfirmasi-pesanan"
@@ -317,10 +422,17 @@ const isOrderMinimumMet = computed(() => {
         </template>
 
         <input
-            v-if="roomName"
+            v-if="reservationType === 'meja'"
+            type="hidden"
+            name="reservation_table_number"
+            :value="reservationDetail"
+        />
+
+        <input
+            v-if="reservationType === 'ruangan'"
             type="hidden"
             name="reservation_room_name"
-            :value="roomName"
+            :value="reservationDetail"
         />
 
         <div class="z-50 bg-base-100 p-4 shadow-[0_-2px_5px_rgba(0,0,0,0.1)]">

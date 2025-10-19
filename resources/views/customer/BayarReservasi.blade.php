@@ -32,8 +32,13 @@
                 @foreach ($cartItems as $item)
                     <input type="hidden" name="items[{{ $item['id'] }}]" value="{{ $item['quantity'] }}">
                 @endforeach
+                {{-- BARU: Kirim input yang benar berdasarkan tipe reservasi --}}
                 @if(isset($reservationDetails))
-                    <input type="hidden" name="reservation_room_name" value="{{ $reservationDetails['room_name'] }}">
+                    @if($reservationDetails['type'] === 'ruangan')
+                        <input type="hidden" name="reservation_room_name" value="{{ $reservationDetails['detail'] }}">
+                    @elseif($reservationDetails['type'] === 'meja')
+                        <input type="hidden" name="reservation_table_number" value="{{ $reservationDetails['detail'] }}">
+                    @endif
                 @endif
 
                 <h1 class="text-3xl font-bold text-center mb-2">Konfirmasi Pesanan Anda</h1>
@@ -41,7 +46,13 @@
                 {{-- Tampilkan detail reservasi untuk kejelasan pengguna --}}
                 @if (isset($reservationDetails))
                     <div class="mb-6 p-3 bg-white/10 rounded-lg text-center">
-                        <p class="font-semibold text-sm">Reservasi untuk: {{ $reservationDetails['room_name'] }}</p>
+                        <p class="font-semibold text-sm">
+                            @if($reservationDetails['type'] === 'ruangan')
+                                Reservasi untuk: {{ $reservationDetails['detail'] }}
+                            @elseif($reservationDetails['type'] === 'meja')
+                                Reservasi untuk: Meja {{ $reservationDetails['detail'] }}
+                            @endif
+                        </p>
                     </div>
                 @endif
 

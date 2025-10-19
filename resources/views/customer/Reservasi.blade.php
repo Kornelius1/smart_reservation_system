@@ -22,7 +22,7 @@
             <img src="{{ asset('../images/meja.svg') }}" alt="Reservasi Meja" class="mx-auto w-40 h-48 mb-6">
             <h2 class="text-2xl font-bold mb-4">Reservasi Meja</h2>
             <p class="mb-6">Pilih reservasi meja biasa sesuai jumlah kursi yang tersedia.</p>
-            <a href="{{ url('/reservasi-meja') }}" class="btn-custom inline-block">Pilih</a>
+            <a href="{{ url('/pilih-meja') }}" class="btn-custom inline-block">Pilih</a>
         </div>
 
         <div

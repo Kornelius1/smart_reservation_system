@@ -372,7 +372,31 @@
           <div class="box indoor1">
             <div class="area-title">Ruangan Indoor 1</div>
             <div class="table-container">
-              <div class="table-grid" id="indoor1-grid"></div>
+              <div class="table-grid">
+                {{-- UBAH: Gunakan variabel 'mejasByLocation' --}}
+                @if(isset($mejasByLocation['indoor1']))
+                  {{-- UBAH: Loop melalui variabel '$meja' --}}
+                  @foreach ($mejasByLocation['indoor1'] as $meja)
+                    {{-- UBAH: Cek ketersediaan menggunakan kolom 'status_aktif' --}}
+                    @if($meja->status_aktif)
+                              {{-- JIKA TERSEDIA: Buat link ke halaman menu --}}
+                              {{-- UBAH: Kirim 'nomor_meja' sebagai parameter --}}
+                              <a href="{{ route('pesanmenu', [
+                        'table_number' => $meja->nomor_meja,
+                        'min_order' => $minimumOrder  // Gunakan variabel dari controller
+                      ]) }}" class="table-btn table-available" title="Pesan Meja {{ $meja->nomor_meja }}">
+                                {{-- Opsional: Tampilkan nomor meja dari kolom 'nomor_meja' --}}
+                                {{ $meja->nomor_meja }}
+                              </a>
+                    @else
+                      {{-- JIKA TIDAK TERSEDIA: Buat tombol non-aktif --}}
+                      <div class="table-btn table-unavailable" title="Meja {{ $meja->nomor_meja }} tidak tersedia">
+                        {{ $meja->nomor_meja }}
+                      </div>
+                    @endif
+                  @endforeach
+                @endif
+              </div>
             </div>
           </div>
 
@@ -397,21 +421,75 @@
           <div class="box indoor2">
             <div class="area-title">Ruangan Indoor 2</div>
             <div class="table-container">
-              <div class="table-grid" id="indoor2-grid"></div>
+              <div class="table-grid">
+                @if(isset($mejasByLocation['indoor2']))
+                  @foreach ($mejasByLocation['indoor2'] as $meja)
+                    @if($meja->status_aktif)
+                              <a href="{{ route('pesanmenu', [
+                        'table_number' => $meja->nomor_meja,
+                        'min_order' => $minimumOrder
+                      ]) }}" class="table-btn table-available" title="Pesan Meja {{ $meja->nomor_meja }}">
+
+                                {{ $meja->nomor_meja }}
+                              </a>
+                    @else
+                      <div class="table-btn table-unavailable" title="Meja {{ $meja->nomor_meja }} tidak tersedia">
+                        {{ $meja->nomor_meja }}
+                      </div>
+                    @endif
+                  @endforeach
+                @endif
+              </div>
             </div>
           </div>
 
           <div class="box out1">
             <div class="area-title">Outdoor 1</div>
             <div class="table-container">
-              <div class="table-grid" id="out1-grid"></div>
+              <div class="table-grid">
+                @if(isset($mejasByLocation['out1']))
+                  @foreach ($mejasByLocation['out1'] as $meja)
+                    @if($meja->status_aktif)
+                              <a href="{{ route('pesanmenu', [
+                        'table_number' => $meja->nomor_meja,
+                        'min_order' => $minimumOrder
+                      ]) }}" class="table-btn table-available" title="Pesan Meja {{ $meja->nomor_meja }}">
+
+                                {{ $meja->nomor_meja }}
+                              </a>
+                    @else
+                      <div class="table-btn table-unavailable" title="Meja {{ $meja->nomor_meja }} tidak tersedia">
+                        {{ $meja->nomor_meja }}
+                      </div>
+                    @endif
+                  @endforeach
+                @endif
+              </div>
             </div>
           </div>
 
           <div class="box out2">
             <div class="area-title">Outdoor 2</div>
             <div class="table-container">
-              <div class="table-grid" id="out2-grid"></div>
+              <div class="table-grid">
+                @if(isset($mejasByLocation['out2']))
+                  @foreach ($mejasByLocation['out2'] as $meja)
+                    @if($meja->status_aktif)
+                              <a href="{{ route('pesanmenu', [
+                        'table_number' => $meja->nomor_meja,
+                        'min_order' => $minimumOrder
+                      ]) }}" class="table-btn table-available" title="Pesan Meja {{ $meja->nomor_meja }}">
+
+                                {{ $meja->nomor_meja }}
+                              </a>
+                    @else
+                      <div class="table-btn table-unavailable" title="Meja {{ $meja->nomor_meja }} tidak tersedia">
+                        {{ $meja->nomor_meja }}
+                      </div>
+                    @endif
+                  @endforeach
+                @endif
+              </div>
             </div>
           </div>
         </div>
@@ -465,55 +543,6 @@
 
       <div id="toast">Reservasi tersimpan (dummy)</div>
 
-      <script>
-        const availability = { indoor1: [1, 1, 0, 1, 1, 1], indoor2: [1, 0, 1, 1, 1, 1], out1: [1, 1, 1, 1, 1, 1], out2: [1, 1, 0, 0, 1, 0] };
-
-        function makeTable(area, idx) {
-          const btn = document.createElement('button');
-          btn.className = 'table-btn ' + (availability[area][idx] ? 'table-available' : 'table-unavailable');
-          btn.dataset.area = area; btn.dataset.idx = idx + 1; btn.dataset.cap = 4; btn.dataset.avail = availability[area][idx];
-          btn.onclick = () => {
-            if (btn.dataset.avail == '1') openReserveModal(btn);
-            else btn.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)' }, { transform: 'translateY(0)' }], { duration: 260 });
-          };
-          return btn;
-        }
-
-        ['indoor1', 'indoor2', 'out1', 'out2'].forEach(area => {
-          const grid = document.getElementById(area + '-grid');
-          for (let i = 0; i < 6; i++)grid.appendChild(makeTable(area, i));
-        });
-
-        const modalReserve = document.getElementById('modalReserve');
-        const modalConfirm = document.getElementById('modalConfirm');
-        const toast = document.getElementById('toast');
-
-        function openReserveModal(btn) {
-          document.getElementById('modalTableLabel').innerText = btn.dataset.area.replace(/([a-z])([0-9])/, '$1 $2').toUpperCase() + ' - Meja ' + btn.dataset.idx;
-          document.getElementById('modalTableCap').innerText = btn.dataset.cap;
-          document.getElementById('peopleSelect').value = btn.dataset.cap;
-          document.getElementById('dateInput').value = new Date().toISOString().slice(0, 10);
-          document.getElementById('timeInput').value = "12:00";
-          modalReserve.style.display = 'flex';
-          document.body.style.overflow = 'hidden';
-        }
-
-        document.getElementById('closeReserve').onclick = () => { modalReserve.style.display = 'none'; document.body.style.overflow = ''; };
-        document.getElementById('toConfirmBtn').onclick = () => {
-          document.getElementById('confirmPeople').innerText = document.getElementById('peopleSelect').value + ' Orang';
-          modalReserve.style.display = 'none';
-          modalConfirm.style.display = 'flex';
-        };
-        document.getElementById('closeConfirm').onclick = () => { modalConfirm.style.display = 'none'; document.body.style.overflow = ''; };
-        document.getElementById('finalReserve').onclick = () => {
-          modalConfirm.style.display = 'none';
-          document.body.style.overflow = '';
-          toast.style.display = 'block';
-          setTimeout(() => toast.style.display = 'none', 2200);
-        };
-
-        document.querySelectorAll('.modal-backdrop').forEach(b => b.onclick = e => { if (e.target === b) { b.style.display = 'none'; document.body.style.overflow = ''; } });
-      </script>
 
     </body>
   </div>

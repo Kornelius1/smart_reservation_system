@@ -37,8 +37,8 @@ Route::get('/reservasi-ruangan', function () {
 });
 
 // 3b. Pilih Meja
-Route::get('/reservasi-meja', [DenahMejaController::class, 'index'])
-    ->name('customer.denah-meja'); // nanti nama di view reservasi ganti jadi route ini
+Route::get('/pilih-meja', [DenahMejaController::class, 'index'])
+    ->name('tables.map'); // nanti nama di view reservasi ganti jadi route ini
 
 // 4. Routes untuk pesanmenu
 Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');

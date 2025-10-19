@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Meja;
+use App\Models\Meja; // 1. Pastikan Anda mengimpor model Meja
 
 class MejaSeeder extends Seeder
 {
@@ -13,54 +12,24 @@ class MejaSeeder extends Seeder
      */
     public function run(): void
     {
-        // Data meja sesuai dengan gambar yang diberikan
-        $mejaDummy = [
-            [
-                'nomor_meja' => 1,
-                'kapasitas' => 4,
-                'lokasi' => 'Indoor 1',
-                'status_aktif' => true,
-            ],
-            [
-                'nomor_meja' => 2,
-                'kapasitas' => 4,
-                'lokasi' => 'Indoor 1',
-                'status_aktif' => true,
-            ],
-            [
-                'nomor_meja' => 3,
-                'kapasitas' => 4,
-                'lokasi' => 'Indoor 1',
-                'status_aktif' => false,
-            ],
-            [
-                'nomor_meja' => 4,
-                'kapasitas' => 4,
-                'lokasi' => 'Indoor 1',
-                'status_aktif' => false,
-            ],
-            [
-                'nomor_meja' => 5,
-                'kapasitas' => 4,
-                'lokasi' => 'Indoor 1',
-                'status_aktif' => true,
-            ],
-            [
-                'nomor_meja' => 6,
-                'kapasitas' => 4,
-                'lokasi' => 'Indoor 1',
-                'status_aktif' => true,
-            ],
-            [
-                'nomor_meja' => 7,
-                'kapasitas' => 4,
-                'lokasi' => 'Indoor 2',
-                'status_aktif' => true,
-            ],
-        ];
+        // Hapus data lama agar tidak ada duplikat jika seeder dijalankan lagi
+        Meja::truncate();
+        
 
-        foreach ($mejaDummy as $meja) {
-            Meja::create($meja);
+        // 2. Tentukan lokasi-lokasi yang ada di denah Anda
+        $locations = ['indoor1', 'indoor2', 'out1', 'out2'];
+
+        // 3. Lakukan perulangan untuk setiap lokasi
+        foreach ($locations as $location) {
+            // 4. Buat 6 meja untuk setiap lokasi
+            for ($i = 1; $i <= 24; $i++) {
+                Meja::create([
+                    'nomor_meja'   => $i,
+                    'kapasitas'    => 4, // Asumsi semua meja kapasitasnya 4
+                    'lokasi'       => $location,
+                    'status_aktif' => true, // Asumsi semua meja awalnya tersedia
+                ]);
+            }
         }
     }
 }
