@@ -33,7 +33,7 @@ Route::get('/private-room', function () {
 Route::view('/private-room', 'private_room');
 
 Route::get('/reservasi-meja', function () {
-    return view('reservasi_meja'); // nanti kamu buat file ini juga
+    return view('reservasi_meja'); 
 });
 
 require __DIR__.'/auth.php';
