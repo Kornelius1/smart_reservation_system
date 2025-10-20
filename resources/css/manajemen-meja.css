@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 /* Custom Toggle Switch Styling */
 .toggle-status + div {
     position: relative;
@@ -13,7 +14,7 @@
 }
 
 .toggle-status + div::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 2px;
     left: 2px;
@@ -94,7 +95,8 @@
 /* Dropdown Styling */
 .dropdown-menu {
     min-width: 120px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Loading Spinner */
@@ -108,8 +110,12 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Custom Scrollbar */
@@ -150,7 +156,7 @@
     .table-responsive {
         font-size: 14px;
     }
-    
+
     .table th,
     .table td {
         padding: 8px 12px;

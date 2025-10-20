@@ -1,0 +1,33 @@
+.toggle {
+    --toggle-handle-color: white !important;
+}
+
+.toggle:checked {
+    background-image: none !important;
+}
+
+.bg-brand-background {
+    background-color: #c6d2b9;
+    color: #dfe6da;
+}
+
+.text-brand-text {
+    color: #414939;
+}
+
+.brand-text-1 {
+    color: #414939;
+    font-weight: bold;
+}
+
+.brand-primary {
+    color: #dfe6da;
+}
+
+.brand-primary-dark {
+    color: #414939;
+}
+
+.border-brand-primary {
+  border-color: #414939; /* Saya gunakan warna brand-primary-dark agar terlihat jelas */
+}
