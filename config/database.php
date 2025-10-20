@@ -90,6 +90,7 @@ return [
             'database' => env('DB_DATABASE', 'srs_db'),
             'username' => env('DB_USERNAME', 'postgres'),
             'password' => env('DB_PASSWORD', 'postgreshal'),
+            'password' => env('DB_PASSWORD', '123'),
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
