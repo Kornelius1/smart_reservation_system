@@ -7,12 +7,10 @@
     <title>Manajemen Reschedule</title>
     @vite(['resources/css/app.css', 'resources/js/manajemen-reschedule.js'])
 
-    {{-- CSS --}}
     <style>
         .toggle {
             --toggle-handle-color: white !important;
         }
-
         .toggle:checked {
             background-image: none !important;
         }
@@ -28,40 +26,17 @@
         <div class="drawer-side" style="position: fixed;">
             <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
             <ul class="menu p-4 w-20 min-h-full bg-white text-base-content items-center">
+                {{-- Sidebar icons mirip Homey Cafe --}}
                 <li class="mb-4" title="Homey Cafe">
-                    <div class="p-2 bg-brand-primary rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h7.5" />
-                        </svg></div>
+                    <div class="p-2 bg-brand-primary rounded-lg">
+                        {{-- icon home --}}
+                    </div>
                 </li>
-                <li class="mt-2" title="Manajemen Menu"><a><svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                        </svg></a></li>
-                <li class="mt-2" title="Manajemen Meja"><a><svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 8.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 8.25 20.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25A2.25 2.25 0 0 1 13.5 8.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-                        </svg></a></li>
-                <li class="bg-brand-background rounded-lg" title="Manajemen Reschedule"><a><svg
-                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0h18M12 15.75h.008v.008H12v-.008Z" />
-                        </svg></a></li>
-                <li class="mt-2" title="Laporan"><a><svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
-                        </svg></a></li>
-                <li class="w-full my-2 border-t border-gray-200"></li>
-                <li title="Logout"><a><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
-                        </svg></a></li>
+                <li class="bg-brand-background rounded-lg" title="Manajemen Reschedule">
+                    <a>
+                        {{-- icon reschedule --}}
+                    </a>
+                </li>
             </ul>
         </div>
 
@@ -69,12 +44,14 @@
         <div class="drawer-content flex flex-col items-center p-4 lg:p-8 ml-20">
             <div class="card w-full bg-white shadow-xl">
                 <div class="card-body">
-                    <h1 class="text-2xl font-bold text-brand-text border-b-4 border-brand-primary pb-2">MANAJEMEN
-                        RESCHEDULE</h1>
+                    <h1 class="text-2xl font-bold text-brand-text border-b-4 border-brand-primary pb-2">
+                        MANAJEMEN RESCHEDULE
+                    </h1>
+
                     <div class="flex justify-start items-center my-4 space-x-4">
                         <div class="form-control relative">
                             <svg xmlns="http://www.w3.org/2000/svg"
-                                class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1.2 text-gray-500" fill="none"
+                                class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -84,44 +61,39 @@
                         </div>
                     </div>
 
-
                     <div class="overflow-x-auto mt-4">
-
                         <table id="tableData" class="table w-full">
-                            {{-- HEADER TABEL --}}
                             <thead>
                                 <tr class="text-brand-text text-center" style="background-color: #C6D2B9;">
                                     <th>ID Reschedule</th>
                                     <th>ID Transaksi</th>
-                                    <th>Nomor Meja</th>
                                     <th>Nama Customer</th>
-                                    <th>Nomor Telepon</th>
-                                    <th>Jumlah Orang</th>
-                                    <th>Tanggal</th>
+                                    <th>Tanggal Reschedule</th>
                                     <th>Waktu Reschedule</th>
                                     <th>Status</th>
-                                    <th>Aksi</th> 
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
-                            {{-- ISI TABEL --}}
                             <tbody class="text-brand-text">
-                                @foreach ($reschedule as $reschedule)
+                                @foreach ($reschedules as $reschedule)
                                     <tr class="text-center">
-                                        <th>{{ $reschedule['id_reschedule'] }}</th>
-                                        <td>{{ $reschedule['id_transaksi'] }}</td>
-                                        <td>{{ $reschedule['nomor_meja'] }}</td>
-                                        <td>{{ $reschedule['nama_customer'] }}</td>
-                                        <td>{{ $reschedule['nomor_telepon'] }}</td>
-                                        <td>{{ $reschedule['jumlah_orang'] }} Orang</td>
-                                        <td>{{ $reschedule['tanggal'] }}</td>
-                                        <td>{{ $reschedule['waktu_reschedule'] }}</td>
+                                        <td>{{ $reschedule->id_reschedule }}</td>
+                                        <td>{{ $reschedule->id_transaksi }}</td>
+                                        <td>{{ $reschedule->nama_customer }}</td>
+                                        <td>{{ $reschedule->tanggal_reschedule }}</td>
+                                        <td>{{ $reschedule->waktu_reschedule }}</td>
                                         <td>
-                                            <span class="badge badge-sm" style="border: none;"></span>
+                                            <span class="badge badge-sm {{ $reschedule->status == 'Pending' ? 'badge-warning' : ($reschedule->status == 'Disetujui' ? 'badge-success' : 'badge-error') }}">
+                                                {{ $reschedule->status }}
+                                            </span>
                                         </td>
                                         <td>
                                             <div class="flex items-center justify-center">
-                                                <input type="checkbox" class="toggle toggle-md"
-                                                    {{ $reschedule['status'] ? 'checked' : '' }} />
+                                                <button class="btn btn-xs btn-primary" onclick="changeStatus(this)">Ubah Status</button>
+                                                <select class="select select-sm border rounded" onchange="changeAvailable(this)">
+                                                    <option value="Available" {{ $reschedule->available ? 'selected' : '' }}>Available</option>
+                                                    <option value="NonAvailable" {{ !$reschedule->available ? 'selected' : '' }}>Enggak</option>
+                                                </select>
                                             </div>
                                         </td>
                                     </tr>
@@ -129,10 +101,39 @@
                             </tbody>
                         </table>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function changeStatus(btn) {
+            const statusCell = btn.closest('tr').querySelector('td:nth-child(6) span');
+            const currentStatus = statusCell.textContent;
+            let newStatus = '';
+            if(currentStatus === 'Pending') newStatus = 'Disetujui';
+            else if(currentStatus === 'Disetujui') newStatus = 'Ditolak';
+            else newStatus = 'Pending';
+
+            statusCell.textContent = newStatus;
+            statusCell.className = 'badge badge-sm ' + (newStatus === 'Pending' ? 'badge-warning' : newStatus === 'Disetujui' ? 'badge-success' : 'badge-error');
+        }
+
+        function changeAvailable(select) {
+            const value = select.value;
+            select.className = 'select select-sm border rounded ' + (value === 'Available' ? 'select-success' : 'select-error');
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', function() {
+            const filter = searchInput.value.toLowerCase();
+            const rows = document.querySelectorAll('#tableData tbody tr');
+            rows.forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+            });
+        });
+    </script>
 
 </body>
 
