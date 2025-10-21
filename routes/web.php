@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationController; 
+use App\Http\Controllers\BayarController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -35,5 +36,8 @@ Route::view('/private-room', 'private_room');
 Route::get('/reservasi-meja', function () {
     return view('reservasi_meja'); // nanti kamu buat file ini juga
 });
+
+Route::post('/bayar', [BayarController::class, 'bayar']);
+Route::get('/bayar/status/{id}', [BayarController::class, 'cekStatus']);
 
 require __DIR__.'/auth.php';
