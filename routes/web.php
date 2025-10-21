@@ -12,6 +12,7 @@ use App\Http\Controllers\Customer\BayarController;
 use App\Http\Controllers\Customer\PesanMenuController;
 use App\Http\Controllers\RescheduleController;
 use App\Http\Controllers\ReservationController; 
+use App\Http\Controllers\ManajemenRescheduleController;
 
 
 
@@ -72,9 +73,11 @@ Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajeme
 // 4. Manajemen Reservasi
 Route::get('/manajemen-reservasi', [ReservationController::class, 'index'])->name('manajemen-reservasi');
 
+Route::get('/manajemen-reschedule', [ManajemenRescheduleController::class, 'index'])->name('manajemen-reschedule');
+
 // 2. Manajemen Reservasi - Masuk ke Admin ini
-Route::get('/reservasi', [ReservationController::class, 'create'])
-    ->middleware(['auth'])->name('reservasi.create');
+// Route::get('/reservasi', [ReservationController::class, 'create'])
+//     ->middleware(['auth'])->name('reservasi.create');
 
 // ROUTE UNTUK MANAJEMEN MENU DENGAN DATA LENGKAP
 Route::get('/manajemen-menu', function () {
