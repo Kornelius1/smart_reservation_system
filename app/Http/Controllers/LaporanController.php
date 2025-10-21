@@ -1,11 +1,11 @@
 <?php
-// app/Http/Controllers/LaporanController.php
+
 
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
-use Carbon\Carbon;
+
 
 class LaporanController extends Controller
 {
@@ -28,7 +28,7 @@ class LaporanController extends Controller
         // Pagination
         $transaksi = $query->paginate(10);
 
-        return view('laporan.index', compact('transaksi'));
+        return view('admin.laporan', compact('transaksi'));
     }
 
     public function export(Request $request)
