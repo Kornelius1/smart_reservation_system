@@ -3,26 +3,34 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\ManajemenRuangan;
+use App\Models\Room;
 
 class ManajemenRuanganController extends Controller
 {
     public function index()
     {
-        $rooms = ManajemenRuangan::all();
-        return view('manajemen-ruangan.index', compact('rooms'));
+        $rooms = Room::all();
+        return view('admin.manajemen-ruangan', compact('rooms'));
     }
 
     public function edit($id)
     {
-        $room = ManajemenRuangan::findOrFail($id);
-        return view('manajemen-ruangan.edit', compact('room'));
+        $room = Room::findOrFail($id);
+        return view('admin.manajemen-ruangan.edit', compact('room'));
     }
 
     public function update(Request $request, $id)
     {
-        $room = ManajemenRuangan::findOrFail($id);
-        $room->update($request->all());
-        return redirect()->route('manajemen-ruangan.index')->with('success', 'Data ruangan berhasil diperbarui!');
+        // Gunakan Model 'Room'
+        $room = Room::findOrFail($id);
+        
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'minimum_order' => 'required|integer|min:0',
+        ]);
+
+        $room->update($validatedData);
+
+        return redirect()->route('manajemen-ruangan')->with('success', 'Data ruangan berhasil diperbarui!');
     }
 }

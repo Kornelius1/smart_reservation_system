@@ -85,7 +85,7 @@
       </li>
 
       <li>
-        <a href="/logout" class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Settings">
+        <a href="/manajemen-ruangan" class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Settings">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round"
             stroke-width="2" fill="none" stroke="currentColor" class="inline-block size-4 my-1.5">
             <path d="M20 7h-9"></path>

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 {{-- Judul diperbaiki agar sesuai dengan konten halaman --}}
 @section('title', 'Laporan')

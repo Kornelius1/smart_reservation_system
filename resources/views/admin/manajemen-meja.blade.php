@@ -18,7 +18,7 @@
     <div class="p-4 lg:p-8">
         <div class="card w-full bg-white shadow-xl">
             <div class="card-body">
-                <h1 class="text-2xl border-b-4 border-brand-primary pb-2">MANAJEMEN MEJA</h1>
+                <h1 class="text-2xl font-bold border-b-4 border-brand-primary pb-2">MANAJEMEN MEJA</h1>
 
                <div class="form-control relative my-2">
                 <svg xmlns="http://www.w3.org/2000/svg"

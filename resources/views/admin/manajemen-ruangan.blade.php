@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Manajemen Reschedule')
+@section('title', 'Manajemen Ruangan')
 
 @push('styles')
     <style>
@@ -14,14 +14,11 @@
     </style>
 @endpush
 
-
 @section('content')
     <div class="p-4 lg:p-8">
         <div class="card w-full bg-white shadow-xl">
             <div class="card-body">
-                {{-- Judul diubah agar lebih sesuai --}}
-                <h1 class="text-2xl font-bold border-b-4 border-brand-primary pb-2">
-                    MANAJEMEN RESCHEDULE
+                <h1 class="text-2xl font-bold border-b-4 border-brand-primary pb-2">MANAJEMEN RUANGAN
                 </h1>
 
                 <div class="form-control relative my-2">
@@ -30,41 +27,46 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    <input id="searchInput" type="text" placeholder="Cari berdasarkan nama..."
+                    <input id="searchInput" type="text" placeholder="Cari berdasarkan nama ruangan..."
                         class="input input-sm input-bordered w-72 pl-10" />
                 </div>
-
 
 
                 <div class="overflow-x-auto mt-4">
                     <table id="tableData" class="table w-full">
                         <thead>
-                            {{-- ==== PERUBAHAN DI SINI: Sesuaikan Kolom Header ==== --}}
                             <tr class="text-brand-text text-center" style="background-color: #C6D2B9;">
-                                <th>ID Transaksi</th>
-                                <th>Nama Customer</th>
-                                <th>Tanggal Reservasi</th>
-                                <th>Waktu Reservasi</th>
-                                <th>Terakhir Diubah</th> {{-- Kolom baru yang berguna --}}
+                                {{-- PERBAIKAN: Header disesuaikan dengan data --}}
+                                <th>ID</th>
+                                <th>Nama Ruangan</th>
+                                <th>Minimum Order</th>
                             </tr>
                         </thead>
                         <tbody class="text-brand-text">
-                            {{-- ==== PERUBAHAN DI SINI: Sesuaikan Loop dan Data ==== --}}
-                            {{-- Pastikan controller mengirim 'reservations' --}}
-                            @forelse ($reservations as $reservation)
+
+                            @forelse ($rooms as $room)
                                 <tr class="text-center">
-                                    <td>{{ $reservation->id_transaksi }}</td>
-                                    <td>{{ $reservation->nama }}</td>
-                                    {{-- Format tanggal agar rapi (karena ini objek Carbon) --}}
-                                    <td>{{ $reservation->tanggal->format('d M Y') }}</td>
-                                    {{-- Format waktu agar rapi (karena ini objek Carbon) --}}
-                                    <td>{{ $reservation->waktu->format('H:i') }} WIB</td>
-                                    {{-- Tampilkan kapan data ini terakhir di-update --}}
-                                    <td>{{ $reservation->updated_at->diffForHumans() }}</td>
+
+                                    <td>{{ $room->id }}</td>
+                                    <td>{{ $room->name }}</td>
+                                    <td>Rp {{ number_format($room->minimum_order, 0, ',', '.') }}</td>
+
+
+
+                                    {{-- PERBAIKAN: Kolom 'Aksi' yang benar --}}
+                                    {{-- <td>
+                                        <div class="flex items-center justify-center">
+
+                                            <a href="{{ route('manajemen-ruangan.edit', $room->id) }}"
+                                                class="btn btn-sm btn-primary">Edit</a>
+
+                                        </div>
+                                    </td> --}}
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-4">Tidak ada data reservasi.</td>
+                                    {{-- PERBAIKAN: Colspan disesuaikan menjadi 5 kolom --}}
+                                    <td colspan="5" class="text-center py-4">Tidak ada data ruangan</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -77,8 +79,8 @@
 @endsection
 
 @push('scripts')
+    {{-- PERBAIKAN: Tambahkan skrip untuk fungsionalitas pencarian --}}
     <script>
-        { { -- ==== PERUBAHAN DI SINI: Hapus JavaScript yang tidak perlu ==== --} }
         document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
@@ -86,8 +88,12 @@
                     const filter = searchInput.value.toLowerCase();
                     const rows = document.querySelectorAll('#tableData tbody tr');
                     rows.forEach(row => {
-                        const rowText = row.textContent || row.innerText;
-                        row.style.display = rowText.toLowerCase().includes(filter) ? '' : 'none';
+                        // Cek teks pada kolom kedua (Nama Ruangan)
+                        const roomNameCell = row.cells[1];
+                        if (roomNameCell) {
+                            const rowText = roomNameCell.textContent || roomNameCell.innerText;
+                            row.style.display = rowText.toLowerCase().includes(filter) ? '' : 'none';
+                        }
                     });
                 });
             }

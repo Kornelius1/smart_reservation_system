@@ -2,7 +2,7 @@
     <div class="navbar shadow-sm">
         <div class="flex-1">
             <a href="/" tabindex="0" class="btn btn-ghost">
-                <img src="{{ asset('images/HOMEY.png') }}" alt="Homey Logo" class="h-6" />
+                <img src="{{ asset('images/HOMEYY.png') }}" alt="Homey Logo" class="h-6" />
             </a>
         </div>
         <div class="flex-none">

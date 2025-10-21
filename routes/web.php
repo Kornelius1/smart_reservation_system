@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RescheduleController;
 use App\Http\Controllers\ReservationController; 
 use App\Http\Controllers\Customer\BayarController;
+use App\Http\Controllers\ManajemenRuanganController;
 use App\Http\Controllers\Customer\DenahMejaController;
 use App\Http\Controllers\Customer\PesanMenuController;
 use App\Http\Controllers\ManajemenRescheduleController;
@@ -49,9 +50,11 @@ Route::post('/konfirmasi-pesanan', [BayarController::class, 'show'])->name('paym
 Route::post('/proses-pembayaran', [BayarController::class, 'processPayment'])->name('payment.process');
 
 // 6. Route Apabila ingin Reschedule
-Route::get('/reschedule', [RescheduleController::class, 'showForm'])->name('reschedule.form');
-Route::get('/reschedule/find', [RescheduleController::class, 'findReservation'])->name('reschedule.find');
-Route::post('/reschedule/update', [RescheduleController::class, 'updateSchedule'])->name('reschedule.update');
+Route::controller(RescheduleController::class)->group(function () {
+    Route::get('/reschedule', 'showForm')->name('reschedule.form');
+    Route::get('/reschedule/find', 'findReservation')->name('reschedule.find');
+    Route::post('/reschedule/update', 'updateSchedule')->name('reschedule.update');
+});
 
 
 // === ROUTES UNTUK HALAMAN ADMIN === PERLU AUTENTIKASI
@@ -189,8 +192,14 @@ Route::get('/manajemen-reschedule', [ManajemenRescheduleController::class, 'inde
 Route::get('/manajemen-laporan', [LaporanController::class, 'index'])->name('manajemen-laporan');
 
 // 6. Manajemen Ruangan
-// Route::get('/manajemen-ruangan', [ManajemenRuanganController::class, 'index'])->name('manajemen-laporan');
+Route::get('/manajemen-ruangan', [ManajemenRuanganController::class, 'index'])
+     ->name('manajemen-ruangan'); 
 
+Route::get('/manajemen-ruangan/{id}', [ManajemenRuanganController::class, 'edit'])
+     ->name('manajemen-ruangan');
+
+Route::put('/manajemen-ruangan/{id}', [ManajemenRuanganController::class, 'update'])
+     ->name('manajemen-ruangan');
 
 
 require __DIR__.'/auth.php';

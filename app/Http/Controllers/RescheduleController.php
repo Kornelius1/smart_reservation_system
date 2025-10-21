@@ -4,96 +4,98 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Models\Reservation; // <-- Menggunakan Model
 
 class RescheduleController extends Controller
 {
 
+    /**
+     * Menampilkan form pencarian awal.
+     */
     public function showForm()
     {
         return view('customer.reschedule');
     }
 
-   
+    
+    /**
+     * Mencari reservasi berdasarkan ID Transaksi.
+     */
     public function findReservation(Request $request)
     {
-        $reservations = $this->getReservations();
-
+        // Validasi input pencarian
+        $request->validate(['id_transaksi' => 'required|string']);
         $id_transaksi = $request->input('id_transaksi');
-        $reservasi = $reservations[$id_transaksi] ?? null;
+
+        // Ambil data dari database menggunakan Eloquent
+        $reservasi = Reservation::where('id_transaksi', $id_transaksi)->first();
 
         if (!$reservasi) {
-            return redirect()->route('reschedule.form')->with('error', 'ID Transaksi tidak ditemukan!');
+            return redirect()->route('reschedule.form')
+                ->with('error', 'ID Transaksi tidak ditemukan!')
+                ->withInput(); // <-- Tambahkan ini agar ID yg dicari tidak hilang
         }
 
-        // Siapkan semua data yang dibutuhkan oleh view SEBELUM dikirim.
-        $tanggalReservasi = Carbon::parse($reservasi['tanggal']);
+        // Cek apakah tanggal reservasi masih H+1 (minimal besok)
+        // (Asumsi Carbon::today() adalah 21 Okt 2025)
+        $tanggalReservasi = $reservasi->tanggal; // Sudah jadi objek Carbon dari $casts
         
         // 1. Tentukan apakah bisa reschedule atau tidak
         $bisa_reschedule = $tanggalReservasi->isAfter(Carbon::today());
 
         // 2. Format tanggal untuk ditampilkan di view
-        $reservasi['jadwal_awal_formatted'] = $tanggalReservasi->format('d M Y') . ', Pukul ' . $reservasi['waktu'];
+        $reservasi->jadwal_awal_formatted = $tanggalReservasi->format('d M Y') . ', Pukul ' . $reservasi->waktu->format('H:i');
 
         // Kirim data yang sudah siap ke view
         return view('customer.reschedule', [
-            'reservasi' => $reservasi,
+            'reservasi' => $reservasi, // Kirim sebagai objek Eloquent
             'bisa_reschedule' => $bisa_reschedule,
         ]);
     }
 
     /**
-     * Memproses update jadwal reservasi.
+     * Memproses update jadwal reservasi (langsung ke DB).
      */
     public function updateSchedule(Request $request)
     {
-        // Gunakan validasi bawaan Laravel untuk input dasar
+        // Validasi input dasar
         $validated = $request->validate([
-            'id_transaksi' => 'required|string',
+            'id_transaksi' => 'required|string|exists:reservations,id_transaksi',
             'tanggal_baru' => 'required|date|after_or_equal:today',
             'waktu_baru' => 'required|date_format:H:i',
         ]);
 
-        // --- Validasi Logika Bisnis (yang tidak bisa dilakukan di aturan validasi) ---
+        // --- Validasi Logika Bisnis ---
 
         // 1. Validasi Jam Operasional
-        if (Carbon::parse($validated['waktu_baru'])->hour >= 23) {
+        $waktuBaru = Carbon::parse($validated['waktu_baru']);
+        if ($waktuBaru->hour >= 23) {
             return redirect()->back()->with('update_error', 'Melewati jam operasional. Harap pilih waktu sebelum 23:00.');
         }
         
-        // 2. Validasi Jadwal Bentrok
-        $jadwalTerisi = [
-            '2025-11-25' => ['19:00:00', '20:00:00'],
-            '2025-11-26' => ['18:00:00'],
-        ];
-        $waktuBaruFormatted = Carbon::parse($validated['waktu_baru'])->format('H:i:s');
-        if (isset($jadwalTerisi[$validated['tanggal_baru']]) && in_array($waktuBaruFormatted, $jadwalTerisi[$validated['tanggal_baru']])) {
+        // 2. Validasi Bentrok (Cek ke database)
+        $isBentrok = Reservation::where('tanggal', $validated['tanggal_baru'])
+                                  ->where('waktu', $waktuBaru->format('H:i:s'))
+                                  ->where('id_transaksi', '!=', $validated['id_transaksi'])
+                                  ->exists();
+
+        if ($isBentrok) {
             return redirect()->back()->with('update_error', 'Jadwal pada tanggal dan jam tersebut sudah terisi.');
         }
+        
+        // 3. Validasi Batas Waktu H-1 (Cek ulang data asli di DB)
+        $reservasiAsli = Reservation::where('id_transaksi', $validated['id_transaksi'])->firstOrFail();
 
-        // 3. Validasi Batas Waktu H-1 (terhadap data lama)
-        $reservasiAsli = $this->getReservations()[$validated['id_transaksi']] ?? null;
-        if (!$reservasiAsli || !Carbon::parse($reservasiAsli['tanggal'])->isAfter(Carbon::today())) {
+        if (!$reservasiAsli->tanggal->isAfter(Carbon::today())) {
             return redirect()->back()->with('update_error', 'Gagal! Waktu reschedule sudah melewati batas H-1.');
         }
         
-        // --- Jika semua validasi lolos, proses update (simulasi) ---
-        // Di aplikasi nyata, Anda akan menyimpan ke database di sini.
+        // --- PROSES UPDATE DATABASE ---
+        $reservasiAsli->tanggal = $validated['tanggal_baru'];
+        $reservasiAsli->waktu = $validated['waktu_baru'];
+        $reservasiAsli->save(); // <-- Data tersimpan di database
 
         return redirect()->route('reschedule.form')
-            ->with('success', "Reservasi {$validated['id_transaksi']} berhasil diubah ke tanggal {$validated['tanggal_baru']} jam {$validated['waktu_baru']}.");
-    }
-
-    /**
-     * Mengambil data reservasi (dummy).
-     * Di aplikasi nyata, ini akan mengambil data dari database.
-     */
-    private function getReservations(): array
-    {
-        return [
-            'TRS001' => ['id_transaksi' => 'TRS001', 'nama' => 'Budi', 'tanggal' => '2025-10-17', 'waktu' => '19:00'],
-            'TRS002' => ['id_transaksi' => 'TRS002', 'nama' => 'Citra', 'tanggal' => '2025-11-20', 'waktu' => '12:00'],
-            'TRS003' => ['id_transaksi' => 'TRS003', 'nama' => 'Dewi', 'tanggal' => '2025-11-22', 'waktu' => '20:00'],
-            'TRS004' => ['id_transaksi' => 'TRS004', 'nama' => 'Fahira', 'tanggal' => '2025-10-13', 'waktu' => '20:00'],
-        ];
+            ->with('success', "Reservasi {$validated['id_transaksi']} berhasil diubah ke {$validated['tanggal_baru']} jam {$validated['waktu_baru']}.");
     }
 }

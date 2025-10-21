@@ -22,8 +22,9 @@ class DatabaseSeeder extends Seeder
         //     MejaSeeder::class,
         // ]);
 
-        $this->call([
-        ProductSeeder::class,
-    ]);
+       $this->call([
+            ReservationSeeder::class,
+            // Anda bisa tambahkan seeder lain di sini
+        ]);
     }
 }

@@ -37,7 +37,7 @@
                 <span class="text-white text-sm">Manajemen Laporan</span>
             </a>
 
-            <a href="{{ route('manajemen-reservasi') }}"
+            <a href="{{ route('manajemen-ruangan') }}"
                 class="bg-green-400 rounded-lg p-6 flex flex-col items-center justify-center hover:bg-green-500 transition">
                 <img src="{{ asset('images/icons/reservation-icon.svg') }}" alt="Manajemen Reservasi"
                     class="w-16 h-16 mb-4 opacity-50">

@@ -19,7 +19,7 @@
       <div class="p-4 lg:p-8">
             <div class="card w-full bg-white shadow-xl">
                 <div class="card-body">
-                    <h1 class="text-2xl brand-text-1 border-b-4 border-brand-primary pb-2">MANAJEMEN
+                    <h1 class="text-2xl font-bold brand-text-1 border-b-4 border-brand-primary pb-2">MANAJEMEN
                         RESERVASI</h1>
                  
 

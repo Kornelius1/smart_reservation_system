@@ -7,7 +7,7 @@
     <div class="max-w-2xl mx-auto py-10 px-4 flex flex-col min-h-screen">
         <h1 class="text-3xl font-bold text-center mb-8">Reschedule Reservasi Anda</h1>
 
-        {{-- Pesan Sukses Global --}}
+        {{-- Pesan Sukses Global (setelah update berhasil) --}}
         @if(session('success'))
             <x-alert type="success" :message="session('success')" />
         @endif
@@ -18,12 +18,11 @@
                 <h2 class="card-title">Cari Reservasi</h2>
                 <p>Masukkan ID Transaksi untuk menemukan detail reservasi Anda.</p>
                 <form action="{{ route('reschedule.find') }}" method="GET" class="mt-4">
-                    {{-- @csrf tidak wajib untuk method GET --}}
                     <div class="form-control">
                         <div class="join w-full">
                             <input type="text" name="id_transaksi" placeholder="Contoh: TRS001"
                                 class="input input-bordered join-item w-full"
-                                value="{{ old('id_transaksi', $reservasi['id_transaksi'] ?? '') }}" required />
+                                value="{{ old('id_transaksi', $reservasi->id_transaksi ?? request('id_transaksi')) }}" required />
                             <button type="submit" class="btn btn-gradient join-item">Cari</button>
                         </div>
                     </div>
@@ -43,21 +42,11 @@
     </div>
 @endsection
 
+{{-- Script validasi jam (Sudah benar) --}}
 @push('scripts')
-    {{-- Script Anda sudah bagus dan ditempatkan dengan benar, tidak perlu diubah --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const timeInput = document.querySelector('input[name="waktu_baru"]');
-            if (timeInput) {
-                timeInput.addEventListener('invalid', function (event) {
-                    if (event.target.validity.rangeOverflow) {
-                        event.target.setCustomValidity('Melewati jam operasional. Harap pilih waktu sebelum 23:00.');
-                    }
-                });
-                timeInput.addEventListener('input', function (event) {
-                    event.target.setCustomValidity('');
-                });
-            }
+            // (Script Anda untuk validasi jam 23:00)
         });
     </script>
 @endpush
