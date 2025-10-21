@@ -14,6 +14,7 @@ use App\Http\Controllers\Customer\BayarController;
 use App\Http\Controllers\Customer\PesanMenuController;
 use App\Http\Controllers\RescheduleController;
 use App\Http\Controllers\ReservationController; 
+use App\Http\Controllers\ManajemenRuanganController;
 
 
 
@@ -223,6 +224,10 @@ Route::prefix('manajemen-meja')->name('manajemen-meja.')->group(function () {
     Route::patch('/{id}/toggle-status', [ManajemenMejaController::class, 'toggleStatus'])->name('toggle-status');
 });
 
-
-
+//manajemenruangan
+Route::prefix('manajemen-ruangan')->name('manajemen-ruangan.')->group(function () {
+    Route::get('/', [ManajemenRuanganController::class, 'index'])->name('index');
+    Route::get('/{id}/edit', [ManajemenRuanganController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [ManajemenRuanganController::class, 'update'])->name('update');
+});
 require __DIR__.'/auth.php';
