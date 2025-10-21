@@ -17,6 +17,15 @@
 
 @section('content')
     <div class="p-4 lg:p-8">
+        <div class="flex items-center gap-3 mb-8">
+            <button onclick="window.history.back()" class="btn btn-ghost btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <h1 class="text-2xl">Manajemen Reschedule</h1>
+        </div>
         <div class="card w-full bg-white shadow-xl">
             <div class="card-body">
                 {{-- Judul diubah agar lebih sesuai --}}

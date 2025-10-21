@@ -189,17 +189,19 @@ Route::get('/manajemen-reschedule', [ManajemenRescheduleController::class, 'inde
 
 
 // 5. Manajemen Laporan
-Route::get('/manajemen-laporan', [LaporanController::class, 'index'])->name('manajemen-laporan');
+Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
+// Route untuk mengunduh/export laporan
+Route::get('laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
 
 // 6. Manajemen Ruangan
-Route::get('/manajemen-ruangan', [ManajemenRuanganController::class, 'index'])
-     ->name('manajemen-ruangan'); 
-
-Route::get('/manajemen-ruangan/{id}', [ManajemenRuanganController::class, 'edit'])
-     ->name('manajemen-ruangan');
-
-Route::put('/manajemen-ruangan/{id}', [ManajemenRuanganController::class, 'update'])
-     ->name('manajemen-ruangan');
+Route::get('/admin/manajemen-ruangan', [ManajemenRuanganController::class, 'index'])
+     ->name('admin.manajemen-ruangan.index'); // <-- Beri nama .index
+// Route untuk menampilkan FORM EDIT - BUTUH ID
+Route::get('/admin/manajemen-ruangan/{id}/edit', [ManajemenRuanganController::class, 'edit'])
+     ->name('admin.manajemen-ruangan.edit'); // <-- Beri nama .edit
+// Route untuk proses UPDATE - BUTUH ID
+Route::put('/admin/manajemen-ruangan/{id}', [ManajemenRuanganController::class, 'update'])
+     ->name('admin.manajemen-ruangan.update');
 
 
 require __DIR__.'/auth.php';

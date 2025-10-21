@@ -134,6 +134,12 @@
     transition: all 0.2s ease;
 }
 
+.btn-gradient {
+    background-image: linear-gradient(to right, #9caf88, #414939);
+    border: none;
+    color: #ffffff;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .table-responsive {

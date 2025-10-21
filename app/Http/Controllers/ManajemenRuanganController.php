@@ -31,6 +31,6 @@ class ManajemenRuanganController extends Controller
 
         $room->update($validatedData);
 
-        return redirect()->route('manajemen-ruangan')->with('success', 'Data ruangan berhasil diperbarui!');
+        return redirect()->route('admin.manajemen-ruangan.index')->with('success', 'Data ruangan berhasil diperbarui!');
     }
 }

@@ -26,6 +26,15 @@
 
 @section('content')
     <div class="p-1 lg:p-8">
+        <div class="flex items-center gap-3 mb-8">
+            <button onclick="window.history.back()" class="btn btn-ghost btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <h1 class="text-2xl">Manajemen Menu</h1>
+        </div>
         <div class="card w-full bg-white shadow-xl">
             <div class="card-body">
                 <h1 class="text-2xl font-bold border-b-4 border-brand-primary pb-2">MANAJEMEN MENU</h1>             
@@ -39,7 +48,7 @@
                           <input id="searchInput" type="text" placeholder="Search..."
                                 class="input input-sm input-bordered w-72 pl-10" />
                         </div>
-                        <button id="tambahMenuBtn" class="btn text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Tambah Menu</button>
+                        <button id="tambahMenuBtn" class="btn btn-gradient bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Tambah Menu</button>
                     </div>
 
                 <div class="flex items-center space-x-2 text-sm mb-4">
@@ -92,7 +101,7 @@
                                             <input type="checkbox" class="toggle toggle-md"
                                                 {{ $item['tersedia'] ? 'checked' : '' }} />
                                             <button
-                                                class="btn btn-xs text-white bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none btn-ubah-detail"
+                                                class="btn btn-xs btn-gradient bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none btn-ubah-detail"
                                                 data-nama="{{ $item['nama'] }}" data-harga="{{ $item['harga'] }}"
                                                 data-kategori="{{ $item['kategori'] }}"
                                                 data-foto="{{ $item['foto'] }}">Ubah Detail</button>
