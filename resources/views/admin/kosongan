@@ -1,0 +1,16 @@
+@extends('layouts.admin')
+
+@section('title', 'Manajemen Meja')
+
+
+@push('styles')
+       <style>
+      
+    </style>
+@endpush
+
+@section('content')
+    <div class="p-4 lg:p-8">
+        
+    </div>
+@endsection

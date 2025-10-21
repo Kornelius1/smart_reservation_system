@@ -1,18 +1,19 @@
 <?php
 
 
-use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\TableController; 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Customer\LandingPageController;
-use App\Http\Controllers\Customer\DenahMejaController;
-use App\Http\Controllers\Customer\BayarController;
-use App\Http\Controllers\Customer\PesanMenuController;
+use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RescheduleController;
 use App\Http\Controllers\ReservationController; 
+use App\Http\Controllers\Customer\BayarController;
+use App\Http\Controllers\Customer\DenahMejaController;
+use App\Http\Controllers\Customer\PesanMenuController;
 use App\Http\Controllers\ManajemenRescheduleController;
+use App\Http\Controllers\Customer\LandingPageController;
 
 
 
@@ -53,7 +54,7 @@ Route::get('/reschedule/find', [RescheduleController::class, 'findReservation'])
 Route::post('/reschedule/update', [RescheduleController::class, 'updateSchedule'])->name('reschedule.update');
 
 
-// === ROUTES UNTUK HALAMAN CUSTOMER === PERLU AUTENTIKASI
+// === ROUTES UNTUK HALAMAN ADMIN === PERLU AUTENTIKASI
 
 // 1. dashboard admin
 // Route::get('/admin/dashboard', function () {
@@ -64,22 +65,7 @@ Route::get('/dashboard', function () {
     return view('admin.DashboardAdmin');
 })->name('admin.dashboard');
 
-// 2. Manajemen Menu
-// Route::get('/manajemen-menu', [ManajemenMenuController::class, 'index'])->name('manajemen-menu');
-
-// 3. Manajemen Meja
-Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
-
-// 4. Manajemen Reservasi
-Route::get('/manajemen-reservasi', [ReservationController::class, 'index'])->name('manajemen-reservasi');
-
-Route::get('/manajemen-reschedule', [ManajemenRescheduleController::class, 'index'])->name('manajemen-reschedule');
-
-// 2. Manajemen Reservasi - Masuk ke Admin ini
-// Route::get('/reservasi', [ReservationController::class, 'create'])
-//     ->middleware(['auth'])->name('reservasi.create');
-
-// ROUTE UNTUK MANAJEMEN MENU DENGAN DATA LENGKAP
+// 1. Manajemen Menu
 Route::get('/manajemen-menu', function () {
     // DATA MENU LENGKAP
     $menuItems = [
@@ -186,6 +172,25 @@ Route::get('/manajemen-menu', function () {
 
     return view('admin.manajemen-menu', ['menuItems' => $menuItems]);
 })->name('manajemen-menu');
+
+// 2. Manajemen Meja
+Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
+
+
+// 3. Manajemen Reservasi
+Route::get('/manajemen-reservasi', [ReservationController::class, 'index'])->name('manajemen-reservasi');
+
+
+// 4. Manajemen Reschedule
+Route::get('/manajemen-reschedule', [ManajemenRescheduleController::class, 'index'])->name('manajemen-reschedule');
+
+
+// 5. Manajemen Laporan
+Route::get('/manajemen-laporan', [LaporanController::class, 'index'])->name('manajemen-laporan');
+
+// 6. Manajemen Ruangan
+// Route::get('/manajemen-ruangan', [ManajemenRuanganController::class, 'index'])->name('manajemen-laporan');
+
 
 
 require __DIR__.'/auth.php';

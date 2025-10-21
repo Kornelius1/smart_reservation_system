@@ -25,6 +25,6 @@ class ManajemenRescheduleController extends Controller
             ['id_reschedule' => 'RSV009', 'id_transaksi' => 'TR5009', 'nomor_meja' => 16, 'nama_customer' => 'Imam', 'nomor_telepon' => '0815 xxx xxx', 'jumlah_orang' => 3, 'tanggal' => '15/12/24', 'waktu_reschedule' => '18.30 WIB', 'status' => false],
         ];
 
-        return view('ManajemenReschedule', ['reschedules' => $reschedules]);
+        return view('admin.ManajemenReschedule', ['reschedules' => $reschedules]);
     }
 }
