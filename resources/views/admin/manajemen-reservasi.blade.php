@@ -1,42 +1,36 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
+@extends('layouts.admin')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Reservasi</title>
-        <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    @vite(['resources/css/app.css', 'resources/js/manajemen-reservasi.js', 'resources/css/manajemen.css'])
-</head>
+@section('title', 'Manajemen Reservasj')
 
-<body class="bg-brand-background">
 
-    <div class="drawer lg:drawer-open">
-        <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+@push('styles')
+      <style>
+        .toggle {
+            --toggle-handle-color: white !important;
+        }
 
-        {{-- SIDEBAR --}}
-    @include('layouts.partials.sidebar')
-    
-        {{-- KONTEN UTAMA --}}
-        <div class="drawer-content flex flex-col items-center p-4 lg:p-8 ml-20">
+        .toggle:checked {
+            background-image: none !important;
+        }
+    </style>
+@endpush
+
+@section('content')
+      <div class="p-4 lg:p-8">
             <div class="card w-full bg-white shadow-xl">
                 <div class="card-body">
                     <h1 class="text-2xl brand-text-1 border-b-4 border-brand-primary pb-2">MANAJEMEN
                         RESERVASI</h1>
-                    <div class="flex justify-start items-center my-4 space-x-4">
-                        <div class="form-control relative">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1.2 " fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <input id="searchInput" type="text" placeholder="Cari berdasarkan nama customer..."
-                                class="input input-sm input-bordered w-72 pl-10" />
-                        </div>
+                 
+
+                    <div class="form-control relative my-2">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5 absolute left-3 top-1.5 text-gray-500" 
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                       <input id="searchInput" type="text" placeholder="Cari berdasarkan nama customer..."
+                            class="input input-sm input-bordered w-72 pl-10" />
                     </div>
 
 
@@ -87,8 +81,7 @@
                 </div>
             </div>
         </div>
-    </div>
+@endsection
 
-</body>
 
-</html>
+

@@ -47,6 +47,6 @@ class TableController extends Controller
             ['id' => 24, 'nomor_meja' => '24', 'kapasitas' => 6, 'lokasi' => 'Outdoor 2', 'tersedia' => true],
         ];
 
-        return view('manajemen-meja', ['tables' => $tables]);
+        return view('admin.manajemen-meja', ['tables' => $tables]);
     }
 }

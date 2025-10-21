@@ -27,6 +27,6 @@ class ReservationController extends Controller
     
         ];
 
-        return view('manajemen-reservasi', ['reservations' => $reservations]);
+        return view('admin.manajemen-reservasi', ['reservations' => $reservations]);
     }
 }

@@ -1,14 +1,12 @@
 <?php
 
-use App\Http\Controllers\ManajemenMejaController;
+
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\TableController; 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\LoginController;
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\PemesananMenuController;
 use App\Http\Controllers\Customer\LandingPageController;
-use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Customer\DenahMejaController;
 use App\Http\Controllers\Customer\BayarController;
 use App\Http\Controllers\Customer\PesanMenuController;
@@ -22,9 +20,7 @@ use App\Http\Controllers\ReservationController;
 Route::get('/', [LandingPageController::class, 'index'])
     ->name('customer.landing.page');
 
-// 2. Manajemen Reservasi - Masuk ke Admin ini
-Route::get('/reservasi', [ReservationController::class, 'create'])
-    ->middleware(['auth'])->name('reservasi.create');
+
 
 // 3. Pilih Jenis Reservasi
 Route::get('/pilih-reservasi', function () {
@@ -56,20 +52,29 @@ Route::get('/reschedule/find', [RescheduleController::class, 'findReservation'])
 Route::post('/reschedule/update', [RescheduleController::class, 'updateSchedule'])->name('reschedule.update');
 
 
-// // === Pemesanan Menu ===
-// Route::get('/pemesanan-menu', [PemesananMenuController::class, 'index'])
-//     ->name('pemesanan.menu');
+// === ROUTES UNTUK HALAMAN CUSTOMER === PERLU AUTENTIKASI
 
-// // === Dashboard Customer (tanpa login) ===
-// Route::get('/customer/dashboard', [CustomerController::class, 'dashboard'])
-//     ->name('customer.dashboard');
+// 1. dashboard admin
+// Route::get('/admin/dashboard', function () {
+//     return view('admin.dashboard'); // ganti "admin.dashboard" sesuai nama file blade kamu
+// })->name('admin.dashboard')->middleware('auth');
 
+Route::get('/dashboard', function () {
+    return view('admin.DashboardAdmin');
+})->name('admin.dashboard');
 
+// 2. Manajemen Menu
+// Route::get('/manajemen-menu', [ManajemenMenuController::class, 'index'])->name('manajemen-menu');
 
-// Route untuk manajemen meja yang sudah ada
+// 3. Manajemen Meja
 Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
-// Route BARU untuk manajemen reservasi
+
+// 4. Manajemen Reservasi
 Route::get('/manajemen-reservasi', [ReservationController::class, 'index'])->name('manajemen-reservasi');
+
+// 2. Manajemen Reservasi - Masuk ke Admin ini
+Route::get('/reservasi', [ReservationController::class, 'create'])
+    ->middleware(['auth'])->name('reservasi.create');
 
 // ROUTE UNTUK MANAJEMEN MENU DENGAN DATA LENGKAP
 Route::get('/manajemen-menu', function () {
@@ -176,53 +181,8 @@ Route::get('/manajemen-menu', function () {
         ['id' => 84, 'nama' => 'Vietnam Drip', 'harga' => 18000, 'kategori' => 'Coffee', 'tersedia' => true, 'foto' => 'Vietnam-Drip (hot).png'],
     ];
 
-    return view('manajemen-menu', ['menuItems' => $menuItems]);
-});
-
-Route::get('/dashboard', function () {
-    return redirect()->route('customer.dashboard');
-})->name('dashboard');
-
-// === Login dengan Google ===
-Route::get('auth/google', [LoginController::class, 'redirectToGoogle'])->name('google.login');
-Route::get('auth/google/callback', [LoginController::class, 'handleGoogleCallback']);
-
-// === Profile (hanya untuk user login) ===
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-// === Login dengan Google ===
-Route::get('auth/google', [LoginController::class, 'redirectToGoogle'])->name('google.login');
-Route::get('auth/google/callback', [LoginController::class, 'handleGoogleCallback']);
-
-Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
-    ->name('admin.dashboard')
-    ->middleware('auth');
-
-// === Dashboard Admin ===
-Route::get('/admin/dashboard', function () {
-    return view('admin.dashboard'); // ganti "admin.dashboard" sesuai nama file blade kamu
-})->name('admin.dashboard')->middleware('auth');
-
-
-
-// === Dashboard Customer ===
-Route::get('/customer/dashboard', function () {
-    return view('customer.dashboard'); // ganti "customer.dashboard" sesuai nama file blade kamu
-})->name('customer.dashboard')->middleware('auth');
-
-
-// Routes untuk Manajemen Meja
-// Route::prefix('manajemen-meja')->name('manajemen-meja.')->group(function () {
-//     Route::get('/', [ManajemenMejaController::class, 'index'])->name('index');
-//     Route::put('/{id}', [ManajemenMejaController::class, 'update'])->name('update');
-//     Route::get('/search', [ManajemenMejaController::class, 'search'])->name('search');
-//     Route::patch('/{id}/toggle-status', [ManajemenMejaController::class, 'toggleStatus'])->name('toggle-status');
-// });
-
+    return view('admin.manajemen-menu', ['menuItems' => $menuItems]);
+})->name('manajemen-menu');
 
 
 require __DIR__.'/auth.php';

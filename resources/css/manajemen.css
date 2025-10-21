@@ -1,38 +1,146 @@
+/* ==========================================================================
+   1. Definisi Warna Tema (Root Variables)
+   ========================================================================== */
+:root {
+    /* Warna Bawaan DaisyUI (bisa disesuaikan jika perlu) */
+    --primary: #570df8;
+    --secondary: #f000b8;
+    --accent: #37cdbe;
+    --neutral: #3d4451;
+    --base-100: #ffffff; /* Latar utama, misal card */
+    --base-200: #F2F2F2;
+    --base-300: #E5E6E6;
+    --base-content: #1f2937;
+    --info: #3abff8;
+    --warning: #fbbd23;
+    --error: #f87272;
+
+    /* * WARNA KUSTOM ANDA DIMASUKKAN DI SINI
+     * Ini menggantikan kelas seperti .bg-brand-background, .text-brand-text, dll.
+    */
+    --brand-bg: #c6d2b9; /* Untuk latar belakang utama halaman */
+    --brand-text: #414939; /* Warna teks utama */
+    --brand-primary: #9CAF88; /* Warna hijau utama/sukses */
+    --brand-primary-content: #ffffff; /* Warna teks di atas --brand-primary */
+    --success: var(--brand-primary); /* Menggunakan warna brand sebagai warna sukses */
+    --success-content: var(--brand-primary-content);
+}
+
+/* ==========================================================================
+   2. Style Global (Scrollbar, Animations, etc.)
+   ========================================================================== */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Animasi */
+@keyframes slideUp {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==========================================================================
+   3. Override Komponen DaisyUI
+   ========================================================================== */
+
+/* Table Header */
+.table thead {
+    /* Menggunakan variabel tema agar konsisten */
+    background-color: var(--brand-text) !important; 
+}
+.table thead th {
+    color: var(--base-100) !important; /* Warna putih */
+    text-transform: none;
+    font-size: 14px;
+}
+
+/* Row Hover Effect */
+.table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+/* Toggle Switch */
 .toggle {
+    /* Mengatur warna handle toggle menjadi putih */
     --toggle-handle-color: white !important;
 }
-
 .toggle:checked {
+    /* Menghilangkan ikon centang bawaan jika tidak diinginkan */
     background-image: none !important;
+    background-color: var(--success);
+    border-color: var(--success);
 }
 
-.bg-brand-background {
-    background-color: #c6d2b9;
-    color: #dfe6da;
+/* Modal Backdrop */
+.modal-backdrop {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
 }
 
-.text-brand-text {
-    color: #414939;
+/* ==========================================================================
+   4. Kelas Utilitas Kustom (Custom Utilities)
+   ========================================================================== */
+
+/* Kelas Badge Kustom */
+.badge-available {
+    background-color: #dcfce7;
+    color: #166534;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+.badge-not-available {
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
 }
 
-.brand-text-1 {
-    color: #414939;
-    font-weight: bold;
+/* Animasi & Efek Hover */
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+.btn-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+    transition: all 0.2s ease;
 }
 
-.brand-primary {
-    color: #dfe6da;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 14px;
+    }
+    .table th,
+    .table td {
+        padding: 8px 12px;
+    }
 }
-
-.brand-primary-dark {
-    color: #414939;
-}
-
-.border-brand-primary {
-  border-color: #414939; /* Saya gunakan warna brand-primary-dark agar terlihat jelas */
-}
-
-
-
-
-
