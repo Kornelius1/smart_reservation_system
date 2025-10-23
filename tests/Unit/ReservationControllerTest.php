@@ -3,7 +3,10 @@
 namespace Tests\Unit;
 
 use App\Http\Controllers\ReservationController;
+use App\Models\Reservation; // Penting untuk alias mock
+use Mockery;
 use Tests\TestCase;
+use Illuminate\Support\Collection; // 'all()' mengembalikan Collection
 
 /**
  * Class ReservationControllerTest
@@ -14,19 +17,48 @@ use Tests\TestCase;
 class ReservationControllerTest extends TestCase
 {
     /**
-     * Memastikan metode index mengembalikan view yang benar dengan data reservasi.
+     * Membersihkan Mockery setelah setiap test.
+     */
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
+    }
+
+    /**
+     * Memastikan metode index mengembalikan view yang benar dengan data reservasi
+     * yang diambil dari model.
      *
      * @return void
      */
     public function test_index_returns_correct_view_with_reservations_data()
     {
-        // 1. Persiapan
-        // Buat instance controller-nya secara langsung.
-        // Tidak perlu Mockery karena tidak ada dependensi yang di-inject.
+        // 1. Persiapan (Setup)
+
+        // 1a. Buat data palsu yang ingin kita kembalikan.
+        // 'all()' mengembalikan sebuah Collection, jadi kita buat Collection palsu.
+        $mockReservations = new Collection([
+            (object)['id_reservasi' => 'RSVM001', 'nama_customer' => 'Sylya (Mocked)'],
+            (object)['id_reservasi' => 'RSVM002', 'nama_customer' => 'Gulum (Mocked)']
+        ]);
+
+        // 1b. Buat mock untuk Model Reservation menggunakan 'alias'.
+        // Ini akan mencegat panggilan static 'Reservation::all()'.
+        $mockReservationModel = Mockery::mock('alias:App\Models\Reservation');
+
+        // 1c. Tentukan ekspektasi:
+        // Saat 'all()' dipanggil, kembalikan data palsu kita ($mockReservations).
+        $mockReservationModel->shouldReceive('all')
+                             ->once() // Harapkan dipanggil 1x
+                             ->andReturn($mockReservations); // Kembalikan data palsu kita
+
+        // 1d. Buat instance controller-nya
         $controller = new ReservationController();
 
-        // 2. Eksekusi
+        // 2. Eksekusi (Act)
         // Panggil method index()
+        // Di dalam method ini, 'Reservation::all()' akan dipanggil,
+        // tetapi dicegat oleh Mockery.
         $response = $controller->index();
 
         // 3. Verifikasi (Assert)
@@ -43,25 +75,11 @@ class ReservationControllerTest extends TestCase
         // 3d. Pastikan ada key 'reservations' di dalam data
         $this->assertArrayHasKey('reservations', $data);
 
-        // 3e. Pastikan data 'reservations' adalah sebuah array
-        $this->assertIsArray($data['reservations']);
+        // 3e. Pastikan data 'reservations' adalah data palsu yang kita siapkan
+        $this->assertSame($mockReservations, $data['reservations']);
 
-        // 3f. Pastikan jumlah data reservasi-nya benar (ada 9 di controller Anda)
-        $this->assertCount(9, $data['reservations']);
-
-        // 3g. (Opsional) Cek data pertama untuk memastikan datanya tidak salah
-        $expectedFirstReservation = [
-            'id_reservasi' => 'RSVM001',
-            'id_transaksi' => 'TR5001',
-            'nomor_meja' => 1,
-            'nomor_ruangan' => null,
-            'nama_customer' => 'Sylya',
-            'nomor_telepon' => '0812 xxx xxx',
-            'jumlah_orang' => 4,
-            'tanggal' => '17/01/24',
-            'waktu_reservasi' => '11.00 WIB',
-            'status' => false
-        ];
-        $this->assertEquals($expectedFirstReservation, $data['reservations'][0]);
+        // 3f. (Opsional) Pastikan jumlahnya sesuai data mock
+        $this->assertCount(2, $data['reservations']);
     }
 }
+
