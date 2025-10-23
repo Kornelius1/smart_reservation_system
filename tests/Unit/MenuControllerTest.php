@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\Unit; // Tetap di folder Unit
+namespace Tests\Unit; 
 
 use Tests\TestCase;
 use App\Models\Menu;
-use App\Models\User; // Kita tetap butuh User jika controllermu butuh login
+use App\Models\User; 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -13,24 +13,23 @@ use PHPUnit\Framework\Attributes\Test;
 
 class MenuControllerTest extends TestCase
 {
-    use RefreshDatabase; // Kita tetap pakai ini karena menyentuh DB
+    use RefreshDatabase;
 
     protected $user;
 
     public function setUp(): void
     {
         parent::setUp();
-        // Buat user untuk tes
+     
         $this->user = User::factory()->create();
 
-        // Siapkan storage palsu
+
         Storage::fake('public');
 
-        // Matikan Mass Assignment Protection sementara
+ 
         Menu::unguard();
     }
 
-    // Aktifkan kembali Mass Assignment Protection setelah semua tes
     public function tearDown(): void
     {
         Menu::reguard();

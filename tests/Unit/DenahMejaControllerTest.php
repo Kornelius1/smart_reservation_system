@@ -4,9 +4,9 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use App\Http\Controllers\Customer\DenahMejaController;
-use App\Models\Meja; // Pastikan model Meja diimpor
+use App\Models\Meja; 
 use Illuminate\Support\Collection;
-use Mockery; // Diperlukan untuk mocking Meja::all()
+use Mockery; 
 
 /**
  * Class DenahMejaControllerTest

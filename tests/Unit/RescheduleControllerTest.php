@@ -11,7 +11,7 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Carbon\Carbon;
 use PHPUnit\Framework\Attributes\Test;
-// TAMBAHKAN INI: Import ValidationException
+
 use Illuminate\Validation\ValidationException; 
 
 class RescheduleControllerTest extends TestCase
@@ -26,7 +26,7 @@ class RescheduleControllerTest extends TestCase
         $this->controller = new RescheduleController();
         Reservation::unguard();
         
-        // Set waktu tetap untuk testing
+   
         Carbon::setTestNow(Carbon::parse('2025-10-23 10:00:00'));
     }
 
