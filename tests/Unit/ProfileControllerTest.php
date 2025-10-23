@@ -12,10 +12,6 @@ use Illuminate\Support\Facades\Redirect;
 use Mockery;
 use Tests\TestCase;
 
-/**
- * Class ProfileControllerTest
- * Menguji logika unit dari ProfileController dengan mem-mock semua dependency framework.
- */
 class ProfileControllerTest extends TestCase
 {
     /**
@@ -64,7 +60,9 @@ class ProfileControllerTest extends TestCase
         $validatedData = ['name' => 'New Name', 'email' => $originalEmail]; 
 
         $mockRequest = Mockery::mock(ProfileUpdateRequest::class);
-        $mockRequest->shouldReceive('validated')->once()->andReturn($validatedData);
+        $mockRequest->shouldReceive('validated')->once()->andReturnUsing(function () use ($validatedData) {
+            return $validatedData;
+        });
         $mockRequest->shouldReceive('user')->andReturn($mockUser);
 
         // Ekspektasi pada User Model
@@ -99,7 +97,9 @@ class ProfileControllerTest extends TestCase
         $validatedData = ['name' => 'New Name', 'email' => 'new@email.com']; 
 
         $mockRequest = Mockery::mock(ProfileUpdateRequest::class);
-        $mockRequest->shouldReceive('validated')->once()->andReturn($validatedData);
+        $mockRequest->shouldReceive('validated')->once()->andReturnUsing(function () use ($validatedData) {
+            return $validatedData;
+        });
         $mockRequest->shouldReceive('user')->andReturn($mockUser);
 
         // Ekspektasi pada User Model
