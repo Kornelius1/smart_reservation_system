@@ -68,7 +68,7 @@
                        <input id="searchInput" type="text" placeholder="Search..."
                             class="input input-sm input-bordered w-72 pl-10" />
                     </div>
-                    <button id="tambahMenuBtn" class="btn btn-gradient bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Tambah Menu</button>
+                    <button id="tambahMenuBtn" class="btn btn-gradient">Tambah Menu</button>
                 </div>
 
                 <div class="flex items-center space-x-2 text-sm mb-4">
@@ -130,7 +130,7 @@
                                             </form>
                                             
                                             <button
-                                                class="btn btn-xs btn-gradient bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none btn-ubah-detail"
+                                                class="btn btn-xs btn-ubah-detail"
                                                 data-id="{{ $item->id }}"
                                                 data-nama="{{ $item->name }}"
                                                 data-harga="{{ $item->price }}"
