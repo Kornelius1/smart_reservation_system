@@ -6,24 +6,26 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+   
     public function up(): void
     {
         Schema::create('reservations', function (Blueprint $table) {
-            $table->id(); // <--- ID internal (Primary Key, auto-increment)
-            $table->string('id_transaksi')->unique(); // <--- ID Anda (TRS001), dibuat unik
-            $table->string('nama'); // Nama pemesan
-            $table->date('tanggal'); // Tanggal reservasi
-            $table->time('waktu'); // Waktu reservasi
-            $table->timestamps(); // <--- Otomatis membuat kolom created_at dan updated_at
+          
+            $table->id('id_reservasi');
+            $table->string('id_transaksi')->unique(); 
+            $table->string('nama'); 
+            $table->string('nomor_telepon')->nullable(); 
+            $table->integer('jumlah_orang')->nullable();
+            $table->date('tanggal'); 
+            $table->time('waktu'); 
+            $table->boolean('status')->default(true); 
+            $table->integer('nomor_meja')->nullable(); 
+            $table->integer('nomor_ruangan')->nullable(); 
+            $table->timestamps(); 
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+   
     public function down(): void
     {
         Schema::dropIfExists('reservations');

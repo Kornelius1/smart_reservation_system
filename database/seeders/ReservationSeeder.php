@@ -3,48 +3,65 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Reservation; // <--- 1. Gunakan Model
-use Illuminate\Support\Facades\DB; // <--- 2. Gunakan DB facade
+use App\Models\Reservation;
+use Illuminate\Support\Facades\DB;
 
 class ReservationSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Hapus data lama agar tidak duplikat setiap kali seeding
+       
         DB::table('reservations')->delete();
 
-        // Data dummy Anda
+       
         $data = [
             [
-                'id_transaksi' => 'TRS001', 
-                'nama' => 'Budi', 
-                'tanggal' => '2025-10-17', // Tanggal di masa lalu
-                'waktu' => '19:00:00'
+                'id_transaksi' => 'TRS001',
+                'nama' => 'Budi Santoso',
+                'nomor_telepon' => '081234567890',
+                'jumlah_orang' => 2,
+                'tanggal' => '2025-10-17',
+                'waktu' => '19:00:00', 
+                'status' => false, 
+                'nomor_meja' => 1,
+                'nomor_ruangan' => null 
             ],
             [
-                'id_transaksi' => 'TRS002', 
-                'nama' => 'Citra', 
-                'tanggal' => '2025-11-20', // Tanggal di masa depan
-                'waktu' => '12:00:00'
+                'id_transaksi' => 'TRS002',
+                'nama' => 'Citra Lestari',
+                'nomor_telepon' => '08111222333',
+                'jumlah_orang' => 5,
+                'tanggal' => '2025-11-20',
+                'waktu' => '12:00:00',
+                'status' => true, 
+                'nomor_meja' => null,
+                'nomor_ruangan' => 1 
             ],
             [
-                'id_transaksi' => 'TRS003', 
-                'nama' => 'Dewi', 
-                'tanggal' => '2025-11-22', // Tanggal di masa depan
-                'waktu' => '20:00:00'
+                'id_transaksi' => 'TRS003',
+                'nama' => 'Dewi Anggraini',
+                'nomor_telepon' => '085566778899',
+                'jumlah_orang' => 4,
+                'tanggal' => '2025-11-22',
+                'waktu' => '20:00:00',
+                'status' => true,
+                'nomor_meja' => 3,
+                'nomor_ruangan' => null 
             ],
-            [
-                'id_transaksi' => 'TRS004', 
-                'nama' => 'Fahira', 
-                'tanggal' => '2025-10-13', // Tanggal di masa lalu
-                'waktu' => '20:00:00'
+             [
+                'id_transaksi' => 'TRS004',
+                'nama' => 'Fahira Anindita',
+                'nomor_telepon' => '087712341234',
+                'jumlah_orang' => 10,
+                'tanggal' => '2025-10-13',
+                'waktu' => '20:00:00',
+                'status' => false,
+                'nomor_meja' => null,
+                'nomor_ruangan' => 2 
             ],
+          
         ];
 
-        // Masukkan data ke database
         foreach ($data as $reservasi) {
             Reservation::create($reservasi);
         }

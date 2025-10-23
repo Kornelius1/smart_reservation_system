@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Manajemen Reservasj')
+@section('title', 'Manajemen Reservasi') {{-- Judul diubah sedikit --}}
 
 
 @push('styles')
@@ -25,16 +25,15 @@
                 </svg>
             </button>
             <h1 class="text-2xl">Manajemen Reservasi</h1>
-        </div>  
+        </div>
             <div class="card w-full bg-white shadow-xl">
                 <div class="card-body">
-                    <h1 class="text-2xl font-bold brand-text-1 border-b-4 border-brand-primary pb-2">MANAJEMEN
-                        RESERVASI</h1>
-                 
+                    <h1 class="text-2xl font-bold brand-text-1 border-b-4 border-brand-primary pb-2">MANAJEMEN RESERVASI</h1>
+
 
                     <div class="form-control relative my-2">
                         <svg xmlns="http://www.w3.org/2000/svg"
-                             class="h-5 w-5 absolute left-3 top-1.5 text-gray-500" 
+                             class="h-5 w-5 absolute left-3 top-1.5 text-gray-500"
                              fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
@@ -52,38 +51,57 @@
                                     <th>ID Reservasi</th>
                                     <th>ID Transaksi</th>
                                     <th>Nomor Meja</th>
+                                    <th>Nomor Ruangan</th> {{-- <<< KOLOM BARU --}}
                                     <th>Nama Customer</th>
                                     <th>Nomor Telepon</th>
                                     <th>Jumlah Orang</th>
                                     <th>Tanggal</th>
                                     <th>Waktu Reservasi</th>
                                     <th>Status</th>
-                                    <th>Aksi</th> 
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             {{-- ISI TABEL --}}
                             <tbody class="text-brand-text">
-                                @foreach ($reservations as $reservation)
-                                    <tr class="text-center">
-                                        <th>{{ $reservation['id_reservasi'] }}</th>
-                                        <td>{{ $reservation['id_transaksi'] }}</td>
-                                        <td>{{ $reservation['nomor_meja'] }}</td>
-                                        <td>{{ $reservation['nama_customer'] }}</td>
-                                        <td>{{ $reservation['nomor_telepon'] }}</td>
-                                        <td>{{ $reservation['jumlah_orang'] }} Orang</td>
-                                        <td>{{ $reservation['tanggal'] }}</td>
-                                        <td>{{ $reservation['waktu_reservasi'] }}</td>
-                                        <td>
-                                            <span class="badge badge-sm" style="border: none;"></span>
-                                        </td>
-                                        <td>
-                                            <div class="flex items-center justify-center">
-                                                <input type="checkbox" class="toggle toggle-md"
-                                                    {{ $reservation['status'] ? 'checked' : '' }} />
-                                            </div>
-                                        </td>
+                                {{-- Menggunakan data asli dari Controller, bukan hardcoded --}}
+                                @if (isset($reservations) && !$reservations->isEmpty())
+                                    @foreach ($reservations as $reservation)
+                                        <tr class="text-center">
+                                            <th>{{ $reservation->id_reservasi }}</th> {{-- Akses via objek -> --}}
+                                            <td>{{ $reservation->id_transaksi }}</td>
+                                            <td>{{ $reservation->nomor_meja ?? '-' }}</td> {{-- Tampilkan '-' jika null --}}
+                                            <td>{{ $reservation->nomor_ruangan ?? '-' }}</td> {{-- <<< DATA BARU --}}
+                                            <td>{{ $reservation->nama }}</td> {{-- <-- Pakai 'nama' --}}
+                                            <td>{{ $reservation->nomor_telepon ?? '-' }}</td>
+                                            <td>{{ $reservation->jumlah_orang ?? '-' }} Orang</td>
+                                            {{-- Format tanggal agar lebih rapi --}}
+                                            <td>{{ $reservation->tanggal ? $reservation->tanggal->format('d-m-Y') : '-' }}</td>
+                                            {{-- Format waktu agar lebih rapi --}}
+                                            <td>{{ $reservation->waktu ? \Carbon\Carbon::parse($reservation->waktu)->format('H:i') : '-' }} WIB</td> {{-- <-- Pakai 'waktu' --}}
+                                            <td>
+                                                {{-- Tampilkan badge berdasarkan status --}}
+                                                @if ($reservation->status)
+                                                    <span class="badge badge-success badge-sm" style="border: none; background-color: #5cb85c; color: white;">Aktif</span>
+                                                @else
+                                                    <span class="badge badge-error badge-sm" style="border: none; background-color: #d9534f; color: white;">Selesai</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center justify-center">
+                                                    {{-- Toggle status --}}
+                                                    <input type="checkbox" class="toggle toggle-md toggle-success"
+                                                        data-id="{{ $reservation->id_reservasi }}" {{-- Untuk JS nanti jika perlu --}}
+                                                        {{ $reservation->status ? 'checked' : '' }} />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    {{-- Jika tidak ada data --}}
+                                    <tr>
+                                        <td colspan="11" class="text-center py-4">Tidak ada data reservasi ditemukan.</td>
                                     </tr>
-                                @endforeach
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -91,6 +109,3 @@
             </div>
         </div>
 @endsection
-
-
-
