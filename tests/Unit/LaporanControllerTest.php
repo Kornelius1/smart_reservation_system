@@ -2,190 +2,160 @@
 
 namespace Tests\Unit;
 
+use Tests\TestCase;
 use App\Http\Controllers\LaporanController;
 use App\Models\Reservation;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Support\Collection;
-use Tests\TestCase;
-use Mockery;
-use Illuminate\Support\Facades\Response; // Tambahkan import Response Facade
+use Illuminate\Pagination\LengthAwarePaginator;
+use PHPUnit\Framework\Attributes\Test;
+use Carbon\Carbon;
 
-/**
- * Unit Test untuk LaporanController.
- * Menggunakan Mocking untuk mengisolasi Controller dari database dan HTTP Response.
- */
 class LaporanControllerTest extends TestCase
 {
-    /**
-     * Pastikan Mockery dibersihkan setelah setiap test.
-     */
-    protected function tearDown(): void
+    use RefreshDatabase;
+
+    public function setUp(): void
     {
-        Mockery::close();
+        parent::setUp();
+        Reservation::unguard();
+    }
+
+    public function tearDown(): void
+    {
+        Reservation::reguard();
         parent::tearDown();
     }
 
-    // ===============================================
-    // TEST UNTUK METHOD INDEX (Menampilkan Laporan)
-    // ===============================================
-
-    /**
-     * Test case untuk method index tanpa filter (default fetch).
-     *
-     * @return void
-     */
+    #[Test]
     public function test_index_displays_report_without_filters()
     {
-        // ARRANGE: Siapkan data tiruan
-        $mockReservations = Collection::make([
-            (object)['id' => 1, 'tanggal' => '2024-10-25'],
-            (object)['id' => 2, 'tanggal' => '2024-10-24'],
+        // HANYA gunakan kolom yang PASTI ada
+        Reservation::create([
+            'id_transaksi' => 'TR001',
+            'nama' => 'Customer A',
+            'tanggal' => '2025-10-25',
+            'waktu' => '10:00:00',
+            'jumlah_orang' => 4
+        ]);
+        Reservation::create([
+            'id_transaksi' => 'TR002',
+            'nama' => 'Customer B',
+            'tanggal' => '2025-10-24',
+            'waktu' => '11:00:00',
+            'jumlah_orang' => 2
         ]);
 
-        // MOCKING: Memasang Mock pada Model Reservation (Eloquent)
-        $reservationMock = Mockery::mock('alias:' . Reservation::class);
-        $queryMock = Mockery::mock();
-        $paginationMock = Mockery::mock();
-
-        // Step 1: Siapkan MOCK Request. 
-        // Kita mock metode filled() untuk memastikan filter tidak terisi.
-        // PENTING: Untuk mengatasi validasi, kita mock method validate() agar tidak melakukan apa-apa (lulus).
-        $request = Mockery::mock(Request::class);
-        $request->shouldReceive('validate')->once()->andReturn([]);
-        $request->shouldReceive('filled')->with('start_date')->andReturnFalse();
-        $request->shouldReceive('filled')->with('end_date')->andReturnFalse();
-        // Karena filled() mengembalikan false, property access $request->start_date di Controller di-skip.
-        // Tidak perlu mock all() di sini.
-
-        // Step 2: Mocking Chaining Query
-        $reservationMock->shouldReceive('query')->andReturn($queryMock);
-        
-        // getFilteredQuery (tanpa filter): tidak ada whereDate dipanggil
-        $queryMock->shouldReceive('latest')->with('tanggal')->once()->andReturnSelf();
-        
-        // Step 3: Mocking Pagination (Penting untuk method index)
-        $queryMock->shouldReceive('paginate')->with(10)->once()->andReturn($paginationMock);
-        // Mocking withQueryString agar mengembalikan data tiruan
-        $paginationMock->shouldReceive('withQueryString')->once()->andReturn($mockReservations); 
+        $request = new Request();
 
         // ACT
         $controller = new LaporanController();
-        // Memanggil Controller secara langsung dengan Request mock
         $view = $controller->index($request);
 
         // ASSERT
-        $this->assertInstanceOf(View::class, $view, 'Metode index() harus mengembalikan instance dari View.');
-        $this->assertEquals('admin.manajemen-laporan', $view->getName(), 'Nama view yang dimuat harus admin.manajemen-laporan.');
-        
+        $this->assertInstanceOf(View::class, $view, 'Harus mengembalikan View.');
+        $this->assertEquals('admin.manajemen-laporan', $view->getName(), 'Nama view harus benar.');
+
         $dataPassedToView = $view->getData();
-        $this->assertArrayHasKey('reservations', $dataPassedToView, 'View harus dilewatkan dengan kunci data "reservations".');
-        $this->assertEquals($mockReservations, $dataPassedToView['reservations'], 'Data yang dilewatkan harus sesuai dengan hasil mock paginate.');
+        $this->assertArrayHasKey('reservations', $dataPassedToView, 'Harus ada data reservations.');
+
+        $paginator = $dataPassedToView['reservations'];
+        $this->assertInstanceOf(LengthAwarePaginator::class, $paginator, 'Data harus berupa Paginator.');
+        $this->assertEquals(2, $paginator->total(), 'Harus ada 2 reservasi.');
+
+        $items = $paginator->items();
+        $this->assertEquals('2025-10-25', Carbon::parse($items[0]->tanggal)->toDateString());
+        $this->assertEquals('2025-10-24', Carbon::parse($items[1]->tanggal)->toDateString());
     }
 
-    /**
-     * Test case untuk method index dengan filter tanggal (start_date dan end_date).
-     *
-     * @return void
-     */
+    #[Test]
     public function test_index_displays_report_with_date_filters()
     {
-        // ARRANGE: Siapkan data filter
-        $startDate = '2024-01-01';
-        $endDate = '2024-01-31';
+        $startDate = '2024-01-05';
+        $endDate = '2024-01-15';
 
-        // MOCKING: Memasang Mock pada Model Reservation
-        $reservationMock = Mockery::mock('alias:' . Reservation::class);
-        $queryMock = Mockery::mock();
-        $paginationMock = Mockery::mock();
+        // Data di dalam rentang
+        Reservation::create([
+            'id_transaksi' => 'T001',
+            'nama' => 'Inside A',
+            'tanggal' => '2024-01-10',
+            'waktu' => '10:00',
+            'jumlah_orang' => 1
+        ]);
+        Reservation::create([
+            'id_transaksi' => 'T002',
+            'nama' => 'Inside B',
+            'tanggal' => '2024-01-05',
+            'waktu' => '10:00',
+            'jumlah_orang' => 1
+        ]);
         
-        // Step 1: Siapkan MOCK Request dengan filter.
-        $request = Mockery::mock(Request::class);
-        $request->shouldReceive('validate')->once()->andReturn([]);
-        
-        // Mocking Request input untuk getFilteredQuery
-        $request->shouldReceive('filled')->with('start_date')->andReturnTrue();
-        $request->shouldReceive('filled')->with('end_date')->andReturnTrue();
+        // Data di luar rentang
+        Reservation::create([
+            'id_transaksi' => 'T003',
+            'nama' => 'Outside Before',
+            'tanggal' => '2024-01-01',
+            'waktu' => '10:00',
+            'jumlah_orang' => 1
+        ]);
+        Reservation::create([
+            'id_transaksi' => 'T004',
+            'nama' => 'Outside After',
+            'tanggal' => '2024-01-20',
+            'waktu' => '10:00',
+            'jumlah_orang' => 1
+        ]);
 
-        // FIX: Tambahkan mock untuk method all() yang dipanggil ketika mengakses $request->start_date / $request->end_date
-        $request->shouldReceive('all')->andReturn([
+        $request = new Request([
             'start_date' => $startDate,
             'end_date' => $endDate,
         ]);
-        
-        // Step 2: Mocking Chaining Query (Ini menguji getFilteredQuery secara implisit)
-        $reservationMock->shouldReceive('query')->andReturn($queryMock);
-        
-        // Harusnya ada 2 whereDate dipanggil dari getFilteredQuery
-        $queryMock->shouldReceive('whereDate')->with('tanggal', '>=', $startDate)->once()->andReturnSelf();
-        $queryMock->shouldReceive('whereDate')->with('tanggal', '<=', $endDate)->once()->andReturnSelf();
-        
-        // Step 3: Mocking Pagination
-        $queryMock->shouldReceive('latest')->with('tanggal')->once()->andReturnSelf();
-        $queryMock->shouldReceive('paginate')->with(10)->once()->andReturn($paginationMock);
-        $paginationMock->shouldReceive('withQueryString')->once()->andReturn(new Collection());
 
         // ACT
         $controller = new LaporanController();
-        $controller->index($request);
+        $view = $controller->index($request);
 
-        // ASSERT: Karena Mockery sudah memastikan bahwa semua `shouldReceive` dipanggil, 
-        // kita hanya perlu memastikan tidak ada assertion error.
-        $this->assertTrue(true, 'Semua query chaining dipastikan terpanggil dengan parameter filter yang benar.'); 
+        // ASSERT
+        $this->assertInstanceOf(View::class, $view);
+        $this->assertEquals('admin.manajemen-laporan', $view->getName());
+
+        $dataPassedToView = $view->getData();
+        $paginator = $dataPassedToView['reservations'];
+        $this->assertInstanceOf(LengthAwarePaginator::class, $paginator);
+
+        $this->assertEquals(2, $paginator->total(), 'Harus ada 2 reservasi yang cocok filter.');
+
+        $names = collect($paginator->items())->pluck('nama')->toArray();
+        $this->assertContains('Inside A', $names);
+        $this->assertContains('Inside B', $names);
+        $this->assertNotContains('Outside Before', $names);
+        $this->assertNotContains('Outside After', $names);
     }
 
-    // ===============================================
-    // TEST UNTUK METHOD EXPORT (Mengekspor CSV)
-    // ===============================================
-
-    /**
-     * Test case untuk method export (CSV).
-     * Karena menggunakan fungsi response()->stream, kita akan fokus 
-     * menguji apakah query yang benar dipanggil dan response stream dikembalikan.
-     *
-     * @return void
-     */
-    public function test_export_fetches_filtered_data_for_csv()
+    #[Test]
+    public function test_export_fetches_data_and_returns_streamed_response()
     {
-        // ARRANGE: Siapkan data tiruan yang sudah memiliki created_at dan nama (seperti dari Eloquent)
-        $mockReservations = Collection::make([
-            (object)[
-                'id_transaksi' => 'TR9001', 
-                'nama' => 'User A', 
-                // Menggunakan Carbon/DateTime instance agar format() dapat dipanggil
-                'tanggal' => now()->subDay(), 
-                'waktu' => now()->subHours(5), 
-                'created_at' => now()->subDay()
-            ],
+        Reservation::create([
+            'id_transaksi' => 'TR9001',
+            'nama' => 'User Export',
+            'tanggal' => now()->subDay()->toDateString(),
+            'waktu' => now()->subHours(5)->toTimeString(),
+            'jumlah_orang' => 3,
+            'created_at' => now()->subDay()
         ]);
 
-        // MOCKING: Memasang Mock pada Model Reservation
-        $reservationMock = Mockery::mock('alias:' . Reservation::class);
-        $queryMock = Mockery::mock();
-        
-        // PENTING: Mocking Response Facade agar fungsi global response()->stream() bekerja
-        $responseMock = Response::shouldReceive('stream')->once();
-        
-        // Step 1: Mocking Chaining Query (tanpa filter di request)
-        $reservationMock->shouldReceive('query')->andReturn($queryMock);
-        $queryMock->shouldReceive('get')->once()->andReturn($mockReservations);
+        $request = new Request();
 
-        // Step 2: Mocking response()->stream()
-        // Menggunakan andReturnUsing untuk menguji headers dan mengembalikan StreamedResponse
-        $responseMock->andReturnUsing(function ($callback, $status, $headers) {
-            $this->assertEquals(200, $status);
-            $this->assertStringContainsString('text/csv', $headers['Content-type']);
-            // Mengembalikan StreamedResponse untuk assertion tipe
-            return new \Symfony\Component\HttpFoundation\StreamedResponse($callback, $status, $headers);
-        });
-        
         // ACT
         $controller = new LaporanController();
-        $request = new Request(); // Request tanpa parameter
-        // Kita tetap menggunakan Request biasa karena mock Request sudah dilakukan di Response Facade.
         $response = $controller->export($request);
 
         // ASSERT
-        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $response, 'Metode export() harus mengembalikan instance dari StreamedResponse.');
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $response);
+
+        $headers = $response->headers;
+        $this->assertStringContainsString('text/csv', $headers->get('Content-Type'));
+        $this->assertStringContainsString('attachment; filename=laporan-reservasi-', $headers->get('Content-Disposition'));
     }
 }

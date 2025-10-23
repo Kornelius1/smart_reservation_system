@@ -2,173 +2,105 @@
 
 namespace Tests\Unit;
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Requests\ProfileUpdateRequest;
-use App\Models\User;
-use Illuminate\Http\RedirectResponse; // DIIMPOR
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
-use Mockery;
 use Tests\TestCase;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 class ProfileControllerTest extends TestCase
 {
-    /**
-     * Membersihkan Mockery setelah setiap test.
-     */
-    protected function tearDown(): void
+    use RefreshDatabase;
+
+    public function testEdit()
     {
-        Mockery::close();
-        parent::tearDown();
-    }
+        $user = User::forceCreate([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+        ]);
 
-    // --- UJI METODE EDIT ---
+        Auth::login($user);
 
-    /**
-     * Memastikan metode edit mengembalikan view yang benar dengan objek user.
-     */
-    public function test_edit_returns_correct_view_with_user_object()
-    {
-        // 1. Persiapan Mock
-        $mockUser = (object)['id' => 1, 'name' => 'John Doe'];
-        
-        $mockRequest = Mockery::mock(Request::class);
-        $mockRequest->shouldReceive('user')->once()->andReturn($mockUser);
-
-        // 2. Eksekusi
-        $controller = new ProfileController();
-        $response = $controller->edit($mockRequest);
-
-        // 3. Verifikasi
-        $this->assertEquals('profile.edit', $response->name());
-        $this->assertEquals($mockUser, $response->getData()['user']);
-    }
-
-    // --- UJI METODE UPDATE ---
-
-    /**
-     * Memastikan informasi profil pengguna diperbarui tanpa mengubah email.
-     */
-    public function test_update_saves_user_data_without_changing_email()
-    {
-        // 1. Persiapan Mock
-        $originalEmail = 'test@old.com';
-        $mockUser = Mockery::mock(User::class);
-        
-        // Data yang divalidasi dari ProfileUpdateRequest (sama seperti yang lama)
-        $validatedData = ['name' => 'New Name', 'email' => $originalEmail]; 
-
-        $mockRequest = Mockery::mock(ProfileUpdateRequest::class);
-        $mockRequest->shouldReceive('validated')->once()->andReturnUsing(function () use ($validatedData) {
-            return $validatedData;
+        $request = Request::create('/profile', 'GET');
+        $request->setUserResolver(function () use ($user) {
+            return $user;
         });
-        $mockRequest->shouldReceive('user')->andReturn($mockUser);
 
-        // Ekspektasi pada User Model
-        $mockUser->shouldReceive('fill')->with($validatedData)->once();
-        $mockUser->shouldReceive('isDirty')->with('email')->once()->andReturn(false); // Email tidak berubah
-        $mockUser->shouldReceive('save')->once()->andReturn(true);
+        $controller = new \App\Http\Controllers\ProfileController();
+        $response = $controller->edit($request);
 
-        // Mock Redirect Facade agar mengembalikan objek RedirectResponse tiruan
-        $mockRedirectResponse = Mockery::mock(RedirectResponse::class); // MOCK OBJECT AS RedirectResponse
-        $mockRedirect = Mockery::mock();
-        $mockRedirect->shouldReceive('route')->with('profile.edit')->andReturn($mockRedirect);
-        $mockRedirect->shouldReceive('with')->with('status', 'profile-updated')->andReturn($mockRedirectResponse); // KEMBALIKAN OBJECT
-        Redirect::swap($mockRedirect);
-
-        // 2. Eksekusi
-        $controller = new ProfileController();
-        $response = $controller->update($mockRequest);
-
-        // 3. Verifikasi
-        $this->assertInstanceOf(RedirectResponse::class, $response); // Verifikasi tipe
+        $this->assertEquals('profile.edit', $response->getName());
+        $this->assertEquals($user->id, $response->getData()['user']->id);
     }
 
-    /**
-     * Memastikan email_verified_at disetel ke null ketika email pengguna diubah.
-     */
-    public function test_update_resets_email_verification_when_email_is_changed()
+    public function testUpdate()
     {
-        // 1. Persiapan Mock
-        $mockUser = Mockery::mock(User::class);
+        if (!Route::has('profile.edit')) {
+            Route::get('/profile', function () {
+                return redirect('/profile');
+            })->name('profile.edit');
+        }
         
-        // Data yang divalidasi (email berubah)
-        $validatedData = ['name' => 'New Name', 'email' => 'new@email.com']; 
+        app('router')->getRoutes()->refreshNameLookups();
+        
+        $user = User::forceCreate([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+        ]);
 
-        $mockRequest = Mockery::mock(ProfileUpdateRequest::class);
-        $mockRequest->shouldReceive('validated')->once()->andReturnUsing(function () use ($validatedData) {
-            return $validatedData;
+        Auth::login($user);
+
+        $data = [
+            'name' => 'Updated Name',
+            'email' => 'test@example.com',
+        ];
+
+        $request = \App\Http\Requests\ProfileUpdateRequest::create('/profile', 'PATCH', $data);
+        $request->setUserResolver(function () use ($user) {
+            return $user;
         });
-        $mockRequest->shouldReceive('user')->andReturn($mockUser);
-
-        // Ekspektasi pada User Model
-        $mockUser->shouldReceive('fill')->with($validatedData)->once();
-        $mockUser->shouldReceive('isDirty')->with('email')->once()->andReturn(true); // Email berubah!
         
-        // PERBAIKAN: Mock panggilan setAttribute yang dilakukan oleh magic __set
-        $mockUser->shouldReceive('setAttribute')
-                 ->with('email_verified_at', null)
-                 ->once(); 
+        $request->setContainer(app());
+        $request->validateResolved();
 
-        $mockUser->shouldReceive('save')->once()->andReturn(true);
-        
-        // Mock Redirect Facade agar mengembalikan objek RedirectResponse tiruan
-        $mockRedirectResponse = Mockery::mock(RedirectResponse::class); // MOCK OBJECT AS RedirectResponse
-        $mockRedirect = Mockery::mock();
-        $mockRedirect->shouldReceive('route')->andReturn($mockRedirect);
-        $mockRedirect->shouldReceive('with')->andReturn($mockRedirectResponse); // KEMBALIKAN OBJECT
-        Redirect::swap($mockRedirect);
+        $controller = new \App\Http\Controllers\ProfileController();
+        $response = $controller->update($request);
 
-        // 2. Eksekusi
-        $controller = new ProfileController();
-        $response = $controller->update($mockRequest);
+        $this->assertTrue($response->isRedirect());
+        $this->assertEquals('profile-updated', session('status'));
 
-        // 3. Verifikasi
-        $this->assertInstanceOf(RedirectResponse::class, $response); // Verifikasi tipe
+        $user->refresh();
+        $this->assertEquals('Updated Name', $user->name);
     }
 
-    // --- UJI METODE DESTROY ---
-
-    /**
-     * Memastikan akun pengguna dihapus dengan benar.
-     */
-    public function test_destroy_deletes_user_and_redirects()
+    public function testDestroy()
     {
-        // 1. Persiapan Mock
-        $mockUser = Mockery::mock(User::class);
+        $user = User::forceCreate([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+        ]);
 
-        $mockRequest = Mockery::mock(Request::class);
-        $mockRequest->shouldReceive('user')->andReturn($mockUser);
+        $this->actingAs($user);
+
+        $request = Request::create('/profile', 'DELETE', [
+            'password' => 'password123',
+        ]);
         
-        // 1a. Mocking validasi password
-        $mockRequest->shouldReceive('validateWithBag')
-                    ->with('userDeletion', ['password' => ['required', 'current_password']])
-                    ->once()
-                    ->andReturn(null);
+        $request->setLaravelSession(app('session.store'));
+        $request->setUserResolver(function () use ($user) {
+            return $user;
+        });
 
-        // 1b. Mock Logout, Session, dan Redirect
-        Auth::shouldReceive('logout')->once();
-        
-        $mockSession = Mockery::mock();
-        $mockSession->shouldReceive('invalidate')->once();
-        $mockSession->shouldReceive('regenerateToken')->once();
-        $mockRequest->shouldReceive('session')->andReturn($mockSession);
-        
-        // Mock Redirect Facade agar mengembalikan objek RedirectResponse tiruan
-        $mockRedirectResponse = Mockery::mock(RedirectResponse::class); // MOCK OBJECT AS RedirectResponse
-        $mockRedirect = Mockery::mock();
-        $mockRedirect->shouldReceive('to')->with('/')->once()->andReturn($mockRedirectResponse); // KEMBALIKAN OBJECT
-        Redirect::swap($mockRedirect);
+        $controller = new \App\Http\Controllers\ProfileController();
+        $response = $controller->destroy($request);
 
-        // 1c. Ekspektasi pada User Model
-        $mockUser->shouldReceive('delete')->once();
-
-        // 2. Eksekusi
-        $controller = new ProfileController();
-        $response = $controller->destroy($mockRequest);
-
-        // 3. Verifikasi
-        $this->assertInstanceOf(RedirectResponse::class, $response); // Verifikasi tipe
+        $this->assertTrue($response->isRedirect());
+        $this->assertStringContainsString('localhost', $response->getTargetUrl());
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
 }

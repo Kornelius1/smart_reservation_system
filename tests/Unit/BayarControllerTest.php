@@ -1,172 +1,213 @@
 <?php
 
-namespace Tests\Unit\Http\Controllers\Customer;
+namespace Tests\Unit;
 
-use App\Http\Controllers\Customer\BayarController;
-use App\Models\Meja; // Import model yang akan di-mock
-use App\Models\Product; // Import model yang akan di-mock
-use App\Models\Room; // Import model yang akan di-mock
-use Illuminate\Database\Eloquent\Collection; // Untuk membuat collection palsu
-use Illuminate\Http\RedirectResponse; // Untuk cek redirect
-use Illuminate\Http\Request; // Untuk membuat request palsu
-use Illuminate\View\View; // Untuk cek view
-use Mockery; // Import Mockery
 use Tests\TestCase;
+use App\Models\Room;
+use App\Models\Product;
+use App\Models\Meja;
+use App\Http\Controllers\Customer\BayarController;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class BayarControllerTest extends TestCase
 {
-    /**
-     * Selalu jalankan ini setelah test yang menggunakan Mockery
-     */
-    public function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
-    }
+    use RefreshDatabase;
 
-    // --- SKENARIO 1: GAGAL (Keranjang Kosong) ---
-    public function test_show_redirects_if_cart_is_empty(): void
+    private const MINIMUM_ORDER_FOR_TABLE = 50000;
+    private $controller;
+
+    protected function setUp(): void
     {
-        // 1. Buat request palsu (tanpa 'items')
-        $request = new Request([
-            'reservation_room_name' => 'Room A' // Ada reservasi, tapi items kosong
+        parent::setUp();
+        $this->controller = new BayarController();
+
+        Product::unguard();
+        Room::unguard();
+        Meja::unguard();
+
+        Product::forceCreate([
+            'id' => 1,
+            'name' => 'Kopi A',
+            'price' => 20000,
+            'image_url' => 'test/kopi_a.jpg',
+            'category' => 'Minuman'
+        ]);
+        Product::forceCreate([
+            'id' => 2,
+            'name' => 'Roti B',
+            'price' => 30000,
+            'image_url' => 'test/roti_b.jpg',
+            'category' => 'Makanan'
         ]);
 
-        // 2. Buat controller & panggil method
-        $controller = new BayarController();
-        $response = $controller->show($request);
+        Room::forceCreate(['name' => 'VIP A', 'minimum_order' => 100000]);
+        Room::forceCreate(['name' => 'Meeting B', 'minimum_order' => 200000]);
 
-        // 3. Assertions (Harusnya redirect ke '/pesanmenu')
+        // PERBAIKAN: Gunakan integer untuk nomor_meja + tambahkan kolom yang ada di model
+        Meja::forceCreate([
+            'nomor_meja' => 10,
+            'kapasitas' => 4,
+            'lokasi' => 'Indoor',
+            'status_aktif' => true
+        ]);
+        Meja::forceCreate([
+            'nomor_meja' => 11,
+            'kapasitas' => 6,
+            'lokasi' => 'Outdoor',
+            'status_aktif' => false
+        ]);
+    }
+
+    public function testShowSuccessRoomReservation()
+    {
+        Room::forceCreate(['name' => 'Small Room', 'minimum_order' => 50000]);
+
+        $request = Request::create('/bayar', 'GET', [
+            'items' => [
+                '1' => 2,
+                '2' => 1,
+            ],
+            'reservation_room_name' => 'Small Room',
+            'reservation_table_number' => null,
+        ]);
+
+        $response = $this->controller->show($request);
+
+        $this->assertEquals('customer.BayarReservasi', $response->getName());
+
+        $data = $response->getData();
+        $this->assertEquals(70000, $data['totalPrice']);
+        $this->assertEquals('ruangan', $data['reservationDetails']['type']);
+        $this->assertEquals('Small Room', $data['reservationDetails']['detail']);
+        $this->assertCount(2, $data['cartItems']);
+    }
+
+    public function testShowSuccessTableReservation()
+    {
+        $request = Request::create('/bayar', 'GET', [
+            'items' => [
+                '1' => 1,
+                '2' => 2,
+            ],
+            'reservation_room_name' => null,
+            'reservation_table_number' => 10, // UBAH: dari 'M10' ke 10
+        ]);
+
+        $response = $this->controller->show($request);
+
+        $this->assertEquals('customer.BayarReservasi', $response->getName());
+
+        $data = $response->getData();
+        $this->assertEquals(80000, $data['totalPrice']);
+        $this->assertEquals('meja', $data['reservationDetails']['type']);
+        $this->assertEquals(10, $data['reservationDetails']['detail']); // UBAH: dari 'M10' ke 10
+    }
+
+    public function testShowFailureEmptyCart()
+    {
+        $request = Request::create('/bayar', 'GET', [
+            'items' => [],
+            'reservation_room_name' => 'VIP A',
+        ]);
+
+        $response = $this->controller->show($request);
+
         $this->assertInstanceOf(RedirectResponse::class, $response);
-        $this->assertStringContainsString('/pesanmenu', $response->getTargetUrl());
+        $this->assertEquals(url('/pesanmenu'), $response->getTargetUrl());
+        $this->assertStringContainsString('Keranjang Anda kosong!', $response->getSession()->get('errors')->first());
     }
 
-    // --- SKENARIO 2: GAGAL (Pesan Ruangan, tapi total belanja kurang) ---
-    public function test_show_redirects_if_room_minimum_order_not_met(): void
+    public function testShowFailureRoomMinimumOrderNotMet()
     {
-        // 1. Mock Model Product DULU
-        $productMock = Mockery::mock('alias:App\Models\Product');
-        
-        // --- PERBAIKAN: Gunakan objek standar, bukan 'new Product' ---
-        $fakeProduct = new \stdClass();
-        $fakeProduct->id = 1;
-        $fakeProduct->price = 20000;
-        
-        $productMock->shouldReceive('findMany')
-                      ->once()
-                      ->with([1]) // Harus dipanggil dengan id [1]
-                      ->andReturn(new Collection([$fakeProduct])); // Kembalikan produk palsu
-
-        // 2. Mock Model Room DULU
-        $roomMock = Mockery::mock('alias:App\Models\Room');
-
-        // --- PERBAIKAN: Gunakan objek standar, bukan 'new Room' ---
-        $fakeRoom = new \stdClass();
-        $fakeRoom->name = 'Room A';
-        $fakeRoom->minimum_order = 50000;
-
-        $roomMock->shouldReceive('where')->once()->with('name', 'Room A')->andReturnSelf();
-        $roomMock->shouldReceive('first')->once()->andReturn($fakeRoom);
-
-        // 3. Buat request palsu (Belanja 20.000, min 50.000)
-        $request = new Request([
-            'items' => [1 => 1], // 1 Kopi @ 20.000
-            'reservation_room_name' => 'Room A'
+        $request = Request::create('/bayar', 'GET', [
+            'items' => ['1' => 1],
+            'reservation_room_name' => 'VIP A',
         ]);
 
-        // 4. Panggil method
-        $controller = new BayarController();
-        $response = $controller->show($request);
+        $response = $this->controller->show($request);
 
-        // 5. Assertions (Harusnya redirect)
         $this->assertInstanceOf(RedirectResponse::class, $response);
-        $this->assertStringContainsString('/pesanmenu', $response->getTargetUrl());
+        $this->assertEquals(url('/pesanmenu'), $response->getTargetUrl());
+        $this->assertStringContainsString('tidak memenuhi syarat minimal pemesanan untuk VIP A', $response->getSession()->get('errors')->first());
     }
 
-    // --- SKENARIO 3: SUKSES (Pesan Meja, total belanja cukup) ---
-    public function test_show_returns_view_on_valid_table_order(): void
+    public function testShowFailureTableMinimumOrderNotMet()
     {
-        // 1. Mock Model Product DULU
-        $productMock = Mockery::mock('alias:App\Models\Product');
-
-        // --- PERBAIKAN: Gunakan objek standar, bukan 'new Product' ---
-        $fakeProduct = new \stdClass();
-        $fakeProduct->id = 1;
-        $fakeProduct->name = 'Steak';
-        $fakeProduct->price = 60000;
-        
-        $productMock->shouldReceive('findMany')
-                      ->once()
-                      ->with([1])
-                      ->andReturn(new Collection([$fakeProduct]));
-
-        // 2. Mock Model Meja DULU
-        $mejaMock = Mockery::mock('alias:App\Models\Meja');
-
-        // --- PERBAIKAN: Gunakan objek standar, bukan 'new Meja' ---
-        $fakeMeja = new \stdClass();
-
-        $mejaMock->shouldReceive('where')->once()->with('nomor_meja', 'T1')->andReturnSelf();
-        $mejaMock->shouldReceive('where')->once()->with('status_aktif', true)->andReturnSelf();
-        $mejaMock->shouldReceive('first')->once()->andReturn($fakeMeja);
-
-        // 3. Buat request palsu (Belanja 60.000 > min 50.000)
-        $request = new Request([
-            'items' => [1 => 1], // 1 Steak @ 60.000
-            'reservation_table_number' => 'T1'
+        $request = Request::create('/bayar', 'GET', [
+            'items' => ['1' => 1],
+            'reservation_table_number' => 10, // UBAH: dari 'M10' ke 10
         ]);
 
-        // 4. Panggil method
-        $controller = new BayarController();
-        $response = $controller->show($request);
+        $response = $this->controller->show($request);
 
-        // 5. Assertions (Harusnya menampilkan view)
-        $this->assertInstanceOf(View::class, $response);
-        $this->assertEquals('customer.BayarReservasi', $response->name());
-
-        // 6. (Opsional) Cek data yang dikirim ke view
-        $viewData = $response->getData();
-        $this->assertEquals(60000, $viewData['totalPrice']);
-        $this->assertEquals('meja', $viewData['reservationDetails']['type']);
-        $this->assertEquals('T1', $viewData['reservationDetails']['detail']);
-    }
-
-    // --- SKENARIO 4: GAGAL (Pesan Meja, tapi total belanja kurang) ---
-    public function test_show_redirects_if_table_minimum_order_not_met(): void
-    {
-        // 1. Mock Model Product DULU
-        $productMock = Mockery::mock('alias:App\Models\Product');
-
-        // --- PERBAIKAN: Gunakan objek standar, bukan 'new Product' ---
-        $fakeProduct = new \stdClass();
-        $fakeProduct->id = 1;
-        $fakeProduct->price = 30000;
-
-        $productMock->shouldReceive('findMany')->once()->with([1])->andReturn(new Collection([$fakeProduct]));
-
-        // 2. Mock Model Meja DULU
-        $mejaMock = Mockery::mock('alias:App\Models\Meja');
-        
-        // --- PERBAIKAN: Gunakan objek standar, bukan 'new Meja' ---
-        $fakeMeja = new \stdClass();
-
-        $mejaMock->shouldReceive('where')->once()->with('nomor_meja', 'T1')->andReturnSelf();
-        $mejaMock->shouldReceive('where')->once()->with('status_aktif', true)->andReturnSelf();
-        $mejaMock->shouldReceive('first')->once()->andReturn($fakeMeja);
-
-        // 3. Buat request palsu (Belanja 30.000 < min 50.000)
-        $request = new Request([
-            'items' => [1 => 1], // 1 Kopi @ 30.000
-            'reservation_table_number' => 'T1'
-        ]);
-
-        // 4. Panggil method
-        $controller = new BayarController();
-        $response = $controller->show($request);
-
-        // 5. Assertions (Harusnya redirect)
         $this->assertInstanceOf(RedirectResponse::class, $response);
-        $this->assertStringContainsString('/pesanmenu', $response->getTargetUrl());
+        $this->assertEquals(url('/pesanmenu'), $response->getTargetUrl());
+        $this->assertStringContainsString('tidak memenuhi syarat minimal pemesanan meja', $response->getSession()->get('errors')->first());
+    }
+
+    public function testShowFailureInvalidTable()
+    {
+        $request = Request::create('/bayar', 'GET', [
+            'items' => ['1' => 3],
+            'reservation_table_number' => 11, // UBAH: dari 'M11' ke 11
+        ]);
+
+        $response = $this->controller->show($request);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertEquals(url('/pilih-meja'), $response->getTargetUrl());
+        $this->assertStringContainsString('Meja yang dipilih tidak valid atau tidak tersedia.', $response->getSession()->get('errors')->first());
+    }
+
+    public function testShowFailureNoReservationDetail()
+    {
+        $request = Request::create('/bayar', 'GET', [
+            'items' => ['1' => 3],
+            'reservation_room_name' => null,
+            'reservation_table_number' => null,
+        ]);
+
+        $response = $this->controller->show($request);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertEquals(url('/pilih-reservasi'), $response->getTargetUrl());
+        $this->assertStringContainsString('Silakan pilih jenis reservasi terlebih dahulu.', $response->getSession()->get('errors')->first());
+    }
+
+    public function testProcessPaymentSuccess()
+    {
+        Room::forceCreate(['name' => 'Big Room', 'minimum_order' => 50000]);
+
+        $request = Request::create('/process-payment', 'POST', [
+            'items' => [
+                '1' => 2,
+                '2' => 2,
+            ],
+            'reservation_room_name' => 'Big Room',
+            'reservation_table_number' => null,
+        ]);
+
+        $response = $this->controller->processPayment($request);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertEquals(url('/sukses'), $response->getTargetUrl());
+        $this->assertEquals('Pembayaran Anda berhasil diproses!', session('success_message'));
+    }
+
+    public function testProcessPaymentFailure()
+    {
+        $request = Request::create('/process-payment', 'POST', [
+            'items' => ['1' => 1],
+            'reservation_room_name' => 'VIP A',
+            'reservation_table_number' => null,
+        ]);
+
+        $response = $this->controller->processPayment($request);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertNotNull($response->getSession()->get('errors'));
+        $this->assertStringContainsString('tidak memenuhi syarat minimal pemesanan untuk VIP A', $response->getSession()->get('errors')->first());
     }
 }
-
