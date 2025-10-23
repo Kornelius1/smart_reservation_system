@@ -24,7 +24,19 @@ class DatabaseSeeder extends Seeder
 
        $this->call([
             ReservationSeeder::class,
-            // Anda bisa tambahkan seeder lain di sini
+            
         ]);
+
+         $this->call([
+            ProductSeeder::class,
+          
+        ]);
+
+         $this->call([
+            MejaSeeder::class,
+           
+        ]);
+
+        
     }
 }
