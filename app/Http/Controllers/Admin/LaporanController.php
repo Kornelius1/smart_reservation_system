@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Reservation;
-use Illuminate\Http\RedirectResponse;
+
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

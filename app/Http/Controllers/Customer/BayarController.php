@@ -1,56 +1,16 @@
 <?php
-
 namespace App\Http\Controllers\Customer;
+
 
 use App\Models\Product;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse; // Impor untuk type-hinting
+use Illuminate\Http\RedirectResponse; 
 
 class BayarController extends Controller
 {
-    /**
-     * Menampilkan halaman konfirmasi SETELAH validasi awal.
-     */
-    // public function show(Request $request)
-    // {
-
-    //     // dd($request->all());
-    //     // Panggil metode validasi. Hasilnya bisa berupa redirect atau data yang valid.
-    //     $validationResult = $this->validateOrder($request);
-
-    //     // Jika hasilnya adalah sebuah RedirectResponse, berarti validasi gagal.
-    //     if ($validationResult instanceof RedirectResponse) {
-    //         return $validationResult;
-    //     }
-
-    //     // Jika validasi lolos, kita akan mendapatkan data yang sudah dihitung.
-    //     $products = $validationResult['products'];
-    //     $itemsFromRequest = $validationResult['items'];
-    //     $totalPrice = $validationResult['totalPrice'];
-    //     $roomName = $validationResult['roomName'];
-
-    //     // Siapkan data untuk view
-    //     $cartItems = [];
-    //     foreach ($products as $product) {
-    //         $quantity = $itemsFromRequest[$product->id];
-    //         $cartItems[] = [
-    //             'id'       => $product->id,
-    //             'name'     => $product->name,
-    //             'price'    => $product->price,
-    //             'quantity' => $quantity,
-    //             'subtotal' => $product->price * $quantity,
-    //         ];
-    //     }
-
-    //     return view('customer.BayarReservasi', [
-    //         'cartItems'          => $cartItems,
-    //         'totalPrice'         => $totalPrice,
-    //         'reservationDetails' => ['room_name' => $roomName]
-    //     ]);
-    // }
-
+   
     public function show(Request $request)
 {
     $validationResult = $this->validateOrder($request);

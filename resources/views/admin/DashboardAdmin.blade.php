@@ -6,7 +6,7 @@
             <h1 class="text-2xl font-semibold text-brand-primary">Dashboard Admin</h1>
         </div>
         <div class="grid grid-cols-4 gap-8">
-            <a href="{{ route('manajemen-menu') }}"
+            <a href="{{ route('menu.index') }}"
                 class="btn-gradient rounded-lg p-6 flex flex-col items-center justify-center hover:bg-green-500 transition">
                 <img src="{{ asset('images/icons/menu-icon.svg') }}" alt="Manajemen Menu" class="w-16 h-16 mb-4 opacity-50">
                 <span class="text-white text-lg">Manajemen Menu</span>

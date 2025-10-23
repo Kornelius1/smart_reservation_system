@@ -6,9 +6,7 @@ use Illuminate\Http\Request;
 
 class PesanMenuController extends Controller
 {
-    /**
-     * Menampilkan view utama yang memuat aplikasi Vue.
-     */
+   
     public function index()
     {
         return view('customer.pesanmenu'); 

@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Customer;
 
 use App\Models\Menu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str; // <-- PENTING: Tambahkan ini untuk cek URL
+use Illuminate\Support\Str; 
+use App\Http\Controllers\Controller;
 
 class MenuController extends Controller
 {

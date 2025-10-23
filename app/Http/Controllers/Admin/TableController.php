@@ -1,11 +1,13 @@
 <?php
+namespace App\Http\Controllers\Admin;
 
-namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+
+
 use Illuminate\View\View;
-use App\Models\Meja; // 1. Impor Model Meja
-
+use App\Models\Meja; 
 class TableController extends Controller
 {
     /**

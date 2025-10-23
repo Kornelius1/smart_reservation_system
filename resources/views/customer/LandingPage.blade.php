@@ -1,10 +1,23 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html data-theme="light" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
-@section('title', 'Homey Cafe')
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>@yield('title', 'Landing Page')</title>
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  @vite(['resources/css/app.css', 'resources/css/component.css', 'resources/js/app.js'])
+  {{-- @stack('styles') --}}
+</head>
 
-@section('content')
+<body>
+  @include('layouts.partials.landingnavbar')
+
   <div>
-
     <!-- HERO -->
     <section id="home" class="relative min-h-[70vh] flex items-center"
       style="background-image: url('{{ asset('../images/cover.jpg') }}'); background-size:cover; background-position:top; background-repeat:no-repeat">
@@ -12,7 +25,8 @@
       <div class="relative max-w-3xl px-6 py-20 text-white">
         <h1 class="text-4xl md:text-5xl font-serif font-semibold leading-tight mb-4">Momen Santai,<br />Meja Pasti Ada.
         </h1>
-        <p class="text-base md:text-lg max-w-md mb-6">Cek ketersediaan meja secara real time dan amankan tempat favoritmu
+        <p class="text-base md:text-lg max-w-md mb-6">Cek ketersediaan meja secara real time dan amankan tempat
+          favoritmu
           di Homey Cafe.</p>
         <a href="#reservasi"
           class="inline-block mt-2 px-6 py-3 bg-[#9CAF88] text-white rounded-md shadow hover:bg-[#819D85] transition">Reservasi
@@ -72,6 +86,8 @@
     </section>
 
   </div>
-@endsection
 
+  @include('layouts.partials.footer')
+</body>
 
+</html>

@@ -11,30 +11,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
-        // $this->call([
-        //     MejaSeeder::class,
-        // ]);
-
-       $this->call([
-            ReservationSeeder::class,
-            // Anda bisa tambahkan seeder lain di sini
-        ]);
-
-         $this->call([
-            ProductSeeder::class,
-            // Anda bisa tambahkan seeder lain di sini
-        ]);
-
-         $this->call([
-            MejaSeeder::class,
-            // Anda bisa tambahkan seeder lain di sini
+        // Gabungkan semua seeder ke dalam satu array.
+        // Urutan penting jika ada dependensi antar tabel.
+        $this->call([
+            // Asumsi: Ruangan (Room) dibuat terlebih dahulu.
+            RoomSeeder::class, 
+            
+            // Asumsi: Meja (Meja) dibuat setelah Room (mungkin meja ada di dalam room).
+            MejaSeeder::class, 
+            
+            // Asumsi: Produk (Product) bisa dibuat kapan saja (independen).
+            ProductSeeder::class, 
+            
+            // Asumsi: Reservasi (Reservation) dibuat terakhir 
+            // karena membutuhkan Meja yang sudah ada.
+            ReservationSeeder::class, 
         ]);
     }
 }

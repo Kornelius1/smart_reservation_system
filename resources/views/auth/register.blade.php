@@ -114,8 +114,8 @@
             {{-- Logo Homey --}}
             <div class="mb-6 flex justify-center">
                 <img src="/images/HOMEYY.png" 
-                    alt="Logo Homey" 
-                    class="h-16 w-auto drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">
+                     alt="Logo Homey" 
+                     class="h-16 w-auto drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">
             </div>
 
             <h2 class="text-3xl font-bold mb-8">Create An Account</h2>
@@ -124,12 +124,22 @@
             <form action="{{ route('register') }}" method="POST" class="space-y-6">
                 @csrf
 
-                {{-- Username --}}
+                {{-- Nama (Username) --}}
                 <div>
                     <input type="text" class="form-input-custom @error('name') border-red-500 @enderror" 
-                        id="name" name="name" value="{{ old('name') }}" required autofocus 
-                        placeholder="Username">
+                           id="name" name="name" value="{{ old('name') }}" required autofocus 
+                           placeholder="Username">
                     @error('name')
+                        <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Email (WAJIB ADA) --}}
+                <div>
+                    <input type="email" class="form-input-custom @error('email') border-red-500 @enderror" 
+                           id="email" name="email" value="{{ old('email') }}" required 
+                           placeholder="Email">
+                    @error('email')
                         <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p>
                     @enderror
                 </div>
@@ -137,7 +147,7 @@
                 {{-- Password --}}
                 <div>
                     <input type="password" class="form-input-custom @error('password') border-red-500 @enderror" 
-                        id="password" name="password" required placeholder="Password">
+                           id="password" name="password" required placeholder="Password">
                     @error('password')
                         <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p>
                     @enderror
@@ -146,7 +156,7 @@
                 {{-- Konfirmasi Password --}}
                 <div>
                     <input type="password" class="form-input-custom @error('password_confirmation') border-red-500 @enderror" 
-                        id="password_confirmation" name="password_confirmation" required placeholder="Konfirmasi Password">
+                           id="password_confirmation" name="password_confirmation" required placeholder="Konfirmasi Password">
                     @error('password_confirmation')
                         <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p>
                     @enderror
@@ -155,7 +165,8 @@
                 <button type="submit" class="btn-custom">Create Account</button>
 
                 <div class="text-center mt-4">
-                    {{-- <a href="{{ route('login') }}" class="text-dark-green hover:underline text-sm">Sudah punya akun? Login</a> --}}
+                    {{-- Link login diaktifkan --}}
+                    <a href="{{ route('login') }}" class="text-dark-green hover:underline text-sm">Sudah punya akun? Login</a>
                 </div>
             </form>
         </div>
