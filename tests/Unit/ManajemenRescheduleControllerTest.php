@@ -11,22 +11,22 @@ use PHPUnit\Framework\Attributes\Test;
 
 class ManajemenRescheduleControllerTest extends TestCase
 {
-    use RefreshDatabase; 
+    use RefreshDatabase; // Menggunakan database testing
 
     private $controller;
 
     public function setUp(): void
     {
         parent::setUp();
-
+        // Buat instance controller-nya
         $this->controller = new ManajemenRescheduleController();
-
+        // Izinkan mass assignment selama tes
         Reservation::unguard();
     }
 
     public function tearDown(): void
     {
-
+        // Jaga-jaga, kembalikan perlindungan model
         Reservation::reguard();
         parent::tearDown();
     }
@@ -40,7 +40,8 @@ class ManajemenRescheduleControllerTest extends TestCase
     #[Test]
     public function test_index_returns_view_with_all_reservations_ordered_by_date_desc()
     {
- 
+        // ARRANGE
+        // Buat 3 reservasi dengan urutan tanggal acak
         $resA_palingBaru = Reservation::create([
             'id_transaksi' => 'TR001',
             'nama' => 'Budi',
