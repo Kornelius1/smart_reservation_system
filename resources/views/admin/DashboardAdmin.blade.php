@@ -17,7 +17,7 @@
                     class="w-16 h-16 mb-4 opacity-50">
                 <span class="text-white text-lg">Manajemen Meja</span>
             </a>
-            <a href="{{ route('manajemen-reservasi') }}"
+            <a href="{{ route('admin.reservasi.index') }}"
                 class="btn-gradient rounded-lg p-6 flex flex-col items-center justify-center hover:bg-green-500 transition">
                 <img src="{{ asset('images/icons/reservation-icon.svg') }}" alt="Manajemen Reservasi"
                     class="w-16 h-16 mb-4 opacity-50">

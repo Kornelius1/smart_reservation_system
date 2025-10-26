@@ -15,8 +15,8 @@
             <div
                 class="bg-amber-50 rounded-3xl p-6 shadow-md text-center transition-transform duration-200 ease-in-out hover:scale-105">
 
-                <img src="{{ asset($room->image_url) }}" alt="{{ $room->nama_ruangan }}"
-                    class="rounded-lg mb-4 w-full h-48 object-cover">
+                <img src="{{ asset('storage/' . $room->image_url) }}" alt="{{ $room->nama_ruangan }}"
+                    class="rounded-lg mb-4 w-full h-48 object-cover" />
 
                 <h2 class="text-xl font-bold mb-2">{{ $room->nama_ruangan }}</h2>
 

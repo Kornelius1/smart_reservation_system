@@ -95,8 +95,7 @@
                                         <div class="flex items-center space-x-5">
                                             <div class="avatar">
                                                 <div class="mask mask-squircle w-12 h-12">
-                                                    <img src="{{ asset($room->image_url) }}"
-                                                        alt="{{ $room->nama_ruangan }}" class="w-full h-full object-cover" />
+                                                  <img src="{{ asset('storage/' . $room->image_url) }}" alt="{{ $room->nama_ruangan }}" class="w-full h-full object-cover" />
                                                 </div>
                                             </div>
                                             <div>
@@ -330,7 +329,8 @@
 
             <div class="modal-action">
                 <button type="button" class="btn" onclick="modal_ubah_detail.close()">Batal</button>
-                <button type="submit" class="btn btn-gradient border-none">Update</button>
+
+<button type="button" onclick="document.getElementById('form_ubah_detail').submit();" class="btn btn-gradient border-none">Update</button>
             </div>
         </form>
     </div>
