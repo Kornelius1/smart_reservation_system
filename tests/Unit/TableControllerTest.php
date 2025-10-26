@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use App\Models\Meja;
+use App\Http\Controllers\Admin\TableController; // <-- Ini sudah benar
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class TableControllerTest extends TestCase
@@ -30,7 +31,7 @@ class TableControllerTest extends TestCase
         
         Meja::reguard();
 
-        $controller = new \App\Http\Controllers\TableController();
+        $controller = new TableController(); // <-- PERBAIKAN DI SINI
         $response = $controller->index();
 
         $this->assertEquals('admin.manajemen-meja', $response->getName());

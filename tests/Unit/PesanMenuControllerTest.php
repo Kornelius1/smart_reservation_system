@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\Unit\Customer; // Sesuaikan namespace dengan lokasi controller
+namespace Tests\Unit\Customer; 
 
 use Tests\TestCase;
-use App\Http\Controllers\Customer\PesanMenuController; // Import controller yang akan dites
-use Illuminate\View\View; // Import class View untuk pengecekan tipe
+use App\Http\Controllers\Customer\PesanMenuController; 
+use Illuminate\View\View; 
 use PHPUnit\Framework\Attributes\Test;
 
 class PesanMenuControllerTest extends TestCase

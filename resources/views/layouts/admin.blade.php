@@ -21,6 +21,7 @@
 </head>
 
 <body>
+    @include('layouts.partials.landingnavbar')
     <div class="drawer drawer-open">
         <input id="my-drawer-4" type="checkbox" class="drawer-toggle peer" />
 

@@ -6,7 +6,7 @@
         </a>
         <p>
             <br />
-            Menyediakan kenyamanan Sejak 2024
+            Menyediakan kenyamanan Sejak 2023
         </p>
     </aside>
 

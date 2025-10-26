@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Tests\TestCase;
-use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\Admin\LaporanController;
 use App\Models\Reservation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
@@ -11,6 +11,7 @@ use Illuminate\View\View;
 use Illuminate\Pagination\LengthAwarePaginator;
 use PHPUnit\Framework\Attributes\Test;
 use Carbon\Carbon;
+
 
 class LaporanControllerTest extends TestCase
 {

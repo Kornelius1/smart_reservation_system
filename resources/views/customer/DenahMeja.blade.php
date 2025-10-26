@@ -1,6 +1,12 @@
 @extends('layouts.guest')
 
-@section('title', 'Reservasi - Pemesanan Menu')
+@section('title', 'Reservasi Meja')
+
+@section('header')
+    <header class="bg-dark-green text-white p-4 text-center text-lg font-bold">
+        Pilih Meja Anda!
+    </header>
+@endsection
 
 
 @push('styles')

@@ -2,9 +2,10 @@
 
 namespace Tests\Unit\Http\Controllers;
 
-use App\Http\Controllers\AdminController; // Controller yang diuji
-use Illuminate\View\View; // Untuk cek tipe response
+ 
 use Tests\TestCase;
+use Illuminate\View\View; 
+use App\Http\Controllers\Admin\AdminController;
 
 class AdminControllerTest extends TestCase
 {

@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use Tests\TestCase;
 use App\Models\Reservation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Http\Controllers\Admin\ReservationController; 
 
 class ReservationControllerTest extends TestCase
 {
@@ -40,7 +41,7 @@ class ReservationControllerTest extends TestCase
         
         Reservation::reguard();
 
-        $controller = new \App\Http\Controllers\ReservationController();
+        $controller = new ReservationController(); // <-- UBAH INI
         $response = $controller->index();
 
         $this->assertEquals('admin.manajemen-reservasi', $response->getName());

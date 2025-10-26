@@ -1,10 +1,11 @@
 <?php
 
-namespace Tests\Unit; // Tetap di folder Unit
+namespace Tests\Unit;
 
+use App\Http\Controllers\Admin\MenuController;
 use Tests\TestCase;
 use App\Models\Menu;
-use App\Models\User; // Kita tetap butuh User jika controllermu butuh login
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -50,7 +51,7 @@ class MenuControllerTest extends TestCase
         Menu::create(['name' => 'Sop Buntut', 'category' => 'heavy-meal', 'price' => 35000, 'image_url' => 'dummy.jpg', 'tersedia' => true]);
 
         // Act: Panggil controller langsung
-        $controller = new \App\Http\Controllers\MenuController();
+        $controller = new MenuController(); // <-- Ini sudah benar
         $response = $controller->index();
 
         // Assert: Cek nama view dan data yang dikirim
@@ -88,7 +89,7 @@ class MenuControllerTest extends TestCase
         $request->files->set('gambar_menu', $image);
 
         // Act: Panggil controller langsung
-        $controller = new \App\Http\Controllers\MenuController();
+        $controller = new MenuController(); // <-- Ini sudah benar
         $response = $controller->store($request);
 
         // Assert: Cek redirect, session, dan database
@@ -96,7 +97,8 @@ class MenuControllerTest extends TestCase
         $this->assertEquals(route('menu.index'), $response->getTargetUrl());
         $this->assertEquals('Menu baru berhasil ditambahkan!', session('success'));
 
-        $this->assertDatabaseHas('products', [
+        // --- PERBAIKAN DI SINI ---
+        $this->assertDatabaseHas('menus', [
             'name' => 'Kopi Susu Baru',
             'price' => 18000,
             'category' => 'coffee',
@@ -123,7 +125,7 @@ class MenuControllerTest extends TestCase
 
         // Act & Assert: Gunakan try-catch untuk menangkap ValidationException
         try {
-            $controller = new \App\Http\Controllers\MenuController();
+            $controller = new MenuController();
             $controller->store($request);
             $this->fail('ValidationException tidak terlempar padahal seharusnya.');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -134,8 +136,9 @@ class MenuControllerTest extends TestCase
             $this->assertArrayHasKey('gambar_menu', $errors);
         }
 
-        $this->assertDatabaseMissing('products', ['name' => '']); // Perbaikan nama kolom
-        $this->assertDatabaseCount('products', 1);
+        // --- PERBAIKAN DI SINI ---
+        $this->assertDatabaseMissing('menus', ['name' => '']);
+        $this->assertDatabaseCount('menus', 1);
     }
 
 
@@ -164,7 +167,7 @@ class MenuControllerTest extends TestCase
         ]);
 
         // Act: Panggil controller langsung
-        $controller = new \App\Http\Controllers\MenuController();
+        $controller = new MenuController();
         $response = $controller->update($request, $menu->id);
 
         // Assert: Cek redirect, session, dan database
@@ -172,13 +175,14 @@ class MenuControllerTest extends TestCase
         $this->assertEquals(route('menu.index'), $response->getTargetUrl());
         $this->assertEquals('Detail menu berhasil diperbarui!', session('success'));
 
-        $this->assertDatabaseHas('products', [
+        // --- PERBAIKAN DI SINI ---
+        $this->assertDatabaseHas('menus', [
             'id' => $menu->id,
             'name' => 'Jus Baru Segar',
             'price' => 12000,
             'image_url' => 'images/menu/old.jpg',
         ]);
-        $this->assertDatabaseMissing('products', ['name' => 'Jus Lama']);
+        $this->assertDatabaseMissing('menus', ['name' => 'Jus Lama']);
     }
 
     #[Test]
@@ -208,7 +212,7 @@ class MenuControllerTest extends TestCase
         $request->files->set('ubah_gambar_menu', $newImage);
 
         // Act
-        $controller = new \App\Http\Controllers\MenuController();
+        $controller = new MenuController();
         $response = $controller->update($request, $menu->id);
 
         // Assert
@@ -242,7 +246,7 @@ class MenuControllerTest extends TestCase
         $request = Request::create('/updateStatus', 'PATCH', ['tersedia' => 'false']);
 
         // Act: Panggil controller langsung
-        $controller = new \App\Http\Controllers\MenuController();
+        $controller = new MenuController();
         $response = $controller->updateStatus($request, $menu->id);
 
         // Assert: Cek redirect, session, dan database
@@ -250,7 +254,8 @@ class MenuControllerTest extends TestCase
         $this->assertEquals(route('menu.index'), $response->getTargetUrl());
         $this->assertEquals('Status menu berhasil diubah.', session('success'));
 
-        $this->assertDatabaseHas('products', [
+        // --- PERBAIKAN DI SINI ---
+        $this->assertDatabaseHas('menus', [
             'id' => $menu->id,
             'tersedia' => false,
         ]);
@@ -262,7 +267,8 @@ class MenuControllerTest extends TestCase
         $controller->updateStatus($requestTrue, $menu->id);
 
         // Assert 2: Cek DB lagi
-         $this->assertDatabaseHas('products', [
+        // --- PERBAIKAN DI SINI ---
+         $this->assertDatabaseHas('menus', [
             'id' => $menu->id,
             'tersedia' => true,
         ]);
@@ -284,11 +290,12 @@ class MenuControllerTest extends TestCase
             'image_url' => $imagePath,
             'tersedia' => true,
         ]);
-        $this->assertDatabaseHas('products', ['id' => $menu->id]);
+        // --- PERBAIKAN DI SINI ---
+        $this->assertDatabaseHas('menus', ['id' => $menu->id]);
         Storage::disk('public')->assertExists($imagePath);
 
         // Act: Panggil controller langsung
-        $controller = new \App\Http\Controllers\MenuController();
+        $controller = new MenuController();
         $response = $controller->destroy($menu->id);
 
         // Assert: Cek redirect, session, database, dan storage
@@ -296,7 +303,8 @@ class MenuControllerTest extends TestCase
         $this->assertEquals(route('menu.index'), $response->getTargetUrl());
         $this->assertEquals('Menu berhasil dihapus.', session('success'));
 
-        $this->assertDatabaseMissing('products', ['id' => $menu->id]);
+        // --- PERBAIKAN DI SINI ---
+        $this->assertDatabaseMissing('menus', ['id' => $menu->id]);
         Storage::disk('public')->assertMissing($imagePath);
     }
 
@@ -312,19 +320,21 @@ class MenuControllerTest extends TestCase
             'image_url' => $externalUrl,
             'tersedia' => true,
         ]);
-        $this->assertDatabaseHas('products', ['id' => $menu->id]);
+        // --- PERBAIKAN DI SINI ---
+        $this->assertDatabaseHas('menus', ['id' => $menu->id]);
 
         // Act
-        $controller = new \App\Http\Controllers\MenuController();
+        $controller = new MenuController();
         $response = $controller->destroy($menu->id);
 
         // Assert
         $this->assertInstanceOf(\Illuminate\Http\RedirectResponse::class, $response);
         $this->assertEquals(route('menu.index'), $response->getTargetUrl());
         $this->assertEquals('Menu berhasil dihapus.', session('success'));
-        $this->assertDatabaseMissing('products', ['id' => $menu->id]);
+        // --- PERBAIKAN DI SINI ---
+        $this->assertDatabaseMissing('menus', ['id' => $menu->id]);
 
         $this->assertTrue(true); // Tes berhasil jika tidak ada error
     }
 
-} 
+}

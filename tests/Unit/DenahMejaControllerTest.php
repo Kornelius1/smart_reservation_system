@@ -4,9 +4,10 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use App\Http\Controllers\Customer\DenahMejaController;
-use App\Models\Meja; // Pastikan model Meja diimpor
+
 use Illuminate\Support\Collection;
-use Mockery; // Diperlukan untuk mocking Meja::all()
+use Mockery; 
+
 
 /**
  * Class DenahMejaControllerTest
@@ -14,6 +15,7 @@ use Mockery; // Diperlukan untuk mocking Meja::all()
  */
 class DenahMejaControllerTest extends TestCase
 {
+    use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
     // Konstan yang sama dengan yang ada di controller
     private const MINIMUM_ORDER_FOR_TABLE = 50000;
 

@@ -18,7 +18,7 @@
     /* * WARNA KUSTOM ANDA DIMASUKKAN DI SINI
      * Ini menggantikan kelas seperti .bg-brand-background, .text-brand-text, dll.
     */
-    --brand-bg: #c6d2b9; /* Untuk latar belakang utama halaman */
+    --brand-bg: #DFE6DA; /* Untuk latar belakang utama halaman */
     --brand-text: #414939; /* Warna teks utama */
     --brand-primary: #9CAF88; /* Warna hijau utama/sukses */
     --brand-primary-content: #ffffff; /* Warna teks di atas --brand-primary */

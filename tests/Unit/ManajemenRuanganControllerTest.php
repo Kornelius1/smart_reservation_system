@@ -7,8 +7,10 @@ use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
+use App\Http\Controllers\Admin\ManajemenRuanganController;
 
-class ManajemenRuanganTest extends TestCase
+
+class ManajemenRuanganControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -21,7 +23,7 @@ class ManajemenRuanganTest extends TestCase
         
         Room::reguard();
 
-        $controller = new \App\Http\Controllers\ManajemenRuanganController();
+        $controller = new App\Http\Controllers\Admin\ManajemenRuanganController();
 
         $response = $controller->index();
 
@@ -35,7 +37,7 @@ class ManajemenRuanganTest extends TestCase
         
         $room = Room::forceCreate(['name' => 'Room 1', 'minimum_order' => 10]);
 
-        $controller = new \App\Http\Controllers\ManajemenRuanganController();
+        $controller = new App\Http\Controllers\Admin\ManajemenRuanganController();
 
         try {
             $response = $controller->edit($room->id);
@@ -58,7 +60,7 @@ class ManajemenRuanganTest extends TestCase
             'minimum_order' => 15,
         ]);
 
-        $controller = new \App\Http\Controllers\ManajemenRuanganController();
+        $controller = new App\Http\Controllers\Admin\ManajemenRuanganController();
 
         $response = $controller->update($request, $room->id);
 
