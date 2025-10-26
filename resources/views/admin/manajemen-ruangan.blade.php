@@ -124,25 +124,31 @@
                                         </form>
                                     </td>
 
-                                    <td>
-                                        <div class="flex items-center justify-center space-x-2">
-                                            {{-- 
-                                              PERUBAHAN DI SINI:
-                                              'admin.ruangan.update' -> 'admin.manajemen-ruangan.update'
-                                            --}}
-                                            <button
-                                                class="btn btn-xs btn-ubah-detail"
-                                                data-id="{{ $room->id }}"
-                                                data-nama_ruangan="{{ $room->nama_ruangan }}"
-                                                data-kapasitas="{{ $room->kapasitas }}"
-                                                data-minimum_order="{{ $room->minimum_order }}"
-                                                data-lokasi="{{ $room->lokasi }}"
-                                                data-fasilitas="{{ $room->fasilitas }}"
-                                                data-keterangan="{{ $room->keterangan }}"
-                                                data-update_url="{{ route('admin.manajemen-ruangan.update', $room->id) }}"
-                                                >Ubah Detail</button>
-                                        </div>
-                                    </td>
+                                   <td>
+                                    <div class="flex items-center justify-center space-x-2">
+        <button
+            class="btn btn-xs btn-ubah-detail"
+            data-id="{{ $room->id }}"
+            data-nama_ruangan="{{ $room->nama_ruangan }}"
+            data-kapasitas="{{ $room->kapasitas }}"
+            data-minimum_order="{{ $room->minimum_order }}"
+            data-lokasi="{{ $room->lokasi }}"
+            data-fasilitas="{{ $room->fasilitas }}"
+            data-keterangan="{{ $room->keterangan }}"
+            data-update_url="{{ route('admin.manajemen-ruangan.update', $room->id) }}"
+            >Ubah Detail</button>
+        
+    
+        <button 
+            class="btn btn-xs btn-error btn-hapus"
+            data-id="{{ $room->id }}"
+            data-nama="{{ $room->nama_ruangan }}"
+            data-delete_url="{{ route('admin.manajemen-ruangan.destroy', $room->id) }}">
+            Hapus
+        </button>
+    </div>
+                                   </td>
+                                    
                                 </tr>
                             @empty
                                 <tr>
@@ -243,103 +249,111 @@
         </div>
     </dialog>
 
-    {{-- =================================== --}}
-    {{-- MODAL UBAH DETAIL --}}
-    {{-- =================================== --}}
- {{-- =================================== --}}
-    {{-- MODAL UBAH DETAIL (SUDAH DIPERBAIKI) --}}
-    {{-- =================================== --}}
-    <dialog id="modal_ubah_detail" class="modal">
-        <div class="modal-box bg-white">
-            <h3 class="font-bold text-lg text-brand-text mb-4">Ubah Detail Ruangan</h3>
+{{-- =================================== --}}
+{{-- MODAL UBAH DETAIL (SUDAH DIPERBAIKI) --}}
+{{-- =================================== --}}
+<dialog id="modal_ubah_detail" class="modal">
+    <div class="modal-box bg-white">
+        <h3 class="font-bold text-lg text-brand-text mb-4">Ubah Detail Ruangan</h3>
+        
+        <form id="form_ubah_detail" method="POST" action="" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
             
-            <form id="form_ubah_detail" method="POST" action="" enctype="multipart/form-data">
-                @csrf
-                @method('PUT')
-                
-                {{-- 
-                  TAMBAHAN PENTING:
-                  Hidden input untuk melacak ID jika validasi gagal
-                --}}
-                <input type="hidden" name="update_room_id" id="ubah_room_id">
+            {{-- Hidden input untuk melacak ID jika validasi gagal --}}
+            <input type="hidden" name="update_room_id" id="ubah_room_id" value="{{ old('update_room_id') }}">
 
+            <div class="form-control w-full mb-2">
+                <label class="label"><span class="label-text text-brand-text">Nama Ruangan</span></label>
+                {{-- PERBAIKAN: Tambahkan value old() --}}
+                <input type="text" id="ubah_nama_ruangan" name="nama_ruangan" class="input input-bordered w-full" value="{{ old('nama_ruangan') }}" />
+                @error('nama_ruangan', 'update') 
+                    <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                @enderror
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
                 <div class="form-control w-full mb-2">
-                    <label class="label"><span class="label-text text-brand-text">Nama Ruangan</span></label>
-                    {{-- TAMBAHKAN: name="nama_ruangan" --}}
-                    <input type="text" id="ubah_nama_ruangan" name="nama_ruangan" class="input input-bordered w-full" />
-                    {{-- 
-                      PERBAIKAN: Tampilkan error spesifik untuk 'ubah'
-                      Kita beri nama unik agar tidak bentrok dengan error 'tambah'
-                    --}}
-                    @error('nama_ruangan', 'update') 
+                    <label class="label"><span class="label-text text-brand-text">Kapasitas</span></label>
+                    {{-- PERBAIKAN: Tambahkan value old() --}}
+                    <input type="number" id="ubah_kapasitas" name="kapasitas" class="input input-bordered w-full" value="{{ old('kapasitas') }}" />
+                    @error('kapasitas', 'update')
                         <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
                 </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="form-control w-full mb-2">
-                        <label class="label"><span class="label-text text-brand-text">Kapasitas</span></label>
-                        {{-- TAMBAHKAN: name="kapasitas" --}}
-                        <input type="number" id="ubah_kapasitas" name="kapasitas" class="input input-bordered w-full" />
-                        @error('kapasitas', 'update')
-                            <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                    </div>
-                     <div class="form-control w-full mb-2">
-                        <label class="label"><span class="label-text text-brand-text">Minimum Order (Rp)</span></label>
-                        {{-- TAMBAHKAN: name="minimum_order" --}}
-                        <input type="number" id="ubah_minimum_order" name="minimum_order" class="input input-bordered w-full" />
-                        @error('minimum_order', 'update')
-                            <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="form-control w-full mb-2">
-                    <label class="label"><span class="label-text text-brand-text">Lokasi</span></label>
-                    {{-- TAMBAHKAN: name="lokasi" --}}
-                    <input type="text" id="ubah_lokasi" name="lokasi" class="input input-bordered w-full" />
-                    @error('lokasi', 'update')
+                 <div class="form-control w-full mb-2">
+                    <label class="label"><span class="label-text text-brand-text">Minimum Order (Rp)</span></label>
+                    {{-- PERBAIKAN: Tambahkan value old() --}}
+                    <input type="number" id="ubah_minimum_order" name="minimum_order" class="input input-bordered w-full" value="{{ old('minimum_order') }}" />
+                    @error('minimum_order', 'update')
                         <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
                 </div>
+            </div>
 
-                <div class="form-control w-full mb-2">
-                    <label class="label"><span class="label-text text-brand-text">Fasilitas</span></label>
-                    {{-- TAMBAHKAN: name="fasilitas" --}}
-                    <textarea id="ubah_fasilitas" name="fasilitas" class="textarea textarea-bordered h-24"></textarea>
-                    @error('fasilitas', 'update')
-                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                    @enderror
-                </div>
+            <div class="form-control w-full mb-2">
+                <label class="label"><span class="label-text text-brand-text">Lokasi</span></label>
+                {{-- PERBAIKAN: Tambahkan value old() --}}
+                <input type="text" id="ubah_lokasi" name="lokasi" class="input input-bordered w-full" value="{{ old('lokasi') }}" />
+                @error('lokasi', 'update')
+                    <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                @enderror
+            </div>
 
-                <div class="form-control w-full mb-2">
-                    <label class="label"><span class="label-text text-brand-text">Keterangan</span></label>
-                    {{-- TAMBAHKAN: name="keterangan" --}}
-                    <textarea id="ubah_keterangan" name="keterangan" class="textarea textarea-bordered h-24"></textarea>
-                    @error('keterangan', 'update')
-                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                    @enderror
-                </div>
+            <div class="form-control w-full mb-2">
+                <label class="label"><span class="label-text text-brand-text">Fasilitas</span></label>
+                {{-- PERBAIKAN: Isi textarea dengan old() --}}
+                <textarea id="ubah_fasilitas" name="fasilitas" class="textarea textarea-bordered h-24">{{ old('fasilitas') }}</textarea>
+                @error('fasilitas', 'update')
+                    <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                @enderror
+            </div>
 
-                <div class="form-control w-full mb-4">
-                    <label class="label"><span class="label-text text-brand-text">Ganti Gambar (Opsional)</span></label>
-                    {{-- TAMBAHKAN: name="image_url" --}}
-                    <input type="file" id="ubah_image_url" name="image_url" 
-                           class="file-input file-input-bordered w-full" />
-                    <label class="label"><span class="label-text-alt">Kosongkan jika tidak ingin ganti gambar</span></label>
-                    @error('image_url', 'update')
-                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                    @enderror
-                </div>
+            <div class="form-control w-full mb-2">
+                <label class="label"><span class="label-text text-brand-text">Keterangan</span></label>
+                {{-- PERBAIKAN: Isi textarea dengan old() --}}
+                <textarea id="ubah_keterangan" name="keterangan" class="textarea textarea-bordered h-24">{{ old('keterangan') }}</textarea>
+                @error('keterangan', 'update')
+                    <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                @enderror
+            </div>
 
-                <div class="modal-action">
-                    <button type="button" class="btn" onclick="modal_ubah_detail.close()">Batal</button>
-                    <button type="submit" class="btn btn-gradient bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Update</button>
-                </div>
-            </form>
-        </div>
-    </dialog>
+            <div class="form-control w-full mb-4">
+                <label class="label"><span class="label-text text-brand-text">Ganti Gambar (Opsional)</span></label>
+                <input type="file" id="ubah_image_url" name="image_url" 
+                       class="file-input file-input-bordered w-full" />
+                <label class="label"><span class="label-text-alt">Kosongkan jika tidak ingin ganti gambar</span></label>
+                @error('image_url', 'update')
+                    <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                @enderror
+            </div>
+
+            <div class="modal-action">
+                <button type="button" class="btn" onclick="modal_ubah_detail.close()">Batal</button>
+                <button type="submit" class="btn btn-gradient border-none">Update</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+{{-- =================================== --}}
+{{-- MODAL KONFIRMASI HAPUS --}}
+{{-- =================================== --}}
+<dialog id="modal_hapus" class="modal">
+    <div class="modal-box bg-white">
+        <h3 class="font-bold text-lg text-brand-text">Konfirmasi Hapus</h3>
+        <p class="py-4">Apakah Anda yakin ingin menghapus ruangan "<strong id="hapus_nama_ruangan"></strong>"? Tindakan ini tidak dapat dibatalkan.</p>
+        
+        <form id="form_hapus" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <div class="modal-action">
+                <button type="button" class="btn" onclick="modal_hapus.close()">Batal</button>
+                <button type="submit" class="btn btn-error">Ya, Hapus</button>
+            </div>
+        </form>
+    </div>
+</dialog>
 
 @endsection
 
@@ -347,6 +361,9 @@
     {{-- Skrip Pencarian --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // ==================================
+            // SKRIP PENCARIAN (Sudah Benar)
+            // ==================================
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
                 searchInput.addEventListener('input', function () {
@@ -362,40 +379,90 @@
                 });
             }
 
-            // Skrip Modal
-            const tambahBtn = document.getElementById('tambahRuanganBtn');
+            // ==================================
+            // SKRIP MODAL
+            // ==================================
             const modalTambah = document.getElementById('modal_tambah_ruangan');
+            const modalUbah = document.getElementById('modal_ubah_detail');
+            const formUbah = document.getElementById('form_ubah_detail');
+
+            // --- Modal Tambah ---
+            const tambahBtn = document.getElementById('tambahRuanganBtn');
             if (tambahBtn) {
                 tambahBtn.addEventListener('click', () => {
                     modalTambah.showModal();
                 });
             }
 
-            const modalUbah = document.getElementById('modal_ubah_detail');
-            const formUbah = document.getElementById('form_ubah_detail');
-            
+            // --- Modal Ubah (Event Listener) ---
             document.querySelectorAll('.btn-ubah-detail').forEach(button => {
                 button.addEventListener('click', function () {
                     const updateUrl = this.dataset.update_url;
+                    const roomId = this.dataset.id; // Ambil ID
 
                     // Isi form modal ubah
                     formUbah.action = updateUrl;
-                    document.getElementById('ubah_nama_ruangan').value = this.dataset.nama_ruangan;
-                    document.getElementById('ubah_kapasitas').value = this.dataset.kapasitas;
-                    document.getElementById('ubah_minimum_order').value = this.dataset.minimum_order;
-                    document.getElementById('ubah_lokasi').value = this.dataset.lokasi;
-                    document.getElementById('ubah_fasilitas').value = this.dataset.fasilitas;
-                    document.getElementById('ubah_keterangan').value = this.dataset.keterangan;
+                    document.getElementById('ubah_room_id').value = roomId; // Set hidden ID
                     
+                    // Set nilai HANYA JIKA tidak ada error validasi sebelumnya
+                    // Jika ada error, Laravel 'old()' yang akan mengisi
+                    @if (!$errors->update->any())
+                        document.getElementById('ubah_nama_ruangan').value = this.dataset.nama_ruangan;
+                        document.getElementById('ubah_kapasitas').value = this.dataset.kapasitas;
+                        document.getElementById('ubah_minimum_order').value = this.dataset.minimum_order;
+                        document.getElementById('ubah_lokasi').value = this.dataset.lokasi;
+                        document.getElementById('ubah_fasilitas').value = this.dataset.fasilitas;
+                        document.getElementById('ubah_keterangan').value = this.dataset.keterangan;
+                    @endif
+
                     modalUbah.showModal();
                 });
             });
 
-            // Buka kembali modal jika ada error validasi
-            @if($errors->any())
-                @if($errors->has('nama_ruangan') || $errors->has('kapasitas') || $errors->has('minimum_order') || $errors->has('lokasi') || $errors->has('image_url'))
-                    modalTambah.showModal();
-                @endif
+            // --- Modal Hapus ---
+            const modalHapus = document.getElementById('modal_hapus');
+            const formHapus = document.getElementById('form_hapus');
+            const hapusNamaSpan = document.getElementById('hapus_nama_ruangan');
+
+            document.querySelectorAll('.btn-hapus').forEach(button => {
+                button.addEventListener('click', function () {
+                    const deleteUrl = this.dataset.delete_url;
+                    const nama = this.dataset.nama;
+                    
+                    // Set URL action form hapus
+                    formHapus.action = deleteUrl;
+                    
+                    // Tampilkan nama ruangan di modal
+                    hapusNamaSpan.textContent = nama;
+                    
+                    // Tampilkan modal
+                    modalHapus.showModal();
+                });
+            });
+
+            // ==================================
+            // PERBAIKAN UTAMA: SKRIP VALIDASI ERROR
+            // ==================================
+            
+            // 1. Cek error untuk modal TAMBAH (error bag 'default')
+            @if ($errors->default->any())
+                modalTambah.showModal();
+            @endif
+
+            // 2. Cek error untuk modal UBAH (error bag 'update')
+            @if ($errors->update->any())
+                // Ambil ID ruangan yang GAGAL di-update dari input 'old'
+                const failedUpdateId = '{{ old("update_room_id") }}';
+
+                if (failedUpdateId) {
+                    // Bangun ulang URL action form
+                    // Pastikan URL root Anda benar, jika tidak, ganti 'url(...)'
+                    const updateUrl = `{{ url('admin/manajemen-ruangan') }}/${failedUpdateId}`;
+                    formUbah.action = updateUrl;
+                    
+                    // Tampilkan modal ubah
+                    modalUbah.showModal();
+                }
             @endif
         });
     </script>

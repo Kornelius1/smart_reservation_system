@@ -163,4 +163,33 @@ class ManajemenRuanganController extends Controller
         // Pastikan Anda punya view 'admin.manajemen-ruangan.edit'
         return view('admin.manajemen-ruangan.edit', compact('room'));
     }
+
+    // ... (setelah metode updateStatus atau edit)
+
+    /**
+     * Menghapus data ruangan dari database.
+     */
+    public function destroy($id)
+    {
+        try {
+            $room = Room::findOrFail($id);
+            
+            // 1. Hapus gambar dari storage (jika ada)
+            if ($room->image_url) {
+                Storage::disk('public')->delete($room->image_url);
+            }
+            
+            // 2. Hapus data dari database
+            $namaRuangan = $room->nama_ruangan;
+            $room->delete();
+            
+            return redirect()->route('admin.manajemen-ruangan.index')
+                             ->with('success', 'Ruangan "' . $namaRuangan . '" berhasil dihapus.');
+            
+        } catch (\Exception $e) {
+            return redirect()->back()
+                             ->with('error', 'Gagal menghapus ruangan: ' . $e->getMessage());
+        }
+    }
+
 }

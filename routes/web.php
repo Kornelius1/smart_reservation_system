@@ -100,6 +100,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{id}', [ManajemenRuanganController::class, 'update'])->name('update');
         Route::patch('/{id}/status', [ManajemenRuanganController::class, 'updateStatus'])->name('updateStatus'); 
         Route::get('/{id}/edit', [ManajemenRuanganController::class, 'edit'])->name('edit');
+        Route::delete('/manajemen-ruangan/{id}', [ManajemenRuanganController::class, 'destroy'])->name('destroy');
     });
 
     Route::get('/manajemen-menu', [ManajemenMenuController::class, 'index'])->name('menu.index');
