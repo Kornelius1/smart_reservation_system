@@ -85,7 +85,9 @@
                             {{-- PERBAIKAN: Kolom disesuaikan dengan database --}}
                             <td class="text-center">{{ $item->id_transaksi }}</td>
                             <td class="text-center">{{ $item->tanggal->format('d/m/Y') }}</td>
-                            <td class="text-center">{{ $item->waktu->format('H:i') }} WIB</td>
+                            <td class="text-center">
+                                {{ $item->waktu ? \Carbon\Carbon::parse($item->waktu)->format('H:i') : '-' }} WIB
+                            </td>
                             <td class="text-center">{{ $item->nama }}</td>
                             <td class="text-center">{{ $item->created_at->diffForHumans() }}</td>
                         </tr>

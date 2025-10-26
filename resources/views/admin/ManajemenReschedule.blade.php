@@ -67,7 +67,8 @@
                                     {{-- Format tanggal agar rapi (karena ini objek Carbon) --}}
                                     <td>{{ $reservation->tanggal->format('d M Y') }}</td>
                                     {{-- Format waktu agar rapi (karena ini objek Carbon) --}}
-                                    <td>{{ $reservation->waktu->format('H:i') }} WIB</td>
+                                    <td>{{ $reservation->waktu ? \Carbon\Carbon::parse($reservation->waktu)->format('H:i') : '-' }}
+                                        WIB</td>
                                     {{-- Tampilkan kapan data ini terakhir di-update --}}
                                     <td>{{ $reservation->updated_at->diffForHumans() }}</td>
                                 </tr>

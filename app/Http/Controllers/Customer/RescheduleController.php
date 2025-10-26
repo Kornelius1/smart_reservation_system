@@ -4,7 +4,8 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use App\Models\Reservation; // <-- Menggunakan Model
+use App\Models\Reservation; 
+use Illuminate\View\View; // <-- Tambahkan ini untuk View
 
 class RescheduleController extends Controller
 {
@@ -12,7 +13,7 @@ class RescheduleController extends Controller
     /**
      * Menampilkan form pencarian awal.
      */
-    public function showForm()
+    public function showForm(): View // <-- Perjelas return type
     {
         return view('customer.reschedule');
     }
@@ -21,7 +22,7 @@ class RescheduleController extends Controller
     /**
      * Mencari reservasi berdasarkan ID Transaksi.
      */
-    public function findReservation(Request $request)
+    public function findReservation(Request $request): View // <-- Perjelas return type
     {
         // Validasi input pencarian
         $request->validate(['id_transaksi' => 'required|string']);
@@ -31,25 +32,45 @@ class RescheduleController extends Controller
         $reservasi = Reservation::where('id_transaksi', $id_transaksi)->first();
 
         if (!$reservasi) {
-            return redirect()->route('reschedule.form')
-                ->with('error', 'ID Transaksi tidak ditemukan!')
-                ->withInput(); // <-- Tambahkan ini agar ID yg dicari tidak hilang
+            return view('customer.reschedule')->with('error', 'ID Transaksi tidak ditemukan!');
+            // Kita gunakan view() agar halaman tetap sama, bukan redirect()
         }
 
-        // Cek apakah tanggal reservasi masih H+1 (minimal besok)
-        // (Asumsi Carbon::today() adalah 21 Okt 2025)
-        $tanggalReservasi = $reservasi->tanggal; // Sudah jadi objek Carbon dari $casts
+        // --- KUMPULKAN SEMUA DATA UNTUK VIEW ---
         
-        // 1. Tentukan apakah bisa reschedule atau tidak
-        $bisa_reschedule = $tanggalReservasi->isAfter(Carbon::today());
+        // 1. Ambil data penting
+        $tanggalReservasi = $reservasi->tanggal; // Ini sudah objek Carbon dari $casts
+        $statusReservasi = $reservasi->status;   // Ini string ('Akan Datang', 'Selesai', dll)
 
-        // 2. Format tanggal untuk ditampilkan di view
-        $reservasi->jadwal_awal_formatted = $tanggalReservasi->format('d M Y') . ', Pukul ' . $reservasi->waktu->format('H:i');
+        // 2. Tentukan apakah bisa reschedule atau tidak
+        // =======================================================
+        // PERBAIKAN LOGIKA INTI DI SINI
+        // =======================================================
+        $bisa_reschedule = ($statusReservasi == 'Akan Datang') && ($tanggalReservasi->isAfter(Carbon::today()));
+
+        // 3. Buat alasan kenapa tidak bisa (untuk ditampilkan ke user)
+        $alasan_tidak_bisa = null;
+        if (!$bisa_reschedule) {
+            if ($statusReservasi != 'Akan Datang') {
+                $alasan_tidak_bisa = "Reservasi tidak dapat diubah karena statusnya sudah \"$statusReservasi\".";
+            } elseif (!$tanggalReservasi->isAfter(Carbon::today())) {
+                $alasan_tidak_bisa = "Reservasi tidak dapat diubah karena sudah melewati batas waktu H-1.";
+            }
+        }
+        
+        // 4. Format tanggal untuk ditampilkan di view
+        // =======================================================
+        // PERBAIKAN ERROR (waktu adalah string, bukan objek)
+        // =======================================================
+        $waktuFormatted = $reservasi->waktu ? Carbon::parse($reservasi->waktu)->format('H:i') : '[Waktu TBC]';
+        $reservasi->jadwal_awal_formatted = $tanggalReservasi->format('d M Y') . ', Pukul ' . $waktuFormatted;
+
 
         // Kirim data yang sudah siap ke view
         return view('customer.reschedule', [
-            'reservasi' => $reservasi, // Kirim sebagai objek Eloquent
+            'reservasi' => $reservasi, 
             'bisa_reschedule' => $bisa_reschedule,
+            'alasan_tidak_bisa' => $alasan_tidak_bisa, // <-- Kirim alasan ke view
         ]);
     }
 
@@ -75,17 +96,28 @@ class RescheduleController extends Controller
         
         // 2. Validasi Bentrok (Cek ke database)
         $isBentrok = Reservation::where('tanggal', $validated['tanggal_baru'])
-                                  ->where('waktu', $waktuBaru->format('H:i:s'))
-                                  ->where('id_transaksi', '!=', $validated['id_transaksi'])
-                                  ->exists();
+                                    ->where('waktu', $waktuBaru->format('H:i:s'))
+                                    ->where('id_transaksi', '!=', $validated['id_transaksi'])
+                                    ->where('status', '!=', 'Dibatalkan') // <-- Tambahan: jangan hitung yg batal
+                                    ->exists();
 
         if ($isBentrok) {
             return redirect()->back()->with('update_error', 'Jadwal pada tanggal dan jam tersebut sudah terisi.');
         }
         
-        // 3. Validasi Batas Waktu H-1 (Cek ulang data asli di DB)
+        // =======================================================
+        // PERBAIKAN LOGIKA KEAMANAN (STATUS DAN TANGGAL)
+        // =======================================================
+        
+        // 3. Validasi Keamanan (Cek ulang data asli di DB)
         $reservasiAsli = Reservation::where('id_transaksi', $validated['id_transaksi'])->firstOrFail();
 
+        // Cek Status DULU
+        if ($reservasiAsli->status != 'Akan Datang') {
+             return redirect()->back()->with('update_error', "Gagal! Reservasi tidak bisa diubah karena statusnya sudah \"{$reservasiAsli->status}\".");
+        }
+
+        // LALU Cek Batas Waktu H-1
         if (!$reservasiAsli->tanggal->isAfter(Carbon::today())) {
             return redirect()->back()->with('update_error', 'Gagal! Waktu reschedule sudah melewati batas H-1.');
         }
@@ -93,6 +125,8 @@ class RescheduleController extends Controller
         // --- PROSES UPDATE DATABASE ---
         $reservasiAsli->tanggal = $validated['tanggal_baru'];
         $reservasiAsli->waktu = $validated['waktu_baru'];
+        // (Opsional) Jika Anda ingin statusnya kembali ke "Akan Datang" jika sebelumnya diubah admin
+        // $reservasiAsli->status = 'Akan Datang'; 
         $reservasiAsli->save(); // <-- Data tersimpan di database
 
         return redirect()->route('reschedule.form')
