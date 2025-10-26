@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\TableController;
 
 use App\Http\Controllers\Admin\LaporanController;
+use App\Http\Controllers\Customer\ReservasiRoomController;
 use App\Http\Controllers\Customer\BayarController;
 use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Customer\DenahMejaController;
@@ -34,9 +35,9 @@ Route::get('/pilih-reservasi', function () {
     return view('customer.reservasi');
 });
 
-Route::get('/reservasi-ruangan', function () {
-    return view('customer.reservasi-ruangan');
-});
+
+Route::get('/reservasi-ruangan', [ReservasiRoomController::class, 'index'])
+    ->name('reservasi-ruangan');
 
 Route::get('/pilih-meja', [DenahMejaController::class, 'index'])
     ->name('tables.map');
@@ -66,10 +67,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Manajemen Meja
     Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
+    Route::post('/admin/meja/{meja}/toggle-status', [TableController::class, 'toggleStatus'])
+     ->name('admin.meja.toggleStatus');
 
     // Manajemen Reservasi
-    Route::get('/manajemen-reservasi', [ReservationController::class, 'index'])->name('manajemen-reservasi');
+    Route::get('/manajemen-reservasi', [ReservationController::class, 'index'])
+         ->name('admin.reservasi.index'); // <-- Nama disesuaikan agar standar
 
+    // 2. Route untuk aksi CHECK-IN
+    Route::patch('/reservasi/{id}/checkin', [ReservationController::class, 'checkin'])
+         ->name('admin.reservasi.checkin');
+
+    // 3. Route untuk aksi SELESAIKAN
+    Route::patch('/reservasi/{id}/complete', [ReservationController::class, 'complete'])
+         ->name('admin.reservasi.complete');
+
+    // 4. Route untuk aksi BATALKAN
+    Route::patch('/reservasi/{id}/cancel', [ReservationController::class, 'cancel'])
+         ->name('admin.reservasi.cancel');
+         
     // Manajemen Reschedule
     Route::get('/manajemen-reschedule', [ManajemenRescheduleController::class, 'index'])->name('manajemen-reschedule');
 
@@ -80,8 +96,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Manajemen Ruangan (menggunakan prefix agar lebih rapi)
     Route::prefix('admin/manajemen-ruangan')->name('admin.manajemen-ruangan.')->group(function () {
         Route::get('/', [ManajemenRuanganController::class, 'index'])->name('index');
-        Route::get('/{id}/edit', [ManajemenRuanganController::class, 'edit'])->name('edit');
+        Route::post('/', [ManajemenRuanganController::class, 'store'])->name('store'); 
         Route::put('/{id}', [ManajemenRuanganController::class, 'update'])->name('update');
+        Route::patch('/{id}/status', [ManajemenRuanganController::class, 'updateStatus'])->name('updateStatus'); 
+        Route::get('/{id}/edit', [ManajemenRuanganController::class, 'edit'])->name('edit');
     });
 
     Route::get('/manajemen-menu', [ManajemenMenuController::class, 'index'])->name('menu.index');

@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-   
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('reservations', function (Blueprint $table) {
@@ -18,14 +20,27 @@ return new class extends Migration
             $table->integer('jumlah_orang')->nullable();
             $table->date('tanggal'); 
             $table->time('waktu'); 
-            $table->boolean('status')->default(true); 
+
+            // =======================================================
+            // PERUBAHAN DI SINI
+            // 
+            // Kode Lama (dihapus):
+            // $table->boolean('status')->default(true); 
+            //
+            // Kode Baru:
+            // Menggunakan string untuk menyimpan status seperti "Akan Datang", "Berlangsung", dll.
+            $table->string('status')->default('Akan Datang'); 
+            // =======================================================
+
             $table->integer('nomor_meja')->nullable(); 
             $table->integer('nomor_ruangan')->nullable(); 
             $table->timestamps(); 
         });
     }
 
-   
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('reservations');

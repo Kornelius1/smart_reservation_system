@@ -11,29 +11,43 @@
 @section('content')
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
 
-        <div
-            class="bg-amber-50 rounded-3xl p-6 shadow-md text-center transition-transform duration-200 ease-in-out hover:scale-105">
-            <img src="{{ asset('images/indoor1.png') }}" alt="Indoor 1" class="rounded-lg mb-4 w-full h-48 object-cover">
-            <h2 class="text-xl font-bold mb-2">Indoor 1 - Cafe Area</h2>
-            <div class="text-sm space-y-1 text-left mx-auto max-w-max mb-4">
-                <p>👥 Kapasitas: 20 Orang</p>
-                <p>💰 Min. Order: Rp200.000 / 3 jam</p>
-                <p>⏱ Extra Time: Rp50.000 / jam</p>
-            </div>
-            <a href="/pesanmenu?room_name=Ruangan+1&min_order=200000" class="btn-custom inline-block">Pilih Ruangan Ini</a>
-        </div>
+        @forelse ($rooms as $room)
+            <div
+                class="bg-amber-50 rounded-3xl p-6 shadow-md text-center transition-transform duration-200 ease-in-out hover:scale-105">
 
-        <div
-            class="bg-amber-50 rounded-3xl p-6 shadow-md text-center transition-transform duration-200 ease-in-out hover:scale-105">
-            <img src="{{ asset('images/indoor2.png') }}" alt="Indoor 2" class="rounded-lg mb-4 w-full h-48 object-cover">
-            <h2 class="text-xl font-bold mb-2">Indoor 2 - Private Hall</h2>
-            <div class="text-sm space-y-1 text-left mx-auto max-w-max mb-4">
-                <p>👥 Kapasitas: 35 Orang</p>
-                <p>💰 Min. Order: Rp400.000 / 3 jam</p>
-                <p>⏱ Extra Time: Rp500.000 / jam</p>
+                <img src="{{ asset($room->image_url) }}" alt="{{ $room->nama_ruangan }}"
+                    class="rounded-lg mb-4 w-full h-48 object-cover">
+
+                <h2 class="text-xl font-bold mb-2">{{ $room->nama_ruangan }}</h2>
+
+                <div class="text-sm space-y-1 text-left mx-auto max-w-max mb-4">
+                    <p>👥 Kapasitas: {{ $room->kapasitas }} Orang</p>
+                    <p>📍 Lokasi: {{ $room->lokasi }}</p>
+                    <p>✨ Fasilitas: {{ $room->fasilitas }}</p>
+                    <p>💰 Min. Order: Rp{{ number_format($room->minimum_order, 0, ',', '.') }} / 3 jam</p>
+                    <p class="text-xs italic">{{ $room->keterangan }}</p>
+                </div>
+
+
+
+                @if ($room->status == 'tersedia')
+                    <a href="/pesanmenu?room_name={{ $room->nama_ruangan }}&min_order={{ $room->minimum_order }}"
+                        class="btn-custom inline-block">
+                        Pilih Ruangan Ini
+                    </a>
+                @else
+
+                    <button class="btn-custom inline-block opacity-50 cursor-not-allowed" disabled>
+                        Tidak Tersedia
+                    </button>
+                @endif
+
             </div>
-            <a href="/pesanmenu?room_name=Ruangan+2&min_order=400000" class="btn-custom inline-block">Pilih Ruangan Ini</a>
-        </div>
+        @empty
+            <div class="col-span-1 md:col-span-2 text-center text-gray-500 py-10">
+                <p class="text-lg">Maaf, saat ini tidak ada ruangan yang tersedia.</p>
+            </div>
+        @endforelse
 
     </div>
 @endsection

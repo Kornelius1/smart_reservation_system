@@ -15,5 +15,7 @@ class Room extends Model
         'fasilitas',
         'keterangan',
         'status',
+        'minimum_order',
+        'image_url',
     ];
 }

@@ -1,9 +1,10 @@
 @extends('layouts.admin')
 
-@section('title', 'Manajemen Reservasi') {{-- Judul diubah sedikit --}}
+@section('title', 'Manajemen Reservasi')
 
 
 @push('styles')
+      {{-- Style untuk toggle tidak lagi diperlukan, tapi saya biarkan jika dipakai di tempat lain --}}
       <style>
         .toggle {
             --toggle-handle-color: white !important;
@@ -26,6 +27,24 @@
             </button>
             <h1 class="text-2xl">Manajemen Reservasi</h1>
         </div>
+
+        {{-- ============================================= --}}
+        {{-- BLOK ALERT UNTUK NOTIFIKASI SUKSES/ERROR --}}
+        {{-- ============================================= --}}
+        @if (session('success'))
+            <div role="alert" class="alert alert-success mb-4 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+        @if (session('error'))
+            <div role="alert" class="alert alert-error mb-4 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+        {{-- ============================================= --}}
+
             <div class="card w-full bg-white shadow-xl">
                 <div class="card-body">
                     <h1 class="text-2xl font-bold brand-text-1 border-b-4 border-brand-primary pb-2">MANAJEMEN RESERVASI</h1>
@@ -51,7 +70,7 @@
                                     <th>ID Reservasi</th>
                                     <th>ID Transaksi</th>
                                     <th>Nomor Meja</th>
-                                    <th>Nomor Ruangan</th> {{-- <<< KOLOM BARU --}}
+                                    <th>Nomor Ruangan</th>
                                     <th>Nama Customer</th>
                                     <th>Nomor Telepon</th>
                                     <th>Jumlah Orang</th>
@@ -67,31 +86,82 @@
                                 @if (isset($reservations) && !$reservations->isEmpty())
                                     @foreach ($reservations as $reservation)
                                         <tr class="text-center">
-                                            <th>{{ $reservation->id_reservasi }}</th> {{-- Akses via objek -> --}}
+                                            <th>{{ $reservation->id_reservasi }}</th>
                                             <td>{{ $reservation->id_transaksi }}</td>
-                                            <td>{{ $reservation->nomor_meja ?? '-' }}</td> {{-- Tampilkan '-' jika null --}}
-                                            <td>{{ $reservation->nomor_ruangan ?? '-' }}</td> {{-- <<< DATA BARU --}}
-                                            <td>{{ $reservation->nama }}</td> {{-- <-- Pakai 'nama' --}}
+                                            <td>{{ $reservation->nomor_meja ?? '-' }}</td>
+                                            <td>{{ $reservation->nomor_ruangan ?? '-' }}</td>
+                                            <td>{{ $reservation->nama }}</td>
                                             <td>{{ $reservation->nomor_telepon ?? '-' }}</td>
                                             <td>{{ $reservation->jumlah_orang ?? '-' }} Orang</td>
-                                            {{-- Format tanggal agar lebih rapi --}}
                                             <td>{{ $reservation->tanggal ? $reservation->tanggal->format('d-m-Y') : '-' }}</td>
-                                            {{-- Format waktu agar lebih rapi --}}
-                                            <td>{{ $reservation->waktu ? \Carbon\Carbon::parse($reservation->waktu)->format('H:i') : '-' }} WIB</td> {{-- <-- Pakai 'waktu' --}}
+                                            <td>{{ $reservation->waktu ? \Carbon\Carbon::parse($reservation->waktu)->format('H:i') : '-' }} WIB</td>
+                                            
+                                            {{-- ============================================= --}}
+                                            {{-- BAGIAN STATUS BARU (MENGGANTIKAN YANG LAMA) --}}
+                                            {{-- ============================================= --}}
                                             <td>
-                                                {{-- Tampilkan badge berdasarkan status --}}
-                                                @if ($reservation->status)
-                                                    <span class="badge badge-success badge-sm" style="border: none; background-color: #5cb85c; color: white;">Aktif</span>
-                                                @else
-                                                    <span class="badge badge-error badge-sm" style="border: none; background-color: #d9534f; color: white;">Selesai</span>
-                                                @endif
+                                               @switch($reservation->status)
+    @case('Akan Datang')
+        {{-- badge-sm dihapus --}}
+        <span class="badge badge-info text-white p-1">Akan Datang</span>
+        @break
+    @case('Berlangsung')
+        {{-- badge-sm dihapus --}}
+        <span class="badge badge-success text-white">Berlangsung</span>
+        @break
+    @case('Selesai')
+        {{-- badge-sm dihapus --}}
+        <span class="badge badge-ghost">Selesai</span>
+        @break
+    @case('Dibatalkan')
+        {{-- badge-sm dihapus --}}
+        <span class="badge badge-error text-white">Dibatalkan</span>
+        @break
+    @case('Tidak Datang')
+        {{-- badge-sm dihapus --}}
+        <span class="badge badge-warning text-white p-1">Tidak Datang</span>
+        @break
+    @default
+        {{-- Fallback jika ada status aneh --}}
+        {{-- badge-sm dihapus --}}
+        <span class="badge">{{ $reservation->status }}</span>
+@endswitch
                                             </td>
-                                            <td>
-                                                <div class="flex items-center justify-center">
-                                                    {{-- Toggle status --}}
-                                                    <input type="checkbox" class="toggle toggle-md toggle-success"
-                                                        data-id="{{ $reservation->id_reservasi }}" {{-- Untuk JS nanti jika perlu --}}
-                                                        {{ $reservation->status ? 'checked' : '' }} />
+                                            
+                                            {{-- ========================================= --}}
+                                            {{-- BAGIAN AKSI BARU (MENGGANTIKAN TOGGLE) --}}
+                                            {{-- ========================================= --}}
+                                            <td class="whitespace-nowrap">
+                                                <div class="flex items-center justify-center gap-2">
+                                                    
+                                                    @if ($reservation->status == 'Akan Datang')
+                                                        {{-- Form untuk Check-in --}}
+                                                        <form action="{{ route('admin.reservasi.checkin', $reservation->id_reservasi) }}" method="POST" class="m-0">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <button type="submit" class="btn btn-success btn-xs">Check-in</button>
+                                                        </form>
+
+                                                        {{-- Form untuk Batalkan --}}
+                                                        <form action="{{ route('admin.reservasi.cancel', $reservation->id_reservasi) }}" method="POST" class="m-0"
+                                                              onsubmit="return confirm('Apakah Anda yakin ingin MEMBATALKAN reservasi ini?');">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <button type="submit" class="btn btn-error btn-xs">Batalkan</button>
+                                                        </form>
+
+                                                    @elseif ($reservation->status == 'Berlangsung')
+                                                        {{-- Form untuk Selesaikan --}}
+                                                        <form action="{{ route('admin.reservasi.complete', $reservation->id_reservasi) }}" method="POST" class="m-0">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <button type="submit" class="btn btn-primary btn-xs">Selesaikan</button>
+                                                        </form>
+
+                                                    @else
+                                                        {{-- Status Selesai, Dibatalkan, atau Tidak Datang --}}
+                                                        <span class="text-gray-500">-</span>
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>
