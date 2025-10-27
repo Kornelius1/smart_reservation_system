@@ -1,10 +1,11 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\TableController;
 
+use App\Http\Controllers\MidtransController;
+use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\LaporanController;
-use App\Http\Controllers\Customer\ReservasiRoomController;
 use App\Http\Controllers\Customer\BayarController;
 use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Customer\DenahMejaController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\ManajemenMenuController;
 use App\Http\Controllers\Customer\RescheduleController;
 use App\Http\Controllers\Customer\LandingPageController;
 use App\Http\Controllers\Admin\ManajemenRuanganController;
+use App\Http\Controllers\Customer\ReservasiRoomController;
 use App\Http\Controllers\Admin\ManajemenRescheduleController;
 
 /*
@@ -43,8 +45,7 @@ Route::get('/pilih-meja', [DenahMejaController::class, 'index'])
     ->name('tables.map');
 
 Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu');
-Route::post('/konfirmasi-pesanan', [BayarController::class, 'show'])->name('payment.confirmation');
-Route::post('/proses-pembayaran', [BayarController::class, 'processPayment'])->name('payment.process');
+
 
 Route::controller(RescheduleController::class)->group(function () {
     Route::get('/reschedule', 'showForm')->name('reschedule.form');
@@ -117,6 +118,49 @@ Route::get('/manajemen-menu', [ManajemenMenuController::class, 'index'])->name('
     Route::delete('/manajemen-menu/{id}', [ManajemenMenuController::class, 'destroy'])->name('menu.destroy');
 });
 
+// === ROUTES UNTUK Halaman Pembayaran  ===
+Route::post('/proses-pembayaran', [BayarController::class, 'processPayment'])
+     ->name('payment.process');
+
+// ==========================================================
+// BARU: Rute untuk Webhook Midtrans
+// ==========================================================
+Route::post('/midtrans-webhook', [MidtransController::class, 'handle'])
+     ->name('midtrans.webhook');
+
+
+// ==========================================================
+// MODIFIKASI: Rute Halaman Sukses
+// ==========================================================
+// Rute ini sekarang menangani redirect dari JavaScript Snap
+Route::get('/sukses', function (Request $request) {
+    
+    $orderId = $request->query('order_id');
+    $status = $request->query('status');
+
+    // Jika tidak ada parameter, jangan tampilkan halaman
+    if (!$orderId || !$status) {
+        return redirect('/');
+    }
+
+    // Siapkan pesan berdasarkan status redirect
+    $message = '';
+    if ($status == 'success') {
+        // PENTING: Ini hanya redirect. Status DB diubah oleh webhook.
+        $message = 'Pembayaran untuk ID ' . e($orderId) . ' sedang diproses. Status reservasi Anda akan segera diperbarui.';
+    } else if ($status == 'pending') {
+        $message = 'Reservasi Anda (ID: ' . e($orderId) . ') telah dibuat. Silakan selesaikan pembayaran Anda.';
+    } else if ($status == 'error') {
+        $message = 'Terjadi kesalahan saat memproses pembayaran (ID: ' . e($orderId) . '). Silakan coba lagi.';
+    }
+
+    // Gunakan flash session agar pesan hanya tampil sekali
+    session()->flash('success_message', $message);
+    
+    // Tampilkan view sukses yang sudah Anda buat
+    return view('customer.sukses');
+
+})->name('payment.success');
 
 
 require __DIR__.'/auth.php';

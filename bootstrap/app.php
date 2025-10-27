@@ -13,7 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-       //
+       $middleware->validateCsrfTokens(except: [
+            '/midtrans-webhook' 
+            // 'api/*' // Jika Anda juga ingin nonaktifkan untuk semua rute API
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
