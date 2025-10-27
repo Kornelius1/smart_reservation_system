@@ -126,7 +126,7 @@
                                    <td>
                                     <div class="flex items-center justify-center space-x-2">
         <button
-            class="btn btn-xs btn-ubah-detail"
+            class="btn btn-xs btn-gradient"
             data-id="{{ $room->id }}"
             data-nama_ruangan="{{ $room->nama_ruangan }}"
             data-kapasitas="{{ $room->kapasitas }}"

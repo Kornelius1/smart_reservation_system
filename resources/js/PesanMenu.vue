@@ -100,7 +100,14 @@ const filteredIceCreams = getFilteredProductsByCategory("ice-cream");
 
 // --- METHODS ---
 function increaseQuantity(product) {
-    product.quantity++;
+    // ==================================================
+    // --- PERBAIKAN DI SINI ---
+    // Cek apakah kuantitas saat ini masih di bawah stok
+    // Jika stok = 0, (0 < 0) adalah false, jadi tidak akan bertambah.
+    // Jika stok = 5 & kuantitas = 5, (5 < 5) adalah false, jadi tidak akan bertambah.
+    if (product.quantity < product.stock) {
+        product.quantity++;
+    } // ==================================================
 }
 
 function decreaseQuantity(product) {

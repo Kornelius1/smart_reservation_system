@@ -10,9 +10,8 @@ class ProductController extends Controller
 {
     public function index()
     {
-        // Ambil semua produk, urutkan berdasarkan kategori
-        $products = Product::orderBy('category')->get();
-
+        
+        $products = Product::where('tersedia', true)->orderBy('category')->get();
         // Kembalikan sebagai response JSON
         return response()->json($products);
     }

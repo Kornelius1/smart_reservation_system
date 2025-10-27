@@ -20,7 +20,7 @@ class RoomSeeder extends Seeder
             'fasilitas' => 'AC, Proyektor, Papan Tulis, Wi-Fi',
             'keterangan' => 'Ruangan privat yang tenang, cocok untuk meeting tim atau presentasi.',
             'status' => 'tersedia',
-            'image_url' => 'images/indoor1.png',
+            'image_url' => 'images/rooms/indoor1.png.png',
         ]);
 
         Room::create([
@@ -31,7 +31,7 @@ class RoomSeeder extends Seeder
             'fasilitas' => 'Sofa, Pemandangan Kota, Wi-Fi, Smoking Area',
             'keterangan' => 'Area semi-outdoor eksklusif dengan pemandangan kota. Ideal untuk acara santai.',
             'status' => 'tersedia',
-            'image_url' => 'images/indoor2.png',
+            'image_url' => 'images/rooms/indoor2.png',
         ]);
 
         Room::create([
@@ -42,7 +42,7 @@ class RoomSeeder extends Seeder
             'fasilitas' => 'AC, Sound System, Meja Panjang, Wi-Fi',
             'keterangan' => 'Ruangan luas yang dapat diatur untuk berbagai acara, seperti workshop atau arisan.',
             'status' => 'tersedia',
-            'image_url' => 'images/indoor1.png',
+            'image_url' => 'images/rooms/indoor1.png',
         ]);
     }
 }
