@@ -92,4 +92,6 @@ class ReservationController extends Controller
         
         return redirect()->back()->with('error', 'Gagal, Reservasi yang sedang berlangsung atau selesai tidak bisa dibatalkan.');
     }
+
+    
 }
