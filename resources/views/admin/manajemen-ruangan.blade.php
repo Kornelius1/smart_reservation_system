@@ -242,7 +242,7 @@
 
                 <div class="modal-action">
                     <button type="button" class="btn" onclick="modal_tambah_ruangan.close()">Batal</button>
-                    <button type="submit" class="btn btn-gradient bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Simpan</button>
+                    <button type="submit" class="btn btn-gradient border-none">Simpan</button>
                 </div>
             </form>
         </div>

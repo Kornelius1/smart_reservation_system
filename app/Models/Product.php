@@ -11,13 +11,15 @@ class Product extends Model
     protected $fillable = [
         'name',
         'price',
+        'stock',
         'image_url',
         'category',
         'tersedia',
     ];
 
     protected $casts = [
-        'price' => 'integer',
+        'price' => 'decimal:2', 
+        'stock' => 'integer',
         'tersedia' => 'boolean',
     ];
 }

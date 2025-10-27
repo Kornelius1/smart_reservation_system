@@ -103,19 +103,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
       Route::delete('/{id}', [ManajemenRuanganController::class, 'destroy'])->name('destroy');
     });
 
-    Route::get('/manajemen-menu', [ManajemenMenuController::class, 'index'])->name('menu.index');
-        
-   
-        Route::post('/manajemen-menu', [ManajemenMenuController::class, 'store'])->name('menu.store');
-
-        Route::patch('/manajemen-menu/{product}/status', [ManajemenMenuController::class, 'updateStatus'])->name('menu.updateStatus');
-
-
-        Route::put('/manajemen-menu/{product}/detail', [ManajemenMenuController::class, 'updateDetail'])->name('menu.updateDetail');
-   
-        //bisa menambahkan route admin lainnya di sini
-
+  
+Route::get('/manajemen-menu', [ManajemenMenuController::class, 'index'])->name('menu.index');
+    Route::post('/manajemen-menu', [ManajemenMenuController::class, 'store'])->name('menu.store');
+    
+    // PERBAIKAN: Menggunakan {id} agar konsisten dengan controller
+    Route::patch('/manajemen-menu/{id}/status', [ManajemenMenuController::class, 'updateStatus'])->name('menu.updateStatus');
+    
+    // PERBAIKAN: Mengarah ke method 'update', bukan 'updateDetail'
+    Route::put('/manajemen-menu/{id}', [ManajemenMenuController::class, 'update'])->name('menu.update');
+    
+    // TAMBAHAN: Rute untuk menghapus menu
+    Route::delete('/manajemen-menu/{id}', [ManajemenMenuController::class, 'destroy'])->name('menu.destroy');
 });
+
 
 
 require __DIR__.'/auth.php';

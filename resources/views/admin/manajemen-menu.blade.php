@@ -12,6 +12,7 @@
             background-image: none !important;
         }
 
+        /* Menyembunyikan panah di input number */
         input[type='number']::-webkit-outer-spin-button,
         input[type='number']::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -58,6 +59,17 @@
                     </div>
                 @endif
                 
+                {{-- Notifikasi Error Validasi (Hanya untuk Modal Ubah) --}}
+                @if ($errors->update->any())
+                    <div class="alert alert-error shadow-lg mt-4">
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>Gagal memperbarui menu. Cek kembali isian Anda di modal "Ubah Detail".</span>
+                        </div>
+                    </div>
+                @endif
+
+
                 <div class="flex justify-start items-center my-4 space-x-4"> 
                     <div class="form-control relative my-2">
                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -68,7 +80,7 @@
                        <input id="searchInput" type="text" placeholder="Search..."
                             class="input input-sm input-bordered w-72 pl-10" />
                     </div>
-                    <button id="tambahMenuBtn" class="btn btn-gradient">Tambah Menu</button>
+                    <button id="tambahMenuBtn" class="btn btn-gradient bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Tambah Menu</button>
                 </div>
 
                 <div class="flex items-center space-x-2 text-sm mb-4">
@@ -90,6 +102,7 @@
                                 <th>Nama Menu</th>
                                 <th>Harga</th>
                                 <th>Kategori</th>
+                                <th>Stok</th> {{-- TAMBAHAN: Kolom Stok --}}
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
@@ -102,8 +115,8 @@
                                         <div class="flex items-center space-x-5">
                                             <div class="avatar">
                                                 <div class="mask mask-squircle w-12 h-12">
-                                                    {{-- Ini sudah benar, menggunakan URL langsung --}}
-                                                    <img src="{{ $item->image_url }}"
+                                                    {{-- PERBAIKAN: Gunakan asset() untuk gambar dari storage --}}
+                                                    <img src="{{ Str::startsWith($item->image_url, 'http') ? $item->image_url : asset('storage/' . $item->image_url) }}"
                                                          alt="{{ $item->name }}" class="w-full h-full object-cover" />
                                                 </div>
                                             </div>
@@ -113,9 +126,22 @@
                                         </div>
                                     </td>
                                     <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
-                                    {{-- Tampilkan kategori dengan format yang rapi --}}
                                     <td>{{ ucwords(str_replace('-', ' ', $item->category)) }}</td>
-                                    <td><span class="badge badge-sm"></span></td>
+                                    
+                                    {{-- TAMBAHAN: Tampilkan Stok --}}
+                                    <td>{{ $item->stock }}</td> 
+                                    
+                                    {{-- PERBAIKAN: Tampilkan Status berdasarkan Stok dan Ketersediaan --}}
+                                    <td>
+                                        @if ($item->stock == 0)
+                                            <span class="badge badge-sm badge-error">Stok Habis</span>
+                                        @elseif ($item->tersedia)
+                                            <span class="badge badge-sm badge-success">Tersedia</span>
+                                        @else
+                                            <span class="badge badge-sm badge-warning">Tidak Tersedia</span>
+                                        @endif
+                                    </td>
+                                    
                                     <td>
                                         <div class="flex items-center justify-center space-x-2">
                                             
@@ -126,15 +152,30 @@
                                                 <input type="checkbox" class="toggle toggle-md"
                                                        {{ $item->tersedia ? 'checked' : '' }} 
                                                        onchange="this.form.submit()"
+                                                       {{-- LOGIKA STOK: Nonaktifkan toggle jika stok 0 --}}
+                                                       {{ $item->stock == 0 ? 'disabled' : '' }} 
                                                 />
                                             </form>
                                             
                                             <button
-                                                class="btn btn-xs btn-ubah-detail"
+                                                class="btn btn-xs btn-gradient bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none btn-ubah-detail"
                                                 data-id="{{ $item->id }}"
                                                 data-nama="{{ $item->name }}"
                                                 data-harga="{{ $item->price }}"
-                                                data-kategori="{{ $item->category }}">Ubah Detail</button>
+                                                data-kategori="{{ $item->category }}"
+                                                data-stok="{{ $item->stock }}" {{-- TAMBAHAN: Kirim data stok --}}
+                                                {{-- PERBAIKAN: URL action untuk update --}}
+                                                data-action="{{ route('menu.update', $item->id) }}" 
+                                            >Ubah Detail</button>
+
+                                            {{-- TAMBAHAN: Tombol Hapus --}}
+                                            <button 
+                                                class="btn btn-xs btn-error btn-hapus-menu"
+                                                data-id="{{ $item->id }}"
+                                                data-nama="{{ $item->name }}"
+                                                data-action="{{ route('menu.destroy', $item->id) }}"
+                                            >Hapus</button>
+
                                         </div>
                                     </td>
                                 </tr>
@@ -160,6 +201,7 @@
                     <label class="label"><span class="label-text text-brand-text">Nama Menu</span></label>
                     <input type="text" id="tambah_nama_menu" name="nama_menu" placeholder="Contoh: Nasi Goreng" 
                            class="input input-bordered w-full" value="{{ old('nama_menu') }}" />
+                    {{-- PERBAIKAN: Error bag default (bukan 'update') --}}
                     @error('nama_menu')
                         <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
@@ -174,20 +216,22 @@
                     @enderror
                 </div>
 
+                {{-- TAMBAHAN: Input Stok --}}
+                <div class="form-control w-full mb-2">
+                    <label class="label"><span class="label-text text-brand-text">Stok Awal</span></label>
+                    <input type="number" id="tambah_stok_menu" name="stok_menu" placeholder="Contoh: 10" 
+                           class="input input-bordered w-full" value="{{ old('stok_menu') }}" />
+                    @error('stok_menu')
+                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                    @enderror
+                </div>
+
                 <div class="form-control w-full mb-2">
                     <label class="label"><span class="label-text text-brand-text">Kategori</span></label>
                     
-                    {{-- ==================================================== --}}
-                    {{-- PERUBAHAN DI SINI: Dropdown Kategori Tambah Menu    --}}
-                    {{-- ==================================================== --}}
                     <select id="tambah_kategori_menu" name="kategori_menu" class="select select-bordered w-full">
                         <option value="" disabled selected>Pilih Kategori</option>
-                        {{-- Loop dari variabel $categories di controller --}}
                         @foreach ($categories as $category)
-                            {{-- 
-                                value="{{ $category }}" -> isinya "heavy-meal"
-                                Tampilannya -> "Heavy Meal"
-                            --}}
                             <option value="{{ $category }}" {{ old('kategori_menu') == $category ? 'selected' : '' }}>
                                 {{ ucwords(str_replace('-', ' ', $category)) }}
                             </option>
@@ -222,22 +266,36 @@
         <div class="modal-box bg-white">
             <h3 class="font-bold text-lg text-brand-text mb-4">Ubah Detail Menu</h3>
             
+            {{-- PERBAIKAN: Action form akan diisi oleh JavaScript --}}
             <form id="form_ubah_detail" method="POST" action="" enctype="multipart/form-data">
                 @csrf
-                @method('PUT')
+                @method('PUT') 
                 
+                {{-- TAMBAHAN: Hidden input untuk ID, PENTING untuk validasi --}}
+                <input type="hidden" id="update_menu_id" name="update_menu_id" value="{{ old('update_menu_id') }}">
+
                 <div class="form-control w-full mb-2">
                     <label class="label"><span class="label-text text-brand-text">Nama Menu</span></label>
-                    <input type="text" id="ubah_nama_menu" name="ubah_nama_menu" class="input input-bordered w-full" />
-                    @error('ubah_nama_menu')
+                    <input type="text" id="ubah_nama_menu" name="ubah_nama_menu" class="input input-bordered w-full" value="{{ old('ubah_nama_menu') }}" />
+                    {{-- PERBAIKAN: Ambil error dari error bag 'update' --}}
+                    @error('ubah_nama_menu', 'update')
                         <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
                 </div>
 
                 <div class="form-control w-full mb-2">
                     <label class="label"><span class="label-text text-brand-text">Harga Menu</span></label>
-                    <input type="number" id="ubah_harga_menu" name="ubah_harga_menu" class="input input-bordered w-full" />
-                    @error('ubah_harga_menu')
+                    <input type="number" id="ubah_harga_menu" name="ubah_harga_menu" class="input input-bordered w-full" value="{{ old('ubah_harga_menu') }}" />
+                    @error('ubah_harga_menu', 'update')
+                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                    @enderror
+                </div>
+
+                {{-- TAMBAHAN: Input Stok --}}
+                <div class="form-control w-full mb-2">
+                    <label class="label"><span class="label-text text-brand-text">Stok</span></label>
+                    <input type="number" id="ubah_stok_menu" name="ubah_stok_menu" class="input input-bordered w-full" value="{{ old('ubah_stok_menu') }}" />
+                    @error('ubah_stok_menu', 'update')
                         <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
                 </div>
@@ -245,19 +303,15 @@
                 <div class="form-control w-full mb-2">
                     <label class="label"><span class="label-text text-brand-text">Kategori</span></label>
                     
-                    {{-- ==================================================== --}}
-                    {{-- PERUBAHAN DI SINI: Dropdown Kategori Ubah Menu     --}}
-                    {{-- ==================================================== --}}
                     <select id="ubah_kategori_menu" name="ubah_kategori_menu" class="select select-bordered w-full">
                         <option value="" disabled>Pilih Kategori</option>
-                        {{-- Loop dari variabel $categories di controller --}}
                         @foreach ($categories as $category)
-                            <option value="{{ $category }}">
+                            <option value="{{ $category }}" {{ old('ubah_kategori_menu') == $category ? 'selected' : '' }}>
                                 {{ ucwords(str_replace('-', ' ', $category)) }}
                             </option>
                         @endforeach
                     </select>
-                    @error('ubah_kategori_menu')
+                    @error('ubah_kategori_menu', 'update')
                         <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
                 </div>
@@ -267,7 +321,7 @@
                     <input type="file" id="ubah_gambar_menu" name="ubah_gambar_menu" 
                            class="file-input file-input-bordered w-full" />
                     <label class="label"><span class="label-text-alt">Kosongkan jika tidak ingin ganti gambar</span></label>
-                    @error('ubah_gambar_menu')
+                    @error('ubah_gambar_menu', 'update')
                         <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
                 </div>
@@ -280,16 +334,123 @@
         </div>
     </dialog>
 
+
+    {{-- =================================== --}}
+    {{-- TAMBAHAN: MODAL KONFIRMASI HAPUS  --}}
+    {{-- =================================== --}}
+    <dialog id="modal_hapus_menu" class="modal">
+        <div class="modal-box bg-white">
+            <h3 class="font-bold text-lg text-brand-text">Konfirmasi Hapus</h3>
+            <p class="py-4 text-brand-text">Apakah Anda yakin ingin menghapus menu "<span id="hapus_nama_menu" class="font-bold"></span>"?</p>
+            
+            <form id="form_hapus_menu" method="POST" action="">
+                @csrf
+                @method('DELETE')
+                <div class="modal-action">
+                    <button type="button" class="btn" onclick="modal_hapus_menu.close()">Batal</button>
+                    <button type="submit" class="btn btn-error">Ya, Hapus</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
 @endsection
 
-{{-- 
-    TAMBAHAN: Script ini akan otomatis membuka kembali modal 
-    jika terjadi error validasi dari controller
+{{-- ========================================================= --}}
+{{-- PERBAIKAN: Pindahkan script ke @push('scripts') 
+     agar di-load setelah layout
 --}}
+{{-- ========================================================= --}}
+@push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        @if($errors->has('nama_menu') || $errors->has('harga_menu') || $errors->has('kategori_menu') || $errors->has('gambar_menu'))
-            document.getElementById('modal_tambah_menu').showModal();
+        
+        // --- MODAL TAMBAH ---
+        const modalTambah = document.getElementById('modal_tambah_menu');
+        document.getElementById('tambahMenuBtn').addEventListener('click', () => {
+            modalTambah.showModal();
+        });
+
+        // --- MODAL UBAH DETAIL ---
+        const modalUbah = document.getElementById('modal_ubah_detail');
+        const formUbah = document.getElementById('form_ubah_detail');
+        const ubahIdInput = document.getElementById('update_menu_id');
+        const ubahNamaInput = document.getElementById('ubah_nama_menu');
+        const ubahHargaInput = document.getElementById('ubah_harga_menu');
+        const ubahStokInput = document.getElementById('ubah_stok_menu');
+        const ubahKategoriSelect = document.getElementById('ubah_kategori_menu');
+
+        document.querySelectorAll('.btn-ubah-detail').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.dataset.id;
+                const nama = button.dataset.nama;
+                const harga = button.dataset.harga;
+                const stok = button.dataset.stok;
+                const kategori = button.dataset.kategori;
+                const action = button.dataset.action;
+
+                // Isi form
+                formUbah.action = action; // Set action form
+                ubahIdInput.value = id;
+                ubahNamaInput.value = nama;
+                ubahHargaInput.value = harga;
+                ubahStokInput.value = stok;
+                ubahKategoriSelect.value = kategori;
+                
+                modalUbah.showModal();
+            });
+        });
+
+        // --- MODAL HAPUS ---
+        const modalHapus = document.getElementById('modal_hapus_menu');
+        const formHapus = document.getElementById('form_hapus_menu');
+        const hapusNamaSpan = document.getElementById('hapus_nama_menu');
+
+        document.querySelectorAll('.btn-hapus-menu').forEach(button => {
+            button.addEventListener('click', () => {
+                const nama = button.dataset.nama;
+                const action = button.dataset.action;
+
+                formHapus.action = action; // Set action form
+                hapusNamaSpan.textContent = nama; // Set nama di teks konfirmasi
+
+                modalHapus.showModal();
+            });
+        });
+
+
+        // ==============================================================
+        // PERBAIKAN: Script untuk membuka kembali modal jika ada error
+        // ==============================================================
+
+        // 1. Cek jika ada error validasi 'tambah' (default error bag)
+        @if($errors->any() && !$errors->hasBag('update'))
+            modalTambah.showModal();
         @endif
+
+        // 2. Cek jika ada error validasi 'ubah' (error bag 'update')
+        // Kita juga butuh ID menu yang error dari session
+        @if($errors->update->any() && session('update_error_id'))
+            // Ambil ID yang error dari session
+            const errorId = {{ session('update_error_id') }}; 
+            
+            // Temukan tombol 'Ubah Detail' yang sesuai dengan ID itu
+            const errorButton = document.querySelector(`.btn-ubah-detail[data-id="${errorId}"]`);
+
+            if (errorButton) {
+                // Isi form dengan data LAMA (dari old())
+                formUbah.action = errorButton.dataset.action;
+                ubahIdInput.value = errorId;
+                ubahNamaInput.value = "{{ old('ubah_nama_menu') }}";
+                ubahHargaInput.value = "{{ old('ubah_harga_menu') }}";
+                ubahStokInput.value = "{{ old('ubah_stok_menu') }}";
+                ubahKategoriSelect.value = "{{ old('ubah_kategori_menu') }}";
+
+                // Tampilkan modal
+                modalUbah.showModal();
+            }
+        @endif
+
     });
 </script>
+@endpush

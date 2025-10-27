@@ -12,9 +12,17 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->decimal('price', 10, 2);
+
+            // PENAMBAHAN 1: Kolom stock, default 0
+            $table->integer('stock')->default(0);
+
             $table->string('image_url');
-            // Kolom penting untuk mengelompokkan menu
             $table->string('category'); // Contoh: 'coffee', 'snack', 'heavy-meal'
+
+            // PENAMBAHAN 2: Kolom tersedia (status), default false
+            // Ini akan otomatis di-set 'true' oleh Controller jika stok > 0
+            $table->boolean('tersedia')->default(false);
+
             $table->timestamps();
         });
     }

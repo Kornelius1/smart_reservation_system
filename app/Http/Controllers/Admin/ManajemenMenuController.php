@@ -6,142 +6,179 @@ use App\Http\Controllers\Controller;
 use App\Models\Product; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str; 
+// TAMBAHAN: Dibutuhkan untuk validasi
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ManajemenMenuController extends Controller
 {
-    // Daftar kategori yang akan digunakan di dropdown
-    private $categories = ['heavy-meal', 'light-meal', 'drink', 'snack', 'dessert'];
+     public function index()
+     {
+         $menuItems = Product::orderBy('name', 'asc')->get();
+         
+         $categories = Product::select('category')
+                           ->distinct()
+                           ->orderBy('category', 'asc')
+                           ->pluck('category');
+         
+         return view('admin.manajemen-menu', compact('menuItems', 'categories'));
+     }
 
-    /**
-     * Menampilkan halaman manajemen menu.
-     */
-    public function index()
-    {
-        // Mengambil semua data produk/menu
-        $menuItems = Product::orderBy('name', 'asc')->get();
+     /**
+      * Menyimpan menu baru ke database.
+      */
+     public function store(Request $request)
+     {
+         $valid_categories = Product::select('category')->distinct()->pluck('category')->implode(',');
 
-        // Mengirim data menu dan daftar kategori ke view
-        return view('admin.manajemen-menu', [
-            'menuItems' => $menuItems,
-            'categories' => $this->categories
-        ]);
-    }
+         // 1. Validasi (Termasuk 'stok_menu')
+         $validated = $request->validate([
+             'nama_menu'     => 'required|string|max:255|unique:products,name',
+             'harga_menu'    => 'required|numeric|min:0',
+             'stok_menu'     => 'required|integer|min:0', // TAMBAHAN: Validasi stok
+             'kategori_menu' => 'required|string|in:' . $valid_categories, 
+             'gambar_menu'   => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+         ]);
 
-    /**
-     * Menyimpan menu baru ke database.
-     */
-    public function store(Request $request)
-    {
-        // Validasi input dari modal "Tambah Menu"
-        // Nama input disesuaikan dengan 'name' di blade
-        $validatedData = $request->validate([
-            'nama_menu' => 'required|string|max:255|unique:products,name',
-            'harga_menu' => 'required|numeric|min:0',
-            'kategori_menu' => ['required', Rule::in($this->categories)],
-            'gambar_menu' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ], [
-            'nama_menu.required' => 'Nama menu tidak boleh kosong.',
-            'nama_menu.unique' => 'Nama menu sudah ada.',
-            'harga_menu.required' => 'Harga menu tidak boleh kosong.',
-            'kategori_menu.required' => 'Kategori harus dipilih.',
-            'gambar_menu.required' => 'Gambar menu tidak boleh kosong.',
-            'gambar_menu.image' => 'File harus berupa gambar.',
-        ]);
+         try {
+            $path = $request->file('gambar_menu')->store('images/menu', 'public');
 
-        try {
-            // 1. Upload Gambar ke storage
-            // 'public/menu-images' adalah folder di dalam 'storage/app/public/'
-            $path = $request->file('gambar_menu')->store('public/menu-images');
-
-            // 2. Dapatkan URL publik dari gambar
-            // Ini akan menghasilkan URL seperti '/storage/menu-images/namagambar.jpg'
-            $url = Storage::url($path);
-
-            // 3. Simpan ke Database (Nama kolom disesuaikan dengan Model Product)
+            // 3. Simpan ke database
             Product::create([
-                'name' => $validatedData['nama_menu'],
-                'price' => $validatedData['harga_menu'],
-                'category' => $validatedData['kategori_menu'],
-                'image_url' => $url,
-                'tersedia' => true 
+                'name'      => $validated['nama_menu'],
+                'price'     => $validated['harga_menu'],
+                'stock'     => $validated['stok_menu'], // TAMBAHAN: Simpan stok
+                'category'  => $validated['kategori_menu'],
+                'image_url' => $path,
+                // LOGIKA STOK: Otomatis 'tidak tersedia' jika stok 0
+                'tersedia'  => ($validated['stok_menu'] > 0), 
             ]);
 
-            return redirect()->back()->with('success', 'Menu baru berhasil ditambahkan.');
-        } catch (\Exception $e) {
-            // Jika gagal, tampilkan pesan error
-            return redirect()->back()->with('error', 'Gagal menambahkan menu. Coba lagi.')->withInput();
+            return redirect()->route('menu.index')->with('success', 'Menu baru berhasil ditambahkan!');
+
+         } catch (\Exception $e) {
+            // Jika gagal, kembali dengan error
+            return redirect()->back()
+                   ->with('error', 'Gagal menyimpan menu: ' . $e->getMessage())
+                   ->withInput(); // Bawa input lama
         }
-    }
+     }
 
-    /**
-     * Update status ketersediaan menu (via toggle).
-     */
-    // Menggunakan Route Model Binding (Product $product)
-    public function updateStatus(Request $request, Product $product)
-    {
-        // Validasi input dari form toggle
-        $request->validate([
-            'tersedia' => 'required|in:true,false',
-        ]);
+     /**
+      * Update data menu yang ada.
+      */
+     // PERBAIKAN: Parameter harus $id agar cocok dengan route
+     public function update(Request $request, string $id) 
+     {
+        // TAMBAHAN: Kita butuh 'update_menu_id' untuk redirect jika validasi gagal
+        $validatedUpdateId = $request->validate(['update_menu_id' => 'required|integer']);
 
-        // Konversi string "true" / "false" dari form ke boolean
-        $status = $request->input('tersedia') === 'true';
+        $menu = Product::findOrFail($id);
+        
+        // Pastikan ID dari form_ubah sama dengan ID di URL
+        if ($menu->id != $validatedUpdateId['update_menu_id']) {
+             return redirect()->back()->with('error', 'Terjadi kesalahan ID. Silakan coba lagi.');
+        }
 
-        $product->update(['tersedia' => $status]);
-
-        $message = $status ? 'Status menu diubah menjadi Tersedia.' : 'Status menu diubah menjadi Habis.';
-        return redirect()->back()->with('success', $message);
-    }
-
-    /**
-     * Update detail menu (via modal Ubah Detail).
-     */
-    // Menggunakan Route Model Binding (Product $product)
-    public function updateDetail(Request $request, Product $product)
-    {
-        // Validasi input dari modal "Ubah Detail"
-        $validatedData = $request->validate([
-            'ubah_nama_menu' => ['required', 'string', 'max:255', Rule::unique('products', 'name')->ignore($product->id)],
-            'ubah_harga_menu' => 'required|numeric|min:0',
-            'ubah_kategori_menu' => ['required', Rule::in($this->categories)],
-            'ubah_gambar_menu' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Opsional
-        ], [
-            'ubah_nama_menu.required' => 'Nama menu tidak boleh kosong.',
-            'ubah_nama_menu.unique' => 'Nama menu sudah ada.',
-        ]);
+        $valid_categories = Product::select('category')->distinct()->pluck('category')->implode(',');
 
         try {
-            // Siapkan data untuk di-update
+            // 1. Validasi
+            $validated = $request->validate([
+                // PERBAIKAN: Gunakan Rule::unique
+                'ubah_nama_menu'     => ['required', 'string', 'max:255', Rule::unique('products', 'name')->ignore($menu->id)],
+                'ubah_harga_menu'    => 'required|numeric|min:0',
+                'ubah_stok_menu'     => 'required|integer|min:0', // TAMBAHAN: Validasi stok
+                'ubah_kategori_menu' => 'required|string|in:' . $valid_categories,
+                'ubah_gambar_menu'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            ]);
+
+            // 2. Siapkan data untuk di-update
             $dataToUpdate = [
-                'name' => $validatedData['ubah_nama_menu'],
-                'price' => $validatedData['ubah_harga_menu'],
-                'category' => $validatedData['ubah_kategori_menu'],
+                'name'     => $validated['ubah_nama_menu'],
+                'price'    => $validated['ubah_harga_menu'],
+                'stock'    => $validated['ubah_stok_menu'], // TAMBAHAN: Update stok
+                'category' => $validated['ubah_kategori_menu'],
             ];
 
-            // Cek jika user mengupload gambar baru
-            if ($request->hasFile('ubah_gambar_menu')) {
-                // 1. Upload gambar baru
-                $newPath = $request->file('ubah_gambar_menu')->store('public/menu-images');
-                $newUrl = Storage::url($newPath);
-
-                // 2. Hapus gambar lama (jika ada)
-                // Ubah URL (cth: /storage/...) menjadi path storage (cth: public/...)
-                $oldPath = str_replace(Storage::url(''), 'public/', $product->image_url);
-                if (Storage::exists($oldPath)) {
-                    Storage::delete($oldPath);
-                }
-
-                // 3. Tambahkan URL gambar baru ke data update
-                $dataToUpdate['image_url'] = $newUrl;
+            // 3. LOGIKA STOK: Jika stok di-set ke 0, paksa status 'tersedia' jadi false
+            if ($validated['ubah_stok_menu'] == 0) {
+                $dataToUpdate['tersedia'] = false;
             }
 
-            // Update data di database
-            $product->update($dataToUpdate);
+            // 4. Cek jika ada file gambar baru
+            if ($request->hasFile('ubah_gambar_menu')) {
+                if ($menu->image_url && !Str::startsWith($menu->image_url, ['http://', 'https://'])) {
+                    Storage::disk('public')->delete($menu->image_url);
+                }
+                
+                $path = $request->file('ubah_gambar_menu')->store('images/menu', 'public');
+                $dataToUpdate['image_url'] = $path;
+            }
 
-            return redirect()->back()->with('success', 'Detail menu berhasil diperbarui.');
+            // 5. Update database
+            $menu->update($dataToUpdate);
+
+            return redirect()->route('menu.index')->with('success', 'Detail menu berhasil diperbarui!');
+        
+        } catch (ValidationException $e) {
+            // 6A. Jika GAGAL VALIDASI:
+            // Kembali DENGAN input DAN error, serta 'error_bag' 'update'
+            return redirect()->back()
+                             ->withInput()
+                             // Kirim juga ID menu agar modal tahu siapa yang di-edit
+                             ->with('update_error_id', $id) 
+                             ->withErrors($e->validator, 'update'); // Kirim error ke 'Error Bag' bernama 'update'
+
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal memperbarui detail menu. Coba lagi.');
+            // 6B. Jika Gagal karena hal lain
+            return redirect()->back()
+                   ->with('error', 'Gagal memperbarui menu: ' . $e->getMessage())
+                   ->withInput();
         }
-    }
+     }
+
+     /**
+      * Mengubah status ketersediaan
+      */
+     public function updateStatus(Request $request, string $id)
+     {
+          $menu = Product::findOrFail($id);
+          
+          $newStatus = $request->input('tersedia') === 'true' ? true : false;
+
+          // LOGIKA STOK: Cek jika admin mencoba set 'Tersedia' padahal stok 0
+          if ($newStatus === true && $menu->stock == 0) {
+              return redirect()->back()->with('error', 'Tidak dapat mengubah status. Stok menu "' . $menu->name . '" adalah 0.');
+          }
+          
+          $menu->update([
+              'tersedia' => $newStatus,
+          ]);
+
+          return redirect()->route('menu.index')->with('success', 'Status menu berhasil diubah.');
+     }
+
+     /**
+      * Menghapus menu dari database
+      */
+     public function destroy(string $id)
+     {
+         try {
+            $menu = Product::findOrFail($id);
+            
+            if ($menu->image_url && !Str::startsWith($menu->image_url, ['http://', 'https://'])) {
+                Storage::disk('public')->delete($menu->image_url);
+            }
+            
+            $namaMenu = $menu->name;
+            $menu->delete();
+            
+            return redirect()->route('menu.index')->with('success', 'Menu "' . $namaMenu . '" berhasil dihapus.');
+
+         } catch (\Exception $e) {
+             return redirect()->back()->with('error', 'Gagal menghapus menu: ' . $e->getMessage());
+         }
+     }
 }
