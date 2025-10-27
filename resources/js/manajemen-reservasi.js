@@ -1,51 +1,58 @@
+// Menunggu hingga seluruh halaman (DOM) selesai dimuat
 document.addEventListener('DOMContentLoaded', function () {
-    const themeColors = {
-        available: '#A9B89D', // hijau muda untuk Available
-        notAvailable: '#6B7280', // abu untuk Not Available
-    };
+    
+    // 1. Ambil elemen yang kita butuhkan
+    const searchInput = document.getElementById('searchInput');
+    const table = document.getElementById('tableData');
+    
+    // Pastikan elemen tabel dan input-nya ada
+    if (!searchInput || !table) {
+        // Jika tidak ada, hentikan skrip untuk menghindari error
+        return; 
+    }
 
-    // Ambil semua baris data
-    const tableRows = document.querySelectorAll('#tableData tbody tr');
+    const tableBody = table.getElementsByTagName('tbody')[0];
+    const rows = tableBody.getElementsByTagName('tr');
 
-    tableRows.forEach(row => {
-        const toggle = row.querySelector('.toggle');
-        const badge = row.querySelector('.badge');
-
-        if (!toggle || !badge) return; // jika ada baris tanpa toggle/badge
-
-     
-        toggle.classList.remove('toggle-success');
-
-        function updateAppearance() {
-            if (toggle.checked) {
-                badge.textContent = 'Available';
-                badge.style.backgroundColor = themeColors.available;
-                badge.style.color = '#414939';
-                toggle.style.backgroundColor = themeColors.available;
-                toggle.style.borderColor = themeColors.available;
-            } else {
-                badge.textContent = 'Not Available';
-                badge.style.backgroundColor = themeColors.notAvailable;
-                badge.style.color = '#FFFFFF';
-                toggle.style.backgroundColor = themeColors.notAvailable;
-                toggle.style.borderColor = themeColors.notAvailable;
-            }
+    // ==========================================================
+    // BAGIAN 1: Mencegah 'Enter' men-submit form (SANGAT PENTING)
+    // ==========================================================
+    searchInput.addEventListener('keydown', function (event) {
+        // Cek jika tombol yang ditekan adalah 'Enter'
+        if (event.key === 'Enter' || event.keyCode === 13) {
+            // Mencegah aksi default browser (yaitu submit form pertama yang ditemukannya)
+            event.preventDefault();
         }
-
-        // Jalankan awal dan saat toggle berubah
-        updateAppearance();
-        toggle.addEventListener('change', updateAppearance);
     });
 
-    // 🔍 Fungsi pencarian tetap
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function (event) {
-            const searchTerm = event.target.value.toLowerCase();
-            tableRows.forEach(row => {
-                const rowText = row.textContent.toLowerCase();
-                row.style.display = rowText.includes(searchTerm) ? '' : 'none';
-            });
-        });
-    }
+    // ==========================================================
+    // BAGIAN 2: Fungsi untuk melakukan filter pencarian
+    // ==========================================================
+    searchInput.addEventListener('keyup', function () {
+        const filterText = searchInput.value.toLowerCase();
+
+        // Loop melalui setiap baris (tr) di dalam tbody
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            
+            // Ambil sel (td) kelima, tempat "Nama Customer" berada
+            // (Index 0 = ID, 1 = Transaksi, 2 = Meja, 3 = Ruangan, 4 = Nama)
+            const nameCell = row.cells[4]; 
+
+            if (nameCell) {
+                // Ambil teks di dalam sel nama
+                const cellText = nameCell.textContent || nameCell.innerText;
+
+                // Cek apakah teks nama mengandung teks filter
+                if (cellText.toLowerCase().includes(filterText)) {
+                    // Jika cocok, tampilkan barisnya
+                    row.style.display = '';
+                } else {
+                    // Jika tidak cocok, sembunyikan barisnya
+                    row.style.display = 'none';
+                }
+            }
+        }
+    });
+
 });

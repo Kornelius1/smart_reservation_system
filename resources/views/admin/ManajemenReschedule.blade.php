@@ -87,20 +87,5 @@
 @endsection
 
 @push('scripts')
-    <script>
-        { { -- ==== PERUBAHAN DI SINI: Hapus JavaScript yang tidak perlu ==== --} }
-        document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', function () {
-                    const filter = searchInput.value.toLowerCase();
-                    const rows = document.querySelectorAll('#tableData tbody tr');
-                    rows.forEach(row => {
-                        const rowText = row.textContent || row.innerText;
-                        row.style.display = rowText.toLowerCase().includes(filter) ? '' : 'none';
-                    });
-                });
-            }
-        });
-    </script>
+@vite('resources/js/manajemen-reschedule.js')
 @endpush

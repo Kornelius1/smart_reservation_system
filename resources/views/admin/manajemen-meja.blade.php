@@ -121,11 +121,7 @@
 @endsection
 
 @push('scripts')
-{{-- 
-  PENTING: Pastikan layout 'layouts.admin' Anda memiliki:
-  1. <meta name="csrf-token" content="{{ csrf_token() }}"> di <head>
-  2. @stack('scripts') sebelum tag penutup </body>
---}}
+@vite('resources/js/manajemen-meja.js')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Ambil semua elemen toggle dengan class 'toggle-status'

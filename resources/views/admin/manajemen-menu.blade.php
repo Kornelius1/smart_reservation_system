@@ -362,8 +362,9 @@
 --}}
 {{-- ========================================================= --}}
 @push('scripts')
+@vite('resources/js/manajemen-menu.js')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
         
         // --- MODAL TAMBAH ---
         const modalTambah = document.getElementById('modal_tambah_menu');

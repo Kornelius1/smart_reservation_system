@@ -126,7 +126,7 @@
                                    <td>
                                     <div class="flex items-center justify-center space-x-2">
         <button
-            class="btn btn-xs btn-gradient"
+            class="btn btn-xs btn-gradient btn-ubah-detail"
             data-id="{{ $room->id }}"
             data-nama_ruangan="{{ $room->nama_ruangan }}"
             data-kapasitas="{{ $room->kapasitas }}"
@@ -242,7 +242,7 @@
 
                 <div class="modal-action">
                     <button type="button" class="btn" onclick="modal_tambah_ruangan.close()">Batal</button>
-                    <button type="submit" class="btn btn-gradient border-none">Simpan</button>
+        <button type="submit" class="btn btn-gradient border-none">Update</button>
                 </div>
             </form>
         </div>
@@ -358,112 +358,5 @@
 @endsection
 
 @push('scripts')
-    {{-- Skrip Pencarian --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // ==================================
-            // SKRIP PENCARIAN (Sudah Benar)
-            // ==================================
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', function () {
-                    const filter = searchInput.value.toLowerCase();
-                    const rows = document.querySelectorAll('#tableData tbody tr');
-                    rows.forEach(row => {
-                        const roomNameCell = row.cells[1];
-                        if (roomNameCell) {
-                            const rowText = roomNameCell.textContent || roomNameCell.innerText;
-                            row.style.display = rowText.toLowerCase().includes(filter) ? '' : 'none';
-                        }
-                    });
-                });
-            }
-
-            // ==================================
-            // SKRIP MODAL
-            // ==================================
-            const modalTambah = document.getElementById('modal_tambah_ruangan');
-            const modalUbah = document.getElementById('modal_ubah_detail');
-            const formUbah = document.getElementById('form_ubah_detail');
-
-            // --- Modal Tambah ---
-            const tambahBtn = document.getElementById('tambahRuanganBtn');
-            if (tambahBtn) {
-                tambahBtn.addEventListener('click', () => {
-                    modalTambah.showModal();
-                });
-            }
-
-            // --- Modal Ubah (Event Listener) ---
-            document.querySelectorAll('.btn-ubah-detail').forEach(button => {
-                button.addEventListener('click', function () {
-                    const updateUrl = this.dataset.update_url;
-                    const roomId = this.dataset.id; // Ambil ID
-
-                    // Isi form modal ubah
-                    formUbah.action = updateUrl;
-                    document.getElementById('ubah_room_id').value = roomId; // Set hidden ID
-                    
-                    // Set nilai HANYA JIKA tidak ada error validasi sebelumnya
-                    // Jika ada error, Laravel 'old()' yang akan mengisi
-                    @if (!$errors->update->any())
-                        document.getElementById('ubah_nama_ruangan').value = this.dataset.nama_ruangan;
-                        document.getElementById('ubah_kapasitas').value = this.dataset.kapasitas;
-                        document.getElementById('ubah_minimum_order').value = this.dataset.minimum_order;
-                        document.getElementById('ubah_lokasi').value = this.dataset.lokasi;
-                        document.getElementById('ubah_fasilitas').value = this.dataset.fasilitas;
-                        document.getElementById('ubah_keterangan').value = this.dataset.keterangan;
-                    @endif
-
-                    modalUbah.showModal();
-                });
-            });
-
-            // --- Modal Hapus ---
-            const modalHapus = document.getElementById('modal_hapus');
-            const formHapus = document.getElementById('form_hapus');
-            const hapusNamaSpan = document.getElementById('hapus_nama_ruangan');
-
-            document.querySelectorAll('.btn-hapus').forEach(button => {
-                button.addEventListener('click', function () {
-                    const deleteUrl = this.dataset.delete_url;
-                    const nama = this.dataset.nama;
-                    
-                    // Set URL action form hapus
-                    formHapus.action = deleteUrl;
-                    
-                    // Tampilkan nama ruangan di modal
-                    hapusNamaSpan.textContent = nama;
-                    
-                    // Tampilkan modal
-                    modalHapus.showModal();
-                });
-            });
-
-            // ==================================
-            // PERBAIKAN UTAMA: SKRIP VALIDASI ERROR
-            // ==================================
-            
-            // 1. Cek error untuk modal TAMBAH (error bag 'default')
-            @if ($errors->default->any())
-                modalTambah.showModal();
-            @endif
-
-            // 2. Cek error untuk modal UBAH (error bag 'update')
-            @if ($errors->update->any())
-                // Ambil ID ruangan yang GAGAL di-update dari input 'old'
-                const failedUpdateId = '{{ old("update_room_id") }}';
-
-                if (failedUpdateId) {
-                    // Bangun ulang URL action form
-                    // Pastikan URL root Anda benar, jika tidak, ganti 'url(...)'
-                    const updateUrl = `{{ url('admin/manajemen-ruangan') }}/${failedUpdateId}`;
-                    formUbah.action = updateUrl;
-                    
-                    // Tampilkan modal ubah
-                    modalUbah.showModal();
-                }
-            @endif
-        });
-    </script>
+@vite('resources/js/manajemen-ruangan.js')
 @endpush

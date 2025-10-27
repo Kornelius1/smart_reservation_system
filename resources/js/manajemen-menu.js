@@ -4,17 +4,19 @@ const searchInput = document.getElementById('searchInput');
 const entriesSelect = document.getElementById('entries');
 
 function applyFilters() {
-    const searchTerm = searchInput.value.toLowerCase();
+    // DIUBAH: Tambahkan .trim() untuk menghapus spasi di awal/akhir
+    const searchTerm = searchInput.value.toLowerCase().trim();
     const selectedValue = parseInt(entriesSelect.value, 10);
     let visibleCount = 0;
 
     tableRows.forEach(row => {
         // Mengambil sel Nama Menu (kolom ke-2)
-        const menuNameCell = row.querySelector('td:nth-child(2)'); 
+        const menuNameCell = row.querySelector('td:nth-child(2)');
         let matchesSearch = true;
 
         if (menuNameCell) {
-            const menuName = menuNameCell.textContent.toLowerCase();
+            // DIUBAH: Tambahkan .trim() untuk data di sel tabel
+            const menuName = menuNameCell.textContent.toLowerCase().trim();
             matchesSearch = menuName.includes(searchTerm);
         }
 
@@ -29,8 +31,9 @@ function applyFilters() {
 }
 
 // Pasang listener
-if(searchInput) searchInput.addEventListener('keyup', applyFilters);
-if(entriesSelect) entriesSelect.addEventListener('change', applyFilters);
+if (searchInput) searchInput.addEventListener('keyup', applyFilters);
+if (entriesSelect) entriesSelect.addEventListener('change', applyFilters);
+
 
 // Jalankan filter saat halaman dimuat
 applyFilters();

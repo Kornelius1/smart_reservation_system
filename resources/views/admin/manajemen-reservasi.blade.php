@@ -99,27 +99,27 @@
                                             {{-- ============================================= --}}
                                             {{-- BAGIAN STATUS BARU (MENGGANTIKAN YANG LAMA) --}}
                                             {{-- ============================================= --}}
-                                            <td>
+                                            <td class="whitespace-nowrap">
                                                @switch($reservation->status)
     @case('Akan Datang')
         {{-- badge-sm dihapus --}}
-        <span class="badge badge-info text-white p-1">Akan Datang</span>
+        <span class="badge badge-info text-white badge-sm">Akan Datang</span>
         @break
     @case('Berlangsung')
         {{-- badge-sm dihapus --}}
-        <span class="badge badge-success text-white">Berlangsung</span>
+        <span class="badge badge-success text-white badge-sm">Berlangsung</span>
         @break
     @case('Selesai')
         {{-- badge-sm dihapus --}}
-        <span class="badge badge-ghost">Selesai</span>
+        <span class="badge badge-ghost badge-sm">Selesai</span>
         @break
     @case('Dibatalkan')
         {{-- badge-sm dihapus --}}
-        <span class="badge badge-error text-white">Dibatalkan</span>
+        <span class="badge badge-error text-white badge-sm">Dibatalkan</span>
         @break
     @case('Tidak Datang')
         {{-- badge-sm dihapus --}}
-        <span class="badge badge-warning text-white p-1">Tidak Datang</span>
+        <span class="badge badge-warning text-white badge-sm">Tidak Datang</span>
         @break
     @default
         {{-- Fallback jika ada status aneh --}}
@@ -179,3 +179,7 @@
             </div>
         </div>
 @endsection
+
+@push('scripts')
+@vite('resources/js/manajemen-reservasi.js')
+@endpush
