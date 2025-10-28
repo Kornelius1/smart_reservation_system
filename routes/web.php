@@ -3,7 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\MidtransController;
+
+use App\Http\Controllers\XenditController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Customer\BayarController;
@@ -123,44 +124,61 @@ Route::post('/proses-pembayaran', [BayarController::class, 'processPayment'])
      ->name('payment.process');
 
 // ==========================================================
-// BARU: Rute untuk Webhook Midtrans
+// BARU: Rute untuk Webhook Xendit
 // ==========================================================
-Route::post('/midtrans-webhook', [MidtransController::class, 'handle'])
-     ->name('midtrans.webhook');
-
+// Form dari 'pesanmenu' akan posting ke sini
+Route::post('/konfirmasi-pesanan', [BayarController::class, 'show'])
+     ->name('payment.show');
+     
+Route::post('/xendit-webhook', [XenditController::class, 'handle'])
+     ->name('xendit.webhook');
 
 // ==========================================================
 // MODIFIKASI: Rute Halaman Sukses
 // ==========================================================
-// Rute ini sekarang menangani redirect dari JavaScript Snap
+// Xendit akan redirect ke sini DENGAN query string
 Route::get('/sukses', function (Request $request) {
     
-    $orderId = $request->query('order_id');
-    $status = $request->query('status');
+    // Xendit mengirim external_id (id_transaksi kita)
+    $orderId = $request->query('external_id'); 
 
-    // Jika tidak ada parameter, jangan tampilkan halaman
-    if (!$orderId || !$status) {
+    if (!$orderId) {
+        // Jika diakses manual, lempar ke home
         return redirect('/');
     }
 
-    // Siapkan pesan berdasarkan status redirect
-    $message = '';
-    if ($status == 'success') {
-        // PENTING: Ini hanya redirect. Status DB diubah oleh webhook.
-        $message = 'Pembayaran untuk ID ' . e($orderId) . ' sedang diproses. Status reservasi Anda akan segera diperbarui.';
-    } else if ($status == 'pending') {
-        $message = 'Reservasi Anda (ID: ' . e($orderId) . ') telah dibuat. Silakan selesaikan pembayaran Anda.';
-    } else if ($status == 'error') {
-        $message = 'Terjadi kesalahan saat memproses pembayaran (ID: ' . e($orderId) . '). Silakan coba lagi.';
+    // Ambil reservasi (opsional, tapi bagus untuk verifikasi)
+    $reservation = \App\Models\Reservation::where('id_transaksi', $orderId)->first();
+
+    if (!$reservation) {
+        return redirect('/'); // Reservasi tidak ditemukan
     }
 
-    // Gunakan flash session agar pesan hanya tampil sekali
+    // Penting: Halaman ini BUKAN konfirmasi pembayaran.
+    // Halaman ini hanya menandakan "user kembali ke toko".
+    // Konfirmasi pembayaran HANYA terjadi via Webhook.
+    
+    $message = 'Terima kasih! Reservasi Anda (ID: ' . e($orderId) . ') sedang diproses. Status akan diperbarui otomatis setelah pembayaran terkonfirmasi.';
+    
     session()->flash('success_message', $message);
     
-    // Tampilkan view sukses yang sudah Anda buat
     return view('customer.sukses');
 
 })->name('payment.success');
+
+// ==========================================================
+// BARU: Rute untuk Pembayaran Gagal
+// ==========================================================
+Route::get('/gagal', function (Request $request) {
+    
+    $orderId = $request->query('external_id');
+    $message = 'Pembayaran untuk ID ' . e($orderId) . ' gagal atau dibatalkan.';
+    
+    // Anda bisa buat view 'customer.gagal' atau redirect ke keranjang
+    // Untuk simpel, kita redirect kembali ke halaman utama
+    return redirect('/')->withErrors(['msg' => $message]);
+
+})->name('payment.failed');
 
 
 require __DIR__.'/auth.php';

@@ -101,7 +101,7 @@
                                    class="input input-bordered w-full bg-white/20">
                         </div>
                         <div>
-                            <label for="waktu" class="block text-sm font-medium mb-1">Waktu</p>
+                            <label for="waktu" class="block text-sm font-medium mb-1">Waktu</label>
                             <input type="time" id="waktu" name="waktu" value="{{ old('waktu') }}" required
                                    class="input input-bordered w-full bg-white/20">
                         </div>
