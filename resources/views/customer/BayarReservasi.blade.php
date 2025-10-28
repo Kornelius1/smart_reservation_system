@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Konfirmasi Pesanan</title>
     @vite('resources/css/app.css')
 </head>
+
 <body>
     <div class="min-h-screen bg-[#F8F4E8] flex items-center justify-center p-4 font-sans">
         <div class="bg-[#788869] text-white p-8 rounded-lg shadow-xl w-full max-w-md">
@@ -13,8 +15,10 @@
             {{-- 1. BLOK ERROR (Tidak berubah) --}}
             @if ($errors->any())
                 <div role="alert" class="alert alert-error mb-4 shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2 2m2-2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 14l2-2m0 0l2-2m-2 2l-2 2m2-2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     {{-- Tampilkan error pertama yang ditemukan --}}
                     <span>{{ $errors->first() }}</span>
@@ -59,12 +63,13 @@
                     @foreach ($cartItems as $item)
                         <div class="grid grid-cols-3 gap-2 items-center">
                             <span>{{ $item['name'] }}</span>
-                            <span class="text-center">{{ $item['quantity'] }} x Rp {{ number_format($item['price']) }}</span>
+                            <span class="text-center">{{ $item['quantity'] }} x Rp
+                                {{ number_format($item['price']) }}</span>
                             <span class="text-right font-medium">Rp {{ number_format($item['subtotal']) }}</span>
                         </div>
                     @endforeach
                 </div>
-                
+
                 <div class="divider before:bg-white/25 after:bg-white/25 my-6"></div>
 
                 {{-- ========================================================== --}}
@@ -75,22 +80,25 @@
                     {{-- 1. Nama Customer --}}
                     <div>
                         <label for="nama" class="block text-sm font-medium mb-1">Nama Lengkap</label>
-                        <input type="text" id="nama" name="nama" value="{{ old('nama') }}" required 
-                               class="input input-bordered w-full bg-white/20 placeholder:text-white/50">
+                        <input type="text" id="nama" name="nama" value="{{ old('nama') }}" required minlength="3"
+                            class="input input-bordered w-full bg-white/20 placeholder:text-white/50 pl-3 text-black">
                     </div>
 
                     {{-- 2. Nomor Telepon --}}
                     <div>
                         <label for="nomor_telepon" class="block text-sm font-medium mb-1">Nomor Telepon (WA)</label>
-                        <input type="tel" id="nomor_telepon" name="nomor_telepon" value="{{ old('nomor_telepon') }}" required
-                               class="input input-bordered w-full bg-white/20 placeholder:text-white/50" placeholder="08...">
+                        <input type="tel" id="nomor_telepon" name="nomor_telepon" value="{{ old('nomor_telepon') }}"
+                            required placeholder="08..." pattern="^08[0-9]{8,12}$" minlength="10" maxlength="14"
+                            title="Format salah. Harus dimulai dengan '08' dan total 10-14 angka. Contoh: 08123456789"
+                            class="input input-bordered w-full bg-white/20 placeholder:text-white/50 pl-3 text-black">
                     </div>
 
                     {{-- 3. Jumlah Orang --}}
                     <div>
                         <label for="jumlah_orang" class="block text-sm font-medium mb-1">Jumlah Orang</label>
-                        <input type="number" id="jumlah_orang" name="jumlah_orang" value="{{ old('jumlah_orang') }}" required min="1"
-                               class="input input-bordered w-full bg-white/20 placeholder:text-white/50">
+                        <input type="number" id="jumlah_orang" name="jumlah_orang" value="{{ old('jumlah_orang') }}"
+                            required min="1"
+                            class="input input-bordered w-full bg-white/20 placeholder:text-white/50 pl-3 text-black">
                     </div>
 
                     {{-- 4. Tanggal & Waktu --}}
@@ -98,12 +106,12 @@
                         <div>
                             <label for="tanggal" class="block text-sm font-medium mb-1">Tanggal</label>
                             <input type="date" id="tanggal" name="tanggal" value="{{ old('tanggal') }}" required
-                                   class="input input-bordered w-full bg-white/20">
+                                class="input input-bordered w-full bg-white/20 pl-3 text-black">
                         </div>
                         <div>
                             <label for="waktu" class="block text-sm font-medium mb-1">Waktu</label>
                             <input type="time" id="waktu" name="waktu" value="{{ old('waktu') }}" required
-                                   class="input input-bordered w-full bg-white/20">
+                                class="input input-bordered w-full bg-white/20 pl-3 text-black">
                         </div>
                     </div>
                 </div>
@@ -135,5 +143,18 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tanggalInput = document.getElementById('tanggal');
+
+            // Buat tanggal hari ini dalam format YYYY-MM-DD
+            const today = new Date().toISOString().split('T')[0];
+
+            // Set atribut 'min' pada input tanggal
+            tanggalInput.setAttribute('min', today);
+        });
+    </script>
 </body>
+
 </html>

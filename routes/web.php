@@ -127,7 +127,7 @@ Route::post('/proses-pembayaran', [BayarController::class, 'processPayment'])
 // BARU: Rute untuk Webhook Xendit
 // ==========================================================
 // Form dari 'pesanmenu' akan posting ke sini
-Route::post('/konfirmasi-pesanan', [BayarController::class, 'show'])
+Route::match(['get', 'post'], '/konfirmasi-pesanan', [BayarController::class, 'show'])
      ->name('payment.show');
      
 Route::post('/xendit-webhook', [XenditController::class, 'handle'])

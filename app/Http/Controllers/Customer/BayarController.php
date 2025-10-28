@@ -2,29 +2,26 @@
 
 namespace App\Http\Controllers\Customer;
 
-
 use App\Models\Reservation;
-use App\Models\Product; 
+use App\Models\Product;
 use App\Models\Room;
-use App\Models\Meja; 
+use App\Models\Meja;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 
-// ==========================================================
-// PERBAIKAN: Import semua class Xendit yang kita butuhkan
-// ==========================================================
-use Xendit\Xendit;
-use Xendit\Invoice;
+// Import class Xendit v7
+use Xendit\Configuration;
+use Xendit\Invoice\InvoiceApi;
+use Xendit\Invoice\CreateInvoiceRequest;
+use Xendit\Invoice\Customer;
+use Xendit\Invoice\InvoiceItem;
 use Xendit\Exceptions\ApiException;
-// ==========================================================
-
 
 class BayarController extends Controller
 {
-    // ... (Fungsi show() TIDAK BERUBAH) ...
-    // Pastikan Anda juga mengimport Model di dalam fungsi show() jika diperlukan
+    // ... (Fungsi show() Anda sudah benar dan tidak berubah)
     public function show(Request $request)
     {
         $validationResult = $this->validateOrder($request);
@@ -81,7 +78,7 @@ class BayarController extends Controller
             'waktu'         => 'required|date_format:H:i',
         ]);
 
-        // Unpack data pesanan
+        // Unpack data (Tidak berubah)
         $totalPrice = $validationResult['totalPrice'];
         $reservationType = $validationResult['reservationType'];
         $reservationFkId = $validationResult['reservationFkId'];
@@ -91,7 +88,7 @@ class BayarController extends Controller
         // 3. BUAT ID TRANSAKSI (Tidak berubah)
         $id_transaksi = 'HOMEY-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
 
-        // 4. SIMPAN RESERVASI (STATUS: PENDING) (Tidak berubah)
+        // 4. SIMPAN RESERVASI (Tidak berubah)
         $dataToSave = [
             'id_transaksi'  => $id_transaksi,
             'nama'          => $customerData['nama'],
@@ -105,75 +102,63 @@ class BayarController extends Controller
         ];
         $reservation = Reservation::create($dataToSave);
 
-        // ==========================================================
-        // 5. PROSES XENDIT (Logika Baru)
-        // ==========================================================
-        
-        // PERBAIKAN: Gunakan 'Xendit' (huruf besar)
-        Xendit::setApiKey(config('xendit.api_key'));
+        // 5. PROSES XENDIT (SDK v7) (Tidak berubah)
+        Configuration::setApiKey(config('xendit.api_key'));
 
-        // ... (Siapkan $items_details_xendit - tidak berubah)
-        $items_details_xendit = [];
+        $items_xendit = [];
         foreach ($products as $product) {
             $quantity = $itemsFromRequest[$product->id];
-            $items_details_xendit[] = [
+            $items_xendit[] = new InvoiceItem([
                 'name'     => $product->name,
                 'quantity' => $quantity,
                 'price'    => $product->price,
-            ];
+            ]);
         }
 
-        // ... (Siapkan $customer_xendit - tidak berubah)
-        $customer_xendit = [
+        $customer_xendit = new Customer([
             'given_name'   => $customerData['nama'],
             'mobile_number' => $customerData['nomor_telepon'],
-        ];
+        ]);
 
-        // ... (Siapkan $params - tidak berubah)
-        $params = [
+        $createInvoiceRequest = new CreateInvoiceRequest([
             'external_id'           => $id_transaksi,
             'amount'                => $totalPrice,
             'description'           => 'Reservasi Homey Cafe ' . $id_transaksi,
-            'invoice_duration'      => 86400,
             'customer'              => $customer_xendit,
-            'items'                 => $items_details_xendit,
+            'items'                 => $items_xendit,
             'currency'              => 'IDR',
             'success_redirect_url'  => route('payment.success'),
             'failure_redirect_url'  => route('payment.failed'),
-        ];
+        ]);
 
         try {
-            // 6. BUAT INVOICE
-            // PERBAIKAN: Gunakan 'Invoice' (bukan '\Xendit\Invoice')
-            // karena kita sudah import di atas
-            $invoice = Invoice::create($params);
-
-            // 7. REDIRECT USER (Tidak berubah)
+            $apiInstance = new InvoiceApi();
+            $invoice = $apiInstance->createInvoice($createInvoiceRequest);
             return redirect($invoice['invoice_url']);
 
-        } catch (ApiException $e) { // <-- PERBAIKAN: Gunakan 'ApiException'
+        } catch (ApiException $e) {
             // Tangani error dari Xendit
             return redirect()->back()
                 ->withErrors(['msg' => 'Gagal membuat invoice Xendit: ' . $e->getMessage()])
                 ->withInput();
+        
+        // ==========================================================
+        // PERBAIKAN: Tambahkan catch ini
+        // ==========================================================
         } catch (\Exception $e) {
-            // Tangani error umum
+            // Tangani error umum (misal: rute not found, dll)
             return redirect()->back()
-                ->withErrors(['msg' => 'Terjadi kesalahan: ' . $e->getMessage()])
+                ->withErrors(['msg' => 'Terjadi kesalahan umum: ' . $e->getMessage()])
                 ->withInput();
         }
     }
-    
 
 
-    // ==========================================================
-    // FUNGSI validateOrder()
-    // ==========================================================
-    // (Fungsi ini tidak berubah, tapi pastikan Model Product, Room, Meja
-    // sudah di-import di bagian atas file ini)
+    // ... (Fungsi validateOrder() Anda sudah benar dan tidak berubah)
     private const MINIMUM_ORDER_FOR_TABLE = 50000;
     private function validateOrder(Request $request)
     {
+        // ... (Kode Anda di sini sudah benar)
         $itemsFromRequest = $request->input('items', []);
         $roomName = trim($request->input('reservation_room_name'));
         $tableNumber = trim($request->input('reservation_table_number'));
