@@ -11,19 +11,32 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 
-// Import class Xendit v7
+// ==========================================================
+// IMPORT XENDIT SDK v7 (YANG BENAR)
+// ==========================================================
 use Xendit\Configuration;
 use Xendit\Invoice\InvoiceApi;
 use Xendit\Invoice\CreateInvoiceRequest;
-use Xendit\Invoice\Customer;
 use Xendit\Invoice\InvoiceItem;
-use Xendit\Exceptions\ApiException;
+use Xendit\ApiException; // <-- PERBAIKAN: Hapus namespace 'Exceptions'
+
 
 class BayarController extends Controller
 {
-    // ... (Fungsi show() Anda sudah benar dan tidak berubah)
+    /**
+     * Menampilkan halaman konfirmasi
+     */
     public function show(Request $request)
     {
+        // ==========================================================
+        // PERBAIKAN (dari history): Tangkap request GET
+        // ==========================================================
+        if ($request->isMethod('get')) {
+            // Ini terjadi jika validasi di 'processPayment' gagal dan redirect back()
+            return redirect('/pesanmenu') // Arahkan ke halaman menu
+                ->withErrors(['msg' => 'Data tidak lengkap. Silakan ulangi pesanan Anda.']);
+        }
+        
         $validationResult = $this->validateOrder($request);
 
         if ($validationResult instanceof RedirectResponse) {
@@ -59,10 +72,12 @@ class BayarController extends Controller
         ]);
     }
 
-
+    /**
+     * Memproses data dan mengirim ke Xendit
+     */
     public function processPayment(Request $request)
     {
-        // 1. & 2. VALIDASI (Tidak berubah)
+        // 1. VALIDASI PESANAN (Item & Reservasi)
         $validationResult = $this->validateOrder($request);
         if ($validationResult instanceof RedirectResponse) {
             return redirect()->back()
@@ -70,6 +85,7 @@ class BayarController extends Controller
                 ->withInput();
         }
 
+        // 2. VALIDASI DATA CUSTOMER
         $customerData = $request->validate([
             'nama'          => 'required|string|max:255',
             'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
@@ -78,17 +94,17 @@ class BayarController extends Controller
             'waktu'         => 'required|date_format:H:i',
         ]);
 
-        // Unpack data (Tidak berubah)
+        // Unpack data
         $totalPrice = $validationResult['totalPrice'];
         $reservationType = $validationResult['reservationType'];
         $reservationFkId = $validationResult['reservationFkId'];
         $products = $validationResult['products'];
         $itemsFromRequest = $validationResult['items'];
 
-        // 3. BUAT ID TRANSAKSI (Tidak berubah)
+        // 3. BUAT ID TRANSAKSI
         $id_transaksi = 'HOMEY-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
 
-        // 4. SIMPAN RESERVASI (Tidak berubah)
+        // 4. SIMPAN RESERVASI 'PENDING'
         $dataToSave = [
             'id_transaksi'  => $id_transaksi,
             'nama'          => $customerData['nama'],
@@ -102,9 +118,12 @@ class BayarController extends Controller
         ];
         $reservation = Reservation::create($dataToSave);
 
-        // 5. PROSES XENDIT (SDK v7) (Tidak berubah)
-        Configuration::setApiKey(config('xendit.api_key'));
+        // 5. PROSES XENDIT (SDK v7)
+        
+        // Set API Key
+        Configuration::getDefaultConfiguration()->setApiKey(config('xendit.api_key'));
 
+        // Siapkan item
         $items_xendit = [];
         foreach ($products as $product) {
             $quantity = $itemsFromRequest[$product->id];
@@ -115,16 +134,18 @@ class BayarController extends Controller
             ]);
         }
 
-        $customer_xendit = new Customer([
+        // Siapkan customer (sebagai array)
+        $customer_data_array = [
             'given_name'   => $customerData['nama'],
             'mobile_number' => $customerData['nomor_telepon'],
-        ]);
+        ];
 
+        // Buat request invoice
         $createInvoiceRequest = new CreateInvoiceRequest([
             'external_id'           => $id_transaksi,
             'amount'                => $totalPrice,
             'description'           => 'Reservasi Homey Cafe ' . $id_transaksi,
-            'customer'              => $customer_xendit,
+            'customer_object'       => $customer_data_array, // <-- PERBAIKAN: 'customer_object'
             'items'                 => $items_xendit,
             'currency'              => 'IDR',
             'success_redirect_url'  => route('payment.success'),
@@ -132,21 +153,23 @@ class BayarController extends Controller
         ]);
 
         try {
+            // Buat instance API
             $apiInstance = new InvoiceApi();
+            
+            // Buat Invoice
             $invoice = $apiInstance->createInvoice($createInvoiceRequest);
+
+            // Redirect ke Xendit
             return redirect($invoice['invoice_url']);
 
-        } catch (ApiException $e) {
+        } catch (ApiException $e) { // <-- PERBAIKAN: Ini sekarang sudah benar
             // Tangani error dari Xendit
             return redirect()->back()
                 ->withErrors(['msg' => 'Gagal membuat invoice Xendit: ' . $e->getMessage()])
                 ->withInput();
         
-        // ==========================================================
-        // PERBAIKAN: Tambahkan catch ini
-        // ==========================================================
         } catch (\Exception $e) {
-            // Tangani error umum (misal: rute not found, dll)
+            // Tangani error umum
             return redirect()->back()
                 ->withErrors(['msg' => 'Terjadi kesalahan umum: ' . $e->getMessage()])
                 ->withInput();
@@ -154,11 +177,12 @@ class BayarController extends Controller
     }
 
 
-    // ... (Fungsi validateOrder() Anda sudah benar dan tidak berubah)
+    /**
+     * Validasi Keranjang & Reservasi (Tidak Berubah)
+     */
     private const MINIMUM_ORDER_FOR_TABLE = 50000;
     private function validateOrder(Request $request)
     {
-        // ... (Kode Anda di sini sudah benar)
         $itemsFromRequest = $request->input('items', []);
         $roomName = trim($request->input('reservation_room_name'));
         $tableNumber = trim($request->input('reservation_table_number'));
