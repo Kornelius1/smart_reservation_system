@@ -66,5 +66,18 @@ class Reservation extends Model
         'status' => 'string' 
     ];
 
-    // public $timestamps = true; // Tidak perlu ditulis, ini adalah default
+     // ==========================================================
+    // TAMBAHAN BARU (MASALAH #3)
+    // ==========================================================
+    /**
+     * Mendapatkan produk-produk yang dipesan dalam reservasi ini.
+     */
+    public function products()
+    {
+        // 'reservation_product' = Nama tabel pivot
+        // 'reservation_id' = Foreign key untuk model ini
+        // 'product_id' = Foreign key untuk model 'Product'
+        return $this->belongsToMany(Product::class, 'reservation_product', 'reservation_id', 'product_id')
+                    ->withPivot('quantity', 'price'); // Ambil data 'quantity' & 'price'
+    }
 }

@@ -102,11 +102,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{id}', [ManajemenRuanganController::class, 'update'])->name('update');
         Route::patch('/{id}/status', [ManajemenRuanganController::class, 'updateStatus'])->name('updateStatus'); 
         Route::get('/{id}/edit', [ManajemenRuanganController::class, 'edit'])->name('edit');
-      Route::delete('/{id}', [ManajemenRuanganController::class, 'destroy'])->name('destroy');
+        Route::delete('/{id}', [ManajemenRuanganController::class, 'destroy'])->name('destroy');
     });
 
   
-Route::get('/manajemen-menu', [ManajemenMenuController::class, 'index'])->name('menu.index');
+    Route::get('/manajemen-menu', [ManajemenMenuController::class, 'index'])->name('menu.index');
     Route::post('/manajemen-menu', [ManajemenMenuController::class, 'store'])->name('menu.store');
     
     // PERBAIKAN: Menggunakan {id} agar konsisten dengan controller
@@ -134,52 +134,36 @@ Route::post('/xendit-webhook', [XenditController::class, 'handle'])
      ->name('xendit.webhook');
 
 // ==========================================================
-// MODIFIKASI: Rute Halaman Sukses
+// Rute Halaman Sukses
 // ==========================================================
-// Xendit akan redirect ke sini DENGAN query string
 Route::get('/sukses', function (Request $request) {
     
-    // Xendit mengirim external_id (id_transaksi kita)
-    $orderId = $request->query('external_id'); 
+    // 1. Ambil ID dari SESSION. session()->pull() mengambil data & menghapusnya.
+    $orderId = session()->pull('last_transaction_id', 'TRANSAKSI_ANDA'); 
 
-    if (!$orderId) {
-        // Jika diakses manual, lempar ke home
-        return redirect('/');
-    }
-
-    // Ambil reservasi (opsional, tapi bagus untuk verifikasi)
-    $reservation = \App\Models\Reservation::where('id_transaksi', $orderId)->first();
-
-    if (!$reservation) {
-        return redirect('/'); // Reservasi tidak ditemukan
-    }
-
-    // Penting: Halaman ini BUKAN konfirmasi pembayaran.
-    // Halaman ini hanya menandakan "user kembali ke toko".
-    // Konfirmasi pembayaran HANYA terjadi via Webhook.
+    // 2. Buat pesan suksesnya
+    $message = 'Reservasi Anda (ID: ' . e($orderId) . ') berhasil dikonfirmasi! Harap simpan ID Transaksi Anda untuk keperluan reschedule atau check-in.';
     
-    $message = 'Terima kasih! Reservasi Anda (ID: ' . e($orderId) . ') sedang diproses. Status akan diperbarui otomatis setelah pembayaran terkonfirmasi.';
-    
+    // 3. Simpan pesan ke session flash (untuk ditampilkan di view)
     session()->flash('success_message', $message);
     
+    // 4. LANGSUNG TAMPILKAN VIEW
     return view('customer.sukses');
 
 })->name('payment.success');
 
 // ==========================================================
-// BARU: Rute untuk Pembayaran Gagal
+// Rute Halaman Gagal (Sudah Benar)
 // ==========================================================
 Route::get('/gagal', function (Request $request) {
     
-    $orderId = $request->query('external_id');
+    $orderId = $request->query('external_id', 'TRANSAKSI_GATAL');
     $message = 'Pembayaran untuk ID ' . e($orderId) . ' gagal atau dibatalkan.';
     
-    // Anda bisa buat view 'customer.gagal' atau redirect ke keranjang
-    // Untuk simpel, kita redirect kembali ke halaman utama
-    return redirect('/')->withErrors(['msg' => $message]);
+    // Arahkan kembali ke halaman pesan menu agar user bisa coba lagi
+    return redirect()->route('pesanmenu')->withErrors(['msg' => $message]);
 
 })->name('payment.failed');
-
 
 require __DIR__.'/auth.php';
 

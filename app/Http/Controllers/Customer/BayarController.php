@@ -118,6 +118,24 @@ class BayarController extends Controller
         ];
         $reservation = Reservation::create($dataToSave);
 
+   // ==========================================================
+        // PERBAIKAN BARU: Simpan ID Transaksi ke Session
+        // ==========================================================
+        session(['last_transaction_id' => $id_transaksi]);
+
+         // ==========================================================
+        // TAMBAHAN BARU (MASALAH #3): Simpan item ke pivot table
+        // ==========================================================
+        foreach ($products as $product) {
+            $quantity = $itemsFromRequest[$product->id];
+            
+            // 'attach' akan menyimpan data ke tabel pivot 'reservation_product'
+            $reservation->products()->attach($product->id, [
+                'quantity' => $quantity,
+                'price'    => $product->price // Simpan harga saat itu
+            ]);
+        }
+
         // 5. PROSES XENDIT (SDK v7)
         
         // Set API Key

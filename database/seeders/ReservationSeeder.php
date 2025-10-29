@@ -4,8 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Reservation;
+use App\Models\Product; // <-- 1. TAMBAHKAN IMPORT PRODUCT
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon; // <-- Tambahkan ini untuk mengelola tanggal
+use Carbon\Carbon;
 
 class ReservationSeeder extends Seeder
 {
@@ -14,19 +15,31 @@ class ReservationSeeder extends Seeder
      */
     public function run(): void
     {
-        // Kosongkan tabel sebelum diisi
+        // 2. Kosongkan tabel pivot DULU (agar tidak error foreign key)
+        DB::table('reservation_product')->delete();
+        
+        // Kosongkan tabel reservations (dari kode Anda)
         DB::table('reservations')->delete();
 
-        // Siapkan data dummy
+        // 3. Ambil data produk untuk di-link
+        $products = Product::all();
+
+        // Jika tidak ada produk, hentikan seeder
+        if ($products->count() < 3) {
+            $this->command->info('Tidak ada data produk. Harap jalankan ProductSeeder terlebih dahulu.');
+            return;
+        }
+
+        // Siapkan data dummy (dari kode Anda)
         $data = [
             [
                 'id_transaksi' => 'TRS001',
                 'nama' => 'Budi Santoso',
                 'nomor_telepon' => '081234567890',
                 'jumlah_orang' => 2,
-                'tanggal' => '2025-10-17', // Tanggal di masa lalu
+                'tanggal' => '2025-10-17', // Tanggal di masa lalu (berdasarkan waktu sistem 2025-10-29)
                 'waktu' => '19:00:00', 
-                'status' => 'Selesai', // <-- Diubah dari false
+                'status' => 'Selesai', 
                 'nomor_meja' => 1,
                 'nomor_ruangan' => null 
             ],
@@ -37,7 +50,7 @@ class ReservationSeeder extends Seeder
                 'jumlah_orang' => 5,
                 'tanggal' => '2025-11-20', // Tanggal di masa depan
                 'waktu' => '12:00:00',
-                'status' => 'Akan Datang', // <-- Diubah dari true
+                'status' => 'akan datang', // Diperbarui
                 'nomor_meja' => null,
                 'nomor_ruangan' => 1 
             ],
@@ -48,7 +61,7 @@ class ReservationSeeder extends Seeder
                 'jumlah_orang' => 4,
                 'tanggal' => '2025-11-22', // Tanggal di masa depan
                 'waktu' => '20:00:00',
-                'status' => 'Akan Datang', // <-- Diubah dari true
+                'status' => 'akan datang', // Diperbarui
                 'nomor_meja' => 3,
                 'nomor_ruangan' => null 
             ],
@@ -59,21 +72,18 @@ class ReservationSeeder extends Seeder
                 'jumlah_orang' => 10,
                 'tanggal' => '2025-10-13', // Tanggal di masa lalu
                 'waktu' => '20:00:00',
-                'status' => 'Selesai', // <-- Diubah dari false
+                'status' => 'Selesai', 
                 'nomor_meja' => null,
                 'nomor_ruangan' => 2 
             ],
-
-            // --- DATA BARU UNTUK CONTOH WORKFLOW ---
-            
             [
                 'id_transaksi' => 'TRS005',
                 'nama' => 'Eka Wijaya',
                 'nomor_telepon' => '081987654321',
                 'jumlah_orang' => 3,
-                'tanggal' => Carbon::today()->toDateString(), // Reservasi untuk HARI INI
+                'tanggal' => Carbon::today()->toDateString(), // HARI INI
                 'waktu' => '14:00:00',
-                'status' => 'Berlangsung', // <-- Status baru
+                'status' => 'check-in', // Diperbarui
                 'nomor_meja' => 5,
                 'nomor_ruangan' => null 
             ],
@@ -82,9 +92,9 @@ class ReservationSeeder extends Seeder
                 'nama' => 'Gilang Pratama',
                 'nomor_telepon' => '081222333444',
                 'jumlah_orang' => 6,
-                'tanggal' => Carbon::tomorrow()->toDateString(), // Reservasi untuk BESOK
+                'tanggal' => Carbon::tomorrow()->toDateString(), // BESOK
                 'waktu' => '18:00:00',
-                'status' => 'Dibatalkan', // <-- Status baru
+                'status' => 'dibatalkan', // Diperbarui
                 'nomor_meja' => 6,
                 'nomor_ruangan' => null 
             ],
@@ -93,21 +103,43 @@ class ReservationSeeder extends Seeder
                 'nama' => 'Hana Yulita',
                 'nomor_telepon' => '085211112222',
                 'jumlah_orang' => 2,
-                'tanggal' => Carbon::yesterday()->toDateString(), // Reservasi KEMARIN
+                'tanggal' => Carbon::yesterday()->toDateString(), // KEMARIN
                 'waktu' => '19:00:00',
-                'status' => 'Tidak Datang', // <-- Status baru
+                'status' => 'Selesai', // Diperbarui (asumsi kemarin selesai)
                 'nomor_meja' => 7,
+                'nomor_ruangan' => null 
+            ],
+            [
+                'id_transaksi' => 'TRS008',
+                'nama' => 'Indra Kusuma',
+                'nomor_telepon' => '081311223344',
+                'jumlah_orang' => 4,
+                'tanggal' => Carbon::today()->toDateString(), // HARI INI
+                'waktu' => '10:00:00',
+                'status' => 'pending', // Status 'pending'
+                'nomor_meja' => 8,
                 'nomor_ruangan' => null 
             ],
         ];
 
         // Masukkan data ke database
-        // Dibungkus dengan Carbon agar created_at dan updated_at nya berbeda-beda sedikit
-        foreach ($data as $reservasi) {
-            Reservation::create(array_merge($reservasi, [
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+        foreach ($data as $reservasiData) {
+            
+            // 4. Buat reservasi DAN tangkap objeknya
+            $reservation = Reservation::create(array_merge($reservasiData, [
+                'created_at' => Carbon::now()->subMinutes(rand(1, 55)),
+                'updated_at' => Carbon::now()->subMinutes(rand(1, 55))
             ]));
+
+            // 5. Lampirkan (attach) 1 s/d 3 produk acak ke reservasi ini
+            $productsToAttach = $products->random(rand(1, 3));
+            
+            foreach ($productsToAttach as $product) {
+                $reservation->products()->attach($product->id, [
+                    'quantity' => rand(1, 2), // 1 atau 2 porsi
+                    'price'    => $product->price // Ambil harga dari produk
+                ]);
+            }
         }
     }
 }

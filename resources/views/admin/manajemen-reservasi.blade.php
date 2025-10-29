@@ -65,113 +65,139 @@
 
                         <table id="tableData" class="table w-full">
                             {{-- HEADER TABEL --}}
-                            <thead>
-                                <tr class="brand-text-1 text-center" style="background-color: #C6D2B9;">
-                                    <th>ID Reservasi</th>
-                                    <th>ID Transaksi</th>
-                                    <th>Nomor Meja</th>
-                                    <th>Nomor Ruangan</th>
-                                    <th>Nama Customer</th>
-                                    <th>Nomor Telepon</th>
-                                    <th>Jumlah Orang</th>
-                                    <th>Tanggal</th>
-                                    <th>Waktu Reservasi</th>
-                                    <th>Status</th>
-                                    <th>Aksi</th>
+                         <thead>
+                            <tr class="brand-text-1 text-center" style="background-color: #C6D2B9;">
+                                <th>ID Reservasi</th>
+                                <th>ID Transaksi</th>
+                                <th>Nomor Meja</th>
+                                <th>Nomor Ruangan</th>
+                                <th>Nama Customer</th>
+                                <th>Nomor Telepon</th>
+                                <th>Jumlah Orang</th>
+                                <th>Daftar Pesanan</th>
+                                <th>Tanggal</th>
+                                <th>Waktu Reservasi</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+
+                        {{-- ISI TABEL --}}
+                        <tbody class="text-brand-text">
+                            @forelse ($reservations as $reservation)
+                                <tr class="text-center">
+                                    <th>{{ $reservation->id_reservasi }}</th>
+                                    <td>{{ $reservation->id_transaksi }}</td>
+                                    <td>{{ $reservation->nomor_meja ?? '-' }}</td>
+                                    <td>{{ $reservation->nomor_ruangan ?? '-' }}</td>
+                                    <td class="whitespace-nowrap">{{ $reservation->nama }}</td>
+                                    <td>{{ $reservation->nomor_telepon ?? '-' }}</td>
+                                    <td>{{ $reservation->jumlah_orang ?? '-' }} Orang</td>
+                                    
+                                    {{-- Kolom Daftar Pesanan (Tidak diubah) --}}
+                                    <td class="text-xs text-left">
+                                        @if ($reservation->products->isEmpty())
+                                            <span>-</span>
+                                        @else
+                                            <ul class="list-disc list-inside">
+                                                @foreach ($reservation->products as $product)
+                                                    <li class="whitespace-nowrap">
+                                                        {{ $product->name }} ({{ $product->pivot->quantity }}x)
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @endif
+                                    </td>
+
+                                    <td>{{ $reservation->tanggal ? $reservation->tanggal->format('d-m-Y') : '-' }}</td>
+                                    <td>{{ $reservation->waktu ? \Carbon\Carbon::parse($reservation->waktu)->format('H:i') : '-' }} WIB</td>
+                                    
+                                    {{-- ============================================= --}}
+                                    {{-- PERBAIKAN: BLOK STATUS --}}
+                                    {{-- (Case-sensitivity diperbaiki, typo 'classs' diperbaiki, 'pending' ditambahkan) --}}
+                                    {{-- ============================================= --}}
+                                    <td class="whitespace-nowrap">
+                                        @switch($reservation->status)
+                                            @case('pending')
+                                                <span class="badge badge-warning text-white badge-sm">Pending</span>
+                                                @break
+                                        
+                                            @case('akan datang')
+                                                <span class="badge badge-info text-white badge-sm">Akan Datang</span>
+                                                @break
+
+                                            @case('check-in')
+                                                <span class="badge badge-success text-white badge-sm">Berlangsung</span>
+                                                @break
+
+                                            @case('selesai')
+                                                <span class="badge badge-ghost badge-sm">Selesai</span> {{-- Typo 'classs' diperbaiki --}}
+                                                @break
+
+                                            @case('dibatalkan')
+                                                <span class="badge badge-error text-white badge-sm">Dibatalkan</span>
+                                                @break
+                                            
+                                            {{-- (Case 'Tidak Datang' dihapus karena tidak ada di controller/seeder) --}}
+
+                                            @default
+                                                <span class="badge">{{ $reservation->status }}</span>
+                                        @endswitch
+                                    </td>
+                                    
+                                    {{-- ========================================= --}}
+                                    {{-- PERBAIKAN: BLOK AKSI --}}
+                                    {{-- (Case-sensitivity diperbaiki, 'pending' ditambahkan) --}}
+                                    {{-- ========================================= --}}
+                                    <td class="whitespace-nowrap">
+                                        <div class="flex items-center justify-center gap-2">
+                                            
+                                            @if ($reservation->status == 'akan datang')
+                                                {{-- Form untuk Check-in --}}
+                                                <form action="{{ route('admin.reservasi.checkin', $reservation->id_reservasi) }}" method="POST" class="m-0">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="btn btn-success btn-xs text-white">Check-in</button>
+                                                </form>
+
+                                                {{-- Form untuk Batalkan --}}
+                                                <form action="{{ route('admin.reservasi.cancel', $reservation->id_reservasi) }}" method="POST" class="m-0"
+                                                      onsubmit="return confirm('Apakah Anda yakin ingin MEMBATALKAN reservasi ini?');">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="btn btn-error btn-xs text-white">Batalkan</button>
+                                                </form>
+                                            
+                                            @elseif ($reservation->status == 'pending')
+                                                {{-- Form untuk Batalkan (hanya pending) --}}
+                                                <form action="{{ route('admin.reservasi.cancel', $reservation->id_reservasi) }}" method="POST" class="m-0"
+                                                      onsubmit="return confirm('Apakah Anda yakin ingin MEMBATALKAN reservasi ini?');">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="btn btn-error btn-xs text-white">Batalkan</button>
+                                                </form>
+
+                                            @elseif ($reservation->status == 'check-in')
+                                                {{-- Form untuk Selesaikan --}}
+                                                <form action="{{ route('admin.reservasi.complete', $reservation->id_reservasi) }}" method="POST" class="m-0">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="btn btn-primary btn-xs text-white">Selesaikan</button>
+                                                </form>
+
+                                            @else
+                                                {{-- Status Selesai, Dibatalkan --}}
+                                                <span class="text-gray-500">-</span>
+                                            @endif
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            {{-- ISI TABEL --}}
-                            <tbody class="text-brand-text">
-                                {{-- Menggunakan data asli dari Controller, bukan hardcoded --}}
-                                @if (isset($reservations) && !$reservations->isEmpty())
-                                    @foreach ($reservations as $reservation)
-                                        <tr class="text-center">
-                                            <th>{{ $reservation->id_reservasi }}</th>
-                                            <td>{{ $reservation->id_transaksi }}</td>
-                                            <td>{{ $reservation->nomor_meja ?? '-' }}</td>
-                                            <td>{{ $reservation->nomor_ruangan ?? '-' }}</td>
-                                            <td>{{ $reservation->nama }}</td>
-                                            <td>{{ $reservation->nomor_telepon ?? '-' }}</td>
-                                            <td>{{ $reservation->jumlah_orang ?? '-' }} Orang</td>
-                                            <td>{{ $reservation->tanggal ? $reservation->tanggal->format('d-m-Y') : '-' }}</td>
-                                            <td>{{ $reservation->waktu ? \Carbon\Carbon::parse($reservation->waktu)->format('H:i') : '-' }} WIB</td>
-                                            
-                                            {{-- ============================================= --}}
-                                            {{-- BAGIAN STATUS BARU (MENGGANTIKAN YANG LAMA) --}}
-                                            {{-- ============================================= --}}
-                                            <td class="whitespace-nowrap">
-                                               @switch($reservation->status)
-    @case('Akan Datang')
-        {{-- badge-sm dihapus --}}
-        <span class="badge badge-info text-white badge-sm">Akan Datang</span>
-        @break
-    @case('Berlangsung')
-        {{-- badge-sm dihapus --}}
-        <span class="badge badge-success text-white badge-sm">Berlangsung</span>
-        @break
-    @case('Selesai')
-        {{-- badge-sm dihapus --}}
-        <span class="badge badge-ghost badge-sm">Selesai</span>
-        @break
-    @case('Dibatalkan')
-        {{-- badge-sm dihapus --}}
-        <span class="badge badge-error text-white badge-sm">Dibatalkan</span>
-        @break
-    @case('Tidak Datang')
-        {{-- badge-sm dihapus --}}
-        <span class="badge badge-warning text-white badge-sm">Tidak Datang</span>
-        @break
-    @default
-        {{-- Fallback jika ada status aneh --}}
-        {{-- badge-sm dihapus --}}
-        <span class="badge">{{ $reservation->status }}</span>
-@endswitch
-                                            </td>
-                                            
-                                            {{-- ========================================= --}}
-                                            {{-- BAGIAN AKSI BARU (MENGGANTIKAN TOGGLE) --}}
-                                            {{-- ========================================= --}}
-                                            <td class="whitespace-nowrap">
-                                                <div class="flex items-center justify-center gap-2">
-                                                    
-                                                    @if ($reservation->status == 'Akan Datang')
-                                                        {{-- Form untuk Check-in --}}
-                                                        <form action="{{ route('admin.reservasi.checkin', $reservation->id_reservasi) }}" method="POST" class="m-0">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <button type="submit" class="btn btn-success btn-xs">Check-in</button>
-                                                        </form>
-
-                                                        {{-- Form untuk Batalkan --}}
-                                                        <form action="{{ route('admin.reservasi.cancel', $reservation->id_reservasi) }}" method="POST" class="m-0"
-                                                              onsubmit="return confirm('Apakah Anda yakin ingin MEMBATALKAN reservasi ini?');">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <button type="submit" class="btn btn-error btn-xs">Batalkan</button>
-                                                        </form>
-
-                                                    @elseif ($reservation->status == 'Berlangsung')
-                                                        {{-- Form untuk Selesaikan --}}
-                                                        <form action="{{ route('admin.reservasi.complete', $reservation->id_reservasi) }}" method="POST" class="m-0">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <button type="submit" class="btn btn-primary btn-xs">Selesaikan</button>
-                                                        </form>
-
-                                                    @else
-                                                        {{-- Status Selesai, Dibatalkan, atau Tidak Datang --}}
-                                                        <span class="text-gray-500">-</span>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                @else
-                                    {{-- Jika tidak ada data --}}
-                                    <tr>
-                                        <td colspan="11" class="text-center py-4">Tidak ada data reservasi ditemukan.</td>
-                                    </tr>
-                                @endif
+                            @empty
+                                {{-- Jika tidak ada data --}}
+                                <tr>
+                                    <td colspan="12" class="text-center py-4">Tidak ada data reservasi ditemukan.</td>
+                                </tr>
+                            @endforelse
                             </tbody>
                         </table>
                     </div>

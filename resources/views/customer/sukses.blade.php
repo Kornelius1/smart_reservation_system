@@ -27,7 +27,7 @@
 
                 {{-- Tombol Aksi --}}
                 <a href="/" {{-- Arahkan ke Halaman Utama/Beranda --}}
-                   class="btn bg-[#364132] hover:bg-[#2a3327] border-none text-white w-full">
+                   class="btn bg-[#364132] hover:bg-[#2a3327] border-none text-white w-full p-4">
                    Kembali ke Beranda
                 </a>
             
