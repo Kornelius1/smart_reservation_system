@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import axios from "axios";
-import ProductCard from "@/components/ProductCard.vue";
+import ProductCard from "./components/ProductCard.vue"; 
 
 // --- STATE MANAGEMENT ---
 const allProducts = ref([]);
@@ -12,49 +12,198 @@ const debouncedSearchQuery = ref("");
 let debounceTimer = null;
 
 // --- STATE BARU UNTUK RESERVASI ---
-const reservationType = ref(null); // Akan berisi 'meja' atau 'ruangan'
-const reservationDetail = ref(null); // Akan berisi nomor meja atau nama ruangan
+const reservationType = ref(null); 
+const reservationDetail = ref(null); 
 const minimumOrder = ref(0);
 
 const csrfToken = ref(
     document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
 );
 
-// --- PENGAMBILAN DATA API & BACA URL ---
+// =================================================================
+// 💡 OBJEK PEMETAAN GAMBAR LENGKAP (Dioptimalkan)
+// =================================================================
+const imageMap = {
+    // COFFEE & COFFEE BASED
+    "vietnam drip": "vietnam_drip_hot.webp",
+    "affogato": "affogato.webp",
+    "black coffee": "black_coffee_hot_ice.webp", 
+    "brown sugar coffee": "brown_sugar_coffee_ice.webp", 
+    "brown sugar pandan": "brown_sugar_pandan.webp",
+    "butterscotch coffee": "butterscotch_coffee_ice.webp", 
+    "caramel latte": "caramel_latte_ice.webp", 
+    "kopmil": "kopmil_ice.webp", 
+    "original milk coffee": "original_milk_coffee_ice.webp",
+    "vanilla latte": "vanilla_latte_ice.webp", 
+    "kopi ginseng": "kopi_telur.webp",
+    "kopi telur": "kopi_telur.webp",
+    "horney coffee": "homey_coffee_ice.webp",
+
+    // HEAVY MEALS
+    "nasi telur ceplok": "components/Nasi Telur.webp",
+    "nasi telur dadar": "components/Nasi Telur dadar.webp",
+    "nasi ayam krispi": "components/Nasi ayam krispi.webp",
+    "nasi ayam penyet": "components/ayam_penyet.webp",
+    "nasi ayam katsu": "components/Nasi ayam katsu.webp",
+    "nasi goreng telur": "components/Nasi goreng.webp",
+    "nasi goreng ayam krispi": "components/Nasi goreng ayam crispi.webp",
+    "nasi goreng ayam katsu": "components/Nasi goreng ayam katsu.webp",
+    "mie goreng reguler": "components/Mie goreng.webp",
+    "mie goreng special": "components/mie_goreng_spesial.webp",
+    "mie rebus reguler": "components/mie_rebus.webp",
+    "mie rebus special": "components/mie_rebus_spesial.webp",
+    "mie nyemek": "components/mie_nyemek.webp",
+    "mie tiaw goreng": "components/mie_tiaw.webp",
+    "mie nas": "components/minas.webp",
+    "spaghetti reguler": "components/spaghetti.webp",
+    "spaghetti ayam katsu": "components/spaghetti_katsu.webp",
+
+    // SNACKS
+    "burger telur": "components/Tolong buatkan gambar burger telur.webp",
+    "burger daging": "components/Burger Daging.webp",
+    "burger special": "components/Burger Spesial.webp",
+    "roti bakar": "components/Roti Bakar.webp.webp",
+    "toast cream": "components/Toast Cream.webp",
+    "jamur krispi": "components/Jamur Crispi.webp",
+    "lumpia baso": "components/Lumpia Bakso.webp",
+    "tahu bakso": "components/Tahu Bakso.webp",
+    "sosis bakar": "components/Sosis Bakar.webp",
+    "nugget ayam": "components/Nugget ayam.webp",
+    "ubi goreng": "components/Ubi goreng.webp",
+    "french fries": "components/Kentang goreng.webp",
+    "pisang krispi": "components/pISANG Goreng.webp",
+
+    // FRESH DRINKS & TEA & TRADITIONAL
+    "apple tea": "apple_tea.webp",
+    "blackcurrant": "blackcurrant_tea.webp",
+    "blue blood": "blue_blood_ice.webp",
+    "blue squash": "blue_squash_ice.webp",
+    "lemon tea": "lemon_tea.webp",
+    "lychee tea": "lychee_tea_ice.webp",
+    "orange sky": "orange_sky_ice.webp",
+    "orange squash": "orange_squash_ice.webp",
+    "peach tea": "peach_tea_ice.webp",
+    "soda gembira": "soda_gembira_ice.webp",
+    "homey tea": "homey_tea.webp",
+    "jasmine tea": "jasmine_tea.webp",
+    "teh tarik": "components/teh_tarik.webp",
+    "teh telang": "components/teh_telang.webp",
+    "teh telang horney": "components/teh_telang.webp", // Added for "Teh Telang Horney (hot)"
+    "teh telur": "components/teh_telur.webp",
+    "bandrek susu": "components/bandrek_susu.webp",
+    "bandrek telor": "components/bandrek_susu.webp", // Added for "Bandrek Telor (hot)"
+    "ginger milk": "components/ginger_milk.webp",
+    "ginger horney": "components/ginger.webp", // Added for "Ginger Horney (hot)"
+    "ginger": "components/ginger.webp",
+    "wedang jahe": "components/wedang_jahe.webp",
+    "kopi telor": "components/kopi_telur.webp",
+    "kopi cingcong": "components/kopi_telur.webp",
+    "horney tea": "homey_tea.webp",
+
+    // JUICE (Dioptimalkan, ditambahkan keyword fallback)
+    "jus apel": "jus_apel.webp",
+    "apel": "jus_apel.webp", // Added for "Apel"
+    "jus buah naga": "jus_buah_naga.webp",
+    "buah naga": "jus_buah_naga.webp", // Added for "Buah Naga"
+    "jus jambu biji": "jus_jambu_biji.webp",
+    "jambu biji": "jus_jambu_biji.webp", // Added for "Jambu Biji"
+    "jus mangga": "jus_mangga.webp",
+    "mangga": "jus_mangga.webp", // Added for "Mangga"
+    "jus pokat": "jus_pokat.webp",
+    "alpukat": "jus_pokat.webp", // Added for "Alpukat"
+    "pokat": "jus_pokat.webp", // Fallback keyword
+    "jus sirsak": "jus_sirsak.webp",
+    "sirsak": "jus_sirsak.webp", // Fallback keyword
+
+    // FRAAPES & ICE CREAM
+    "charcoal": "charcoal_ice.webp",
+    "chocolate classic": "chocolate_classic_ice.webp",
+    "chocolate coffee": "chocolate_coffee_ice.webp",
+    "chocolate frappe": "chocolate_frappe_ice.webp",
+    "cookies and cream": "cookies_and_cream_ice.webp",
+    "ice cream chocolate": "ice_cream_chocolate.webp",
+    "chocolate": "ice_cream_chocolate.webp", // Added for "Chocolate"
+    "ice cream mix": "ice_cream_mix.webp",
+    "mix": "ice_cream_mix.webp", // Added for "Mix"
+    "matcha greentea frappe": "matcha_greentea_frappe_ice.webp",
+    "matcha greentea": "matcha_greentea_ice.webp",
+    "milo": "milo_ice.webp",
+    "red velvet frappe": "red_velvet_frappe_ice.webp",
+    "red velvet": "red_velvet_ice.webp",
+    "taro frappe": "taro_frappe_ice.webp",
+    "taro": "taro_ice.webp",
+    "vanilla ice cream": "vanilla_ice_cream.webp",
+    "vanilla": "vanilla_ice_cream.webp", // Added for "Vanilla"
+    
+    // SNACKS - Removed mappings for non-existent images, will use product.image_url
+};
+
+// =================================================================
+// 💡 FUNGSI PEMETAAN GAMBAR DENGAN DEBUGGING
+// =================================================================
+function getProductNameBasedImage(productName, defaultImageUrl) {
+    const productNameLower = productName.toLowerCase();
+
+    // DEBUG 1: Melihat produk apa yang sedang dicari
+    console.log("DEBUG: Looking up product:", productNameLower);
+
+    // Mencari kecocokan kata kunci
+    for (const keyword in imageMap) {
+        if (productNameLower.includes(keyword)) {
+            const filename = imageMap[keyword];
+            // DEBUG 2: Melihat keyword apa yang cocok dan nama file-nya
+            console.log(`DEBUG: ✅ Matched keyword '${keyword}'. Filename: ${filename}`);
+            // Mengembalikan jalur lengkap ke gambar
+            return `/images/menu/${filename}`;
+        }
+    }
+
+    // DEBUG 3: Melihat jika tidak ada yang cocok
+    console.log("DEBUG: ❌ NO MATCH found. Using default from product:", defaultImageUrl);
+    return defaultImageUrl;
+}
+
+
+// --- PENGAMBILAN DATA API & BACA URL (Perbaikan di fetch logic) ---
 onMounted(async () => {
+    // ... (Logika reservasi tidak berubah) ...
     const urlParams = new URLSearchParams(window.location.search);
     const room = urlParams.get("room_name");
     const tableNumber = urlParams.get("table_number");
-    const minOrder = urlParams.get("min_order"); // Variabel ini sekarang bisa datang dari meja atau ruangan
+    const minOrder = urlParams.get("min_order");
 
-    // --- LOGIKA CERDAS BARU DI SINI ---
     if (tableNumber && minOrder) {
-        // Ini adalah reservasi MEJA
         reservationType.value = "meja";
         reservationDetail.value = tableNumber;
         minimumOrder.value = parseInt(minOrder, 10);
     } else if (room && minOrder) {
-        // Ini adalah reservasi RUANGAN
         reservationType.value = "ruangan";
         reservationDetail.value = room;
         minimumOrder.value = parseInt(minOrder, 10);
     } else {
-        // Jika tidak ada parameter reservasi sama sekali, alihkan
         alert("Silakan pilih jenis reservasi terlebih dahulu.");
-        window.location.href = "/pilih-reservasi"; // Ganti dengan URL halaman pemilihan utama Anda
+        window.location.href = "/pilih-reservasi"; 
         return;
     }
 
-    // roomName.value = room;
-    // minimumOrder.value = parseInt(minOrder, 10);
 
     //fetch produk
     try {
         const response = await axios.get("/api/products");
-        allProducts.value = response.data.map((product) => ({
-            ...product,
-            quantity: 0,
-        }));
+        allProducts.value = response.data.map((product) => {
+            // Panggil fungsi pemetaan gambar dengan default dari product
+            const imageUrl = getProductNameBasedImage(product.name, product.image_url);
+
+            // DEBUG 4: Melihat URL akhir yang ditetapkan ke produk
+            console.log(`DEBUG: Final URL for ${product.name}: ${imageUrl}`);
+
+            return {
+                ...product,
+                quantity: 0,
+                // Menggunakan URL yang sudah dipetakan
+                image_url: imageUrl,
+            };
+        });
     } catch (err) {
         console.error("Gagal mengambil data menu:", err);
         error.value = "Tidak dapat memuat menu. Silakan coba lagi nanti.";
@@ -63,7 +212,7 @@ onMounted(async () => {
     }
 });
 
-// --- DEBOUNCE UNTUK PENCARIAN ---
+// --- DEBOUNCE HINGGA AKHIR FILE (Tidak Berubah) ---
 watch(searchQuery, (newVal) => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
@@ -71,7 +220,6 @@ watch(searchQuery, (newVal) => {
     }, 300);
 });
 
-// --- COMPUTED PROPERTIES UNTUK KATEGORI & FILTER ---
 const getFilteredProductsByCategory = (category) => {
     return computed(() => {
         let products = allProducts.value.filter((p) => p.category === category);
@@ -86,8 +234,6 @@ const getFilteredProductsByCategory = (category) => {
     });
 };
 
-// =================================================================
-// --- TAMBAHKAN SEMUA KATEGORI DI SINI ---
 const filteredCoffees = getFilteredProductsByCategory("coffee");
 const filteredSnacks = getFilteredProductsByCategory("snack");
 const filteredHeavyMeals = getFilteredProductsByCategory("heavy-meal");
@@ -96,18 +242,11 @@ const filteredFreshDrinks = getFilteredProductsByCategory("fresh-drink");
 const filteredJuice = getFilteredProductsByCategory("juice");
 const filteredSpecialTastes = getFilteredProductsByCategory("special-taste");
 const filteredIceCreams = getFilteredProductsByCategory("ice-cream");
-// =================================================================
 
-// --- METHODS ---
 function increaseQuantity(product) {
-    // ==================================================
-    // --- PERBAIKAN DI SINI ---
-    // Cek apakah kuantitas saat ini masih di bawah stok
-    // Jika stok = 0, (0 < 0) adalah false, jadi tidak akan bertambah.
-    // Jika stok = 5 & kuantitas = 5, (5 < 5) adalah false, jadi tidak akan bertambah.
     if (product.quantity < product.stock) {
         product.quantity++;
-    } // ==================================================
+    }
 }
 
 function decreaseQuantity(product) {
@@ -116,7 +255,6 @@ function decreaseQuantity(product) {
     }
 }
 
-// --- LOGIKA DRAG-TO-SCROLL ---
 const isDown = ref(false);
 const startX = ref(0);
 const scrollLeft = ref(0);
@@ -145,7 +283,6 @@ function handleMouseMove(e) {
     slider.scrollLeft = scrollLeft.value - walk;
 }
 
-// --- COMPUTED PROPERTIES UNTUK KERANJANG ---
 const totalItems = computed(() => {
     return allProducts.value.reduce((total, p) => total + p.quantity, 0);
 });

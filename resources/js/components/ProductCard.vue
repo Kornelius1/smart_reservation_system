@@ -1,6 +1,8 @@
 <script setup>
+import { defineProps, defineEmits } from 'vue';
+
 // Mendefinisikan properti yang diterima dari komponen induk
-defineProps({
+const props = defineProps({
     product: {
         type: Object,
         required: true,
@@ -15,13 +17,12 @@ const emit = defineEmits(["increase-quantity", "decrease-quantity"]);
     <div class="card w-56 shadow-md shadow-[#9CAF88] flex-shrink-0">
         <figure class="px-8 pt-8">
             <img
-                :src="
-                    product.image_url.startsWith('http')
-                        ? product.image_url
-                        : `/storage/${product.image_url}`
-                "
-                alt="Product Image"
+                :src="product.image_url"
+                :alt="product.name"
                 class="rounded-xl h-36 w-full object-cover pointer-events-none"
+                
+                onerror="this.onerror=null;this.src='/images/menu/default.webp';"
+                
             />
         </figure>
         <div class="card-body items-center text-center">
