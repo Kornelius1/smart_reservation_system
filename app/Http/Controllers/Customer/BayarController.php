@@ -166,6 +166,7 @@ class BayarController extends Controller
             'customer_object'       => $customer_data_array, // <-- PERBAIKAN: 'customer_object'
             'items'                 => $items_xendit,
             'currency'              => 'IDR',
+            'invoice_duration'      => 30, 
             'success_redirect_url'  => route('payment.success'),
             'failure_redirect_url'  => route('payment.failed'),
         ]);
