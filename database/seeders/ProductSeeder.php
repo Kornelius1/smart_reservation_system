@@ -25,7 +25,7 @@ class ProductSeeder extends Seeder
         // Data menu utama (tanpa data yang berulang)
         $productsData = [
             // --- SNACKS ---
-            ['name' => 'Burger Telur', 'price' => 15000, 'category' => 'snack'],
+            ['name' => 'Burger Telur', 'price' => 15000, 'category' => 'snack', 'image_url' => 'images/menu/bg2.webp'],
             ['name' => 'Burger Daging', 'price' => 17000, 'category' => 'snack'],
             ['name' => 'Burger Special', 'price' => 20000, 'category' => 'snack'],
             ['name' => 'Roti Bakar', 'price' => 15000, 'category' => 'snack'],
