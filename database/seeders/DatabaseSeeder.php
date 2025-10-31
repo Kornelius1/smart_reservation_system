@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,      // <-- Tambahkan ini untuk login
             RoomSeeder::class, 
             MejaSeeder::class, 
+            ProductImageSeeder::class,
             ProductSeeder::class, 
             ReservationSeeder::class, // ReservationSeeder harus terakhir
         ]);
