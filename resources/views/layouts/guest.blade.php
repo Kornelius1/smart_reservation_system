@@ -7,9 +7,7 @@
     <title>@yield('title', 'Homey Cafe')</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    @vite(['resources/css/app.css', 'resources/css/reservasi.css', 'resources/js/app.js', 'resources/css/reservasi.css'])
+    @vite(['resources/css/app.css', 'resources/css/reservasi.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
 

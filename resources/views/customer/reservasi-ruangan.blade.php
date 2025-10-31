@@ -13,7 +13,7 @@
 
         @forelse ($rooms as $room)
             <div
-                class="bg-amber-50 rounded-3xl p-6 shadow-md text-center transition-transform duration-200 ease-in-out hover:scale-105">
+                class="bg-amber-50 rounded-3xl p-6 shadow-md text-center transition-transform duration-200 ease-in-out hover:scale-[1.02]">
 
                 <img src="{{ asset('storage/' . $room->image_url) }}" alt="{{ $room->nama_ruangan }}"
                     class="rounded-lg mb-4 w-full h-48 object-cover" />
