@@ -46,8 +46,8 @@ html {
     cursor: -webkit-grabbing;
 }
 
-.down {
-    position: absolute;
-    left: 45.5%;
-    top: 90%;
-}
+
+
+/* * {
+  outline: 1px solid red !important;
+} */

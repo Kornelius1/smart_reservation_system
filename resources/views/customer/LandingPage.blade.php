@@ -8,8 +8,6 @@
   <title>@yield('title', 'Landing Page')</title>
   <link rel="preconnect" href="https://fonts.bunny.net">
   <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com"></script>
   @vite(['resources/css/app.css', 'resources/css/component.css', 'resources/js/app.js'])
   {{-- @stack('styles') --}}
 </head>
@@ -44,12 +42,13 @@
           </li>
         </ul>
       </div>
-      <div class="down">
-        <a class="scroll" href="#reservasi">
-          <img src="{{ asset('../images/arrow-green.png') }}" alt="a">
-        </a>
-      </div>
     </section>
+
+    <div class="relative z-10 -mt-5 flex justify-center">
+      <a class="scroll" href="#reservasi">
+        <img src="{{ asset('../images/arrow-green.png') }}" alt="Scroll down" class="w-16 md:w-14 animate-bounce">
+      </a>
+    </div>
 
     <!-- CARA RESERVASI -->
     <section id="reservasi" class="py-14 bg-[#ffffff]">
@@ -75,7 +74,7 @@
             <p class="mt-6 text-sm leading-relaxed max-w-xs">
               <span class="bg-yellow-200 text-yellow-800 font-medium px-1 rounded-sm"> Pilih Meja/Ruangan</span>
               Favoritmu. Selanjutnya, kamu akan diarahkan ke halaman menu. Silahkan, </br> <span
-                class="bg-yellow-200 text-yellow-800 font-medium px-1 rounded-sm">pilih menu</span> 
+                class="bg-yellow-200 text-yellow-800 font-medium px-1 rounded-sm">pilih menu</span>
               kesukaanmu.
             </p>
           </div>
