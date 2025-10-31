@@ -20,7 +20,7 @@ class RoomSeeder extends Seeder
             'fasilitas' => 'AC, Proyektor, Papan Tulis, Wi-Fi',
             'keterangan' => 'Ruangan privat yang tenang, cocok untuk meeting tim atau presentasi.',
             'status' => 'tersedia',
-            'image_url' => 'images/rooms/indoor1.png.png',
+            'image_url' => 'images/rooms/indoor1.png',
         ]);
 
         Room::create([
