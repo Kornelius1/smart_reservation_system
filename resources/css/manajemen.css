@@ -150,3 +150,8 @@
         padding: 8px 12px;
     }
 }
+
+
+* {
+  outline: 1px solid red !important;
+}
