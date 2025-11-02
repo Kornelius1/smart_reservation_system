@@ -72,7 +72,7 @@
 
                 <button type="submit" class="btn-custom">Login</button>
 
-                <div class="flex items-center justify-between mt-4 text-sm">
+                {{-- <div class="flex items-center justify-between mt-4 text-sm">
                     <a href="{{ route('register') }}" class="text-dark-green hover:underline">
                         Belum punya akun? Register
                     </a>
@@ -81,7 +81,7 @@
                             {{ __('Lupa password?') }}
                         </a>
                     @endif
-                </div>
+                </div> --}}
             </form>
         </div>
     </div>

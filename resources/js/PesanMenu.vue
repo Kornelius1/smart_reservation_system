@@ -39,12 +39,9 @@ onMounted(async () => {
         reservationDetail.value = room;
         minimumOrder.value = parseInt(minOrder, 10);
     } else {
-        // Jika tidak ada parameter reservasi sama sekali, alihkan
-        alert("Silakan pilih jenis reservasi terlebih dahulu.");
-        window.location.href = "/pilih-reservasi"; // Ganti dengan URL halaman pemilihan utama Anda
+        window.location.href = "/akses-reservasi-ditolak";
         return;
     }
-
     // roomName.value = room;
     // minimumOrder.value = parseInt(minOrder, 10);
 
