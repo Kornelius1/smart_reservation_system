@@ -8,38 +8,38 @@
         <div class="grid grid-cols-4 gap-8">
             <a href="{{ route('menu.index') }}"
                 class="btn-gradient rounded-lg p-6 flex flex-col items-center justify-center hover:bg-green-500 transition">
-                <img src="{{ asset('images/icons/menu-icon.svg') }}" alt="Manajemen Menu" class="w-16 h-16 mb-4 opacity-50">
+                <img src="{{ asset('images/icons/manaj-menu.png') }}" alt="Manajemen Menu" class="w-16 h-16 mb-4 opacity-50">
                 <span class="text-white text-lg">Manajemen Menu</span>
             </a>
             <a href="{{ route('manajemen-meja') }}"
                 class="btn-gradient rounded-lg p-6 flex flex-col items-center justify-center hover:bg-green-500 transition">
-                <img src="{{ asset('images/icons/table-icon.svg') }}" alt="Manajemen Meja"
+                <img src="{{ asset('images/icons/manaj-meja.png') }}" alt="Manajemen Meja"
                     class="w-16 h-16 mb-4 opacity-50">
                 <span class="text-white text-lg">Manajemen Meja</span>
             </a>
             <a href="{{ route('admin.reservasi.index') }}"
                 class="btn-gradient rounded-lg p-6 flex flex-col items-center justify-center hover:bg-green-500 transition">
-                <img src="{{ asset('images/icons/reservation-icon.svg') }}" alt="Manajemen Reservasi"
+                <img src="{{ asset('images/icons/manaj-reservasi.png') }}" alt="Manajemen Reservasi"
                     class="w-16 h-16 mb-4 opacity-50">
                 <span class="text-white text-lg">Manajemen Reservasi</span>
             </a>
             <a href="{{ route('manajemen-reschedule') }}"
                 class="btn-gradient rounded-lg p-6 flex flex-col items-center justify-center hover:bg-green-500 transition">
-                <img src="{{ asset('images/icons/reservation-icon.svg') }}" alt="Manajemen Reservasi"
+                <img src="{{ asset('images/icons/manaj-reschedule.png') }}" alt="Manajemen Reservasi"
                     class="w-16 h-16 mb-4 opacity-50">
                 <span class="text-white text-lg">Manajemen Reschedule</span>
             </a>
 
             <a href="{{ route('laporan.index') }}"
                 class="btn-gradient rounded-lg p-6 flex flex-col items-center justify-center hover:bg-green-500 transition">
-                <img src="{{ asset('images/icons/reservation-icon.svg') }}" alt="Manajemen Reservasi"
+                <img src="{{ asset('images/icons/manaj-laporan.png') }}" alt="Manajemen Reservasi"
                     class="w-16 h-16 mb-4 opacity-50">
                 <span class="text-white text-lg">Manajemen Laporan</span>
             </a>
 
             <a href="{{ route('admin.manajemen-ruangan.index') }}"
                 class="btn-gradient rounded-lg p-6 flex flex-col items-center justify-center hover:bg-green-500 transition">
-                <img src="{{ asset('images/icons/reservation-icon.svg') }}" alt="Manajemen Reservasi"
+                <img src="{{ asset('images/icons/manaj-ruangan.png') }}" alt="Manajemen Reservasi"
                     class="w-16 h-16 mb-4 opacity-50">
                 <span class="text-white text-lg">Manajemen Ruangan</span>
             </a>
