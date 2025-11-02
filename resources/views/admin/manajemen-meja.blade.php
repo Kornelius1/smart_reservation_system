@@ -49,8 +49,8 @@
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
 
-                    <input id="searchInput" type="text" placeholder="Cari berdasarkan lokasi..."
-                        class="input input-sm input-bordered w-72 pl-10" />
+                   <input id="searchInput" type="text" placeholder="Cari berdasarkan meja..."
+                            class="input input-sm input-bordered w-full sm:w-72 pl-10" />
                 </div>
 
                 <div class="flex items-center space-x-2 text-sm mb-4">
