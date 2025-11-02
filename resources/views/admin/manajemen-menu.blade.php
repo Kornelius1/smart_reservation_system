@@ -69,19 +69,36 @@
                     </div>
                 @endif
 
-
-                <div class="flex justify-start items-center my-4 space-x-4"> 
-                    <div class="form-control relative my-2">
+                {{-- ================================================================== --}}
+                {{-- PERBAIKAN RESPONSIVE DIMULAI DARI SINI --}}
+                {{-- 
+                    - flex-col: Susun ke bawah di HP (default)
+                    - sm:flex-row: Susun ke samping di layar small (tablet) ke atas
+                    - sm:items-center: Sejajarkan vertikal di tengah (hanya di layar small ke atas)
+                    - gap-4: Beri jarak antar elemen (menggantikan space-x-4 dan my-2)
+                --}}
+                <div class="flex flex-col sm:flex-row justify-start sm:items-center my-4 gap-4"> 
+                    <div class="form-control relative"> {{-- my-2 dihapus krn sdh pakai gap-4 --}}
                         <svg xmlns="http://www.w3.org/2000/svg"
-                             class="h-5 w-5 absolute left-3 top-1.5 text-gray-500" 
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            class="h-5 w-5 absolute left-3 top-1.5 text-gray-500" 
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                       <input id="searchInput" type="text" placeholder="Search..."
-                            class="input input-sm input-bordered w-72 pl-10" />
+                        {{-- 
+                            - w-full: Lebar penuh di HP
+                            - sm:w-72: Kembali ke lebar 72 di layar small ke atas
+                        --}}
+                        <input id="searchInput" type="text" placeholder="Search..."
+                            class="input input-sm input-bordered w-full sm:w-72 pl-10" />
                     </div>
-                    <button id="tambahMenuBtn" class="btn btn-gradient bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none">Tambah Menu</button>
+                    {{-- 
+                        - sm:w-auto: Lebar tombol otomatis di layar small ke atas
+                                    (Di HP akan otomatis full-width krn parent-nya flex-col)
+                    --}}
+                    <button id="tambahMenuBtn" class="btn btn-gradient bg-gradient-to-r from-brand-primary to-brand-primary-dark border-none sm:w-auto">Tambah Menu</button>
                 </div>
+                {{-- PERBAIKAN RESPONSIVE SELESAI --}}
+                {{-- ================================================================== --}}
 
                 <div class="flex items-center space-x-2 text-sm mb-4">
                     <span class="text-gray-600">Show</span>
@@ -94,6 +111,7 @@
                     <span class="text-gray-600">entries</span>
                 </div>
 
+                {{-- Div ini sudah benar, jangan diubah. Ini yang menangani tabel --}}
                 <div class="overflow-x-auto">
                     <table id="menuTable" class="table w-full">
                         <thead>
@@ -117,7 +135,7 @@
                                                 <div class="mask mask-squircle w-12 h-12">
                                                     {{-- PERBAIKAN: Gunakan asset() untuk gambar dari storage --}}
                                                     <img src="{{ Str::startsWith($item->image_url, 'http') ? $item->image_url : asset('storage/' . $item->image_url) }}"
-                                                         alt="{{ $item->name }}" class="w-full h-full object-cover" />
+                                                        alt="{{ $item->name }}" class="w-full h-full object-cover" />
                                                 </div>
                                             </div>
                                             <div>
@@ -150,10 +168,10 @@
                                                 @method('PATCH')
                                                 <input type="hidden" name="tersedia" value="{{ $item->tersedia ? 'false' : 'true' }}">
                                                 <input type="checkbox" class="toggle toggle-md"
-                                                       {{ $item->tersedia ? 'checked' : '' }} 
-                                                       onchange="this.form.submit()"
-                                                       {{-- LOGIKA STOK: Nonaktifkan toggle jika stok 0 --}}
-                                                       {{ $item->stock == 0 ? 'disabled' : '' }} 
+                                                    {{ $item->tersedia ? 'checked' : '' }} 
+                                                    onchange="this.form.submit()"
+                                                    {{-- LOGIKA STOK: Nonaktifkan toggle jika stok 0 --}}
+                                                    {{ $item->stock == 0 ? 'disabled' : '' }} 
                                                 />
                                             </form>
                                             
