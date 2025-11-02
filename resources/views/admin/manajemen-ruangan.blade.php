@@ -59,20 +59,20 @@
                 @endif
 
 
-                <div class="flex justify-start items-center my-4 space-x-4">
-                    <div class="form-control relative my-2">
+                <div class="flex flex-col sm:flex-row justify-start items-center my-4 space-y-4 sm:space-y-0 sm:space-x-4">
+                    <div class="form-control relative my-2 w-full sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1.5 text-gray-500"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <input id="searchInput" type="text" placeholder="Cari berdasarkan nama ruangan..."
-                            class="input input-sm input-bordered w-72 pl-10" />
+                            class="input input-sm input-bordered w-full sm:w-72 pl-10" />
                     </div>
-                    <button id="tambahRuanganBtn" class="btn btn-gradient">Tambah Ruangan</button>
+                    <button id="tambahRuanganBtn" class="btn btn-gradient w-full sm:w-auto">Tambah Ruangan</button>
                 </div>
 
-
+                
                 <div class="overflow-x-auto mt-4">
                     <table id="tableData" class="table w-full">
                         <thead>
