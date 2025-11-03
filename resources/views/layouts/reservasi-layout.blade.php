@@ -14,6 +14,7 @@
             background-color: var(--brand-bg);
         }
     </style>
+    @livewireStyles
     @stack('styles')
 </head>
 
@@ -24,13 +25,13 @@
 
         <div class="drawer-content transition-all duration-300 peer-checked:ml-64 ml-20">
             <main>
-                @yield('content')
+                {{ $slot }}
             </main>
         </div>
 
         @include('layouts.partials.sidebar')
     </div>
-    @stack('scripts')
+    @livewireScripts @stack('scripts')
 </body>
 
 </html>
