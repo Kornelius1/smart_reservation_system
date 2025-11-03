@@ -18,7 +18,7 @@
   <div>
     <!-- HERO -->
     <section id="home" class="relative min-h-[83vh] flex items-center"
-      style="background-image: url('{{ asset('../images/cover.jpg') }}'); background-size:cover; background-position:top; background-repeat:no-repeat">
+      style="background-image: url('{{ asset('../images/cover.webp') }}'); background-size:cover; background-position:top; background-repeat:no-repeat">
       <div class="absolute inset-0 bg-black/35"></div>
       <div class="relative max-w-3xl px-20 py-20 text-white">
         <h1 class="text-4xl md:text-5xl font-serif font-semibold leading-tight mb-4">Momen Santai,<br />Meja Pasti Ada.
@@ -46,7 +46,7 @@
 
     <div class="relative z-10 -mt-5 flex justify-center">
       <a class="scroll" href="#reservasi">
-        <img src="{{ asset('../images/arrow-green.png') }}" alt="Scroll down" class="w-16 md:w-14 animate-bounce">
+        <img src="{{ asset('../images/arrow-green.svg') }}" alt="Scroll down" class="w-16 md:w-14 animate-bounce">
       </a>
     </div>
 
@@ -107,7 +107,7 @@
             👆Follow us on Instagram @homeycafe.pku <br />
         </div>
         <div>
-          <img src="{{ asset('../images/cover.jpg') }}" alt="Tampak depan Homey Cafe"
+          <img src="{{ asset('../images/cover.webp') }}" alt="Tampak depan Homey Cafe"
             class="rounded-lg shadow-md w-full object-cover">
         </div>
       </div>

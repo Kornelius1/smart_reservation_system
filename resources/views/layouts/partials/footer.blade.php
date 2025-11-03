@@ -2,7 +2,7 @@
   
   <aside>
     <a href="/">
-      <img src="{{ asset('images/HOMEY.png') }}" alt="Homey Logo" class="h-14" />
+      <img src="{{ asset('images/HOMEY.svg') }}" alt="Homey Logo" class="h-14" />
     </a>
     
     <p>
