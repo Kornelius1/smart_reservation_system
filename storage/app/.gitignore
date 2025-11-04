@@ -1,4 +1,6 @@
 *
 !private/
 !public/
+!storage/app/seed-images
+!storage/app/seed-images-rooms
 !.gitignore

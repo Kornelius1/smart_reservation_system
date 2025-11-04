@@ -43,6 +43,7 @@ class DatabaseSeeder extends Seeder
             RoomSeeder::class, 
             MejaSeeder::class, 
             ProductImageSeeder::class,
+            RoomImageSeeder::class,
             ProductSeeder::class, 
             ReservationSeeder::class, // ReservationSeeder harus terakhir
         ]);

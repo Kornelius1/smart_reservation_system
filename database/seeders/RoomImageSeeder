@@ -6,13 +6,13 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
-class ProductImageSeeder extends Seeder
+class RoomImageSeeder extends Seeder
 {
 public function run(): void
     {
         // 1. Tentukan path sumber dan tujuan
-        $sourcePath = storage_path('app/seed-images');
-        $destinationPath = storage_path('app/public/images/menus'); 
+        $sourcePath = storage_path('app/seed-images-room');
+        $destinationPath = storage_path('app/public/images/rooms'); 
 
         // 2. Buat direktori tujuan jika belum ada
         if (!File::exists($destinationPath)) {
@@ -36,6 +36,6 @@ public function run(): void
             }
         }
         
-        $this->command->info('Initial product images have been seeded.');
+        $this->command->info('Initial room images have been seeded.');
     }
 }
