@@ -1,15 +1,10 @@
-# 1. Abaikan semuanya
-*
-
-# 2. Kecualikan folder-folder utama
 !private/
 !public/
 
-# 3. Kecualikan path ke folder Anda, langkah demi langkah
 !storage/
 !storage/app/
 !storage/app/seed-images/
 !storage/app/seed-images-rooms/
 
-# 4. Jangan abaikan file .gitignore ini sendiri
+
 !.gitignore
