@@ -11,7 +11,7 @@ class RoomImageSeeder extends Seeder
 public function run(): void
     {
         // 1. Tentukan path sumber dan tujuan
-        $sourcePath = storage_path('app/seed-images-room');
+        $sourcePath = storage_path('app\seed-images-rooms');
         $destinationPath = storage_path('app/public/images/rooms'); 
 
         // 2. Buat direktori tujuan jika belum ada

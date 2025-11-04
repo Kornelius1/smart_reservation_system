@@ -1,6 +1,11 @@
 *
 !private/
 !public/
-!storage/app/seed-images
-!storage/app/seed-images-rooms
 !.gitignore
+
+# Izinkan folder dan SEMUA ISINYA (perhatikan tanda / dan /*)
+!storage/app/seed-images/
+!storage/app/seed-images/*
+
+!storage/app/seed-images-rooms/
+!storage/app/seed-images-rooms/*
