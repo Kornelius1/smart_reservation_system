@@ -52,7 +52,7 @@ Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu
 Route::controller(RescheduleController::class)->group(function () {
     Route::get('/reschedule', 'showForm')->name('reschedule.form');
     Route::get('/reschedule/find', 'findReservation')->name('reschedule.find');
-    Route::post('/reschedule/update', 'updateSchedule')->name('reschedule.update');
+    Route::patch('/reschedule/update', 'updateSchedule')->name('reschedule.update'); // <-- GANTI JADI PATCH
 });
 
 
