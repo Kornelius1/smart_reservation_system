@@ -156,7 +156,7 @@
                                         @elseif ($item->tersedia)
                                             <span class="badge badge-sm badge-success">Tersedia</span>
                                         @else
-                                            <span class="badge badge-sm badge-warning">Tidak Tersedia</span>
+                                            <span class="badge badge-sm badge-error">Tidak Tersedia</span>
                                         @endif
                                     </td>
                                     

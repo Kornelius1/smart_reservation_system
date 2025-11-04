@@ -38,7 +38,7 @@ class Meja extends Model
     // Accessor untuk status dalam bahasa Indonesia
     public function getStatusAttribute()
     {
-        return $this->status_aktif ? 'Available' : 'Not Available';
+        return $this->status_aktif ? 'Tersedia' : 'Tidak Tersedia';
     }
 
     // Accessor untuk kapasitas dengan format
