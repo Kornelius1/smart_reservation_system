@@ -14,7 +14,6 @@
             background-color: var(--brand-bg);
         }
     </style>
-
     @stack('styles')
 </head>
 

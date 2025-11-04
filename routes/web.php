@@ -1,14 +1,15 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Livewire\ManajemenReservasi;
+
+
 use Illuminate\Support\Facades\Route;
-
-
 use App\Http\Controllers\XenditController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\LaporanController;
-use App\Http\Controllers\Customer\BayarController;
 use App\Http\Controllers\Admin\ReservationController;
+use App\Http\Controllers\Customer\BayarController;
 use App\Http\Controllers\Customer\DenahMejaController;
 use App\Http\Controllers\Customer\PesanMenuController;
 use App\Http\Controllers\Admin\ManajemenMenuController;
@@ -73,8 +74,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
      ->name('admin.meja.toggleStatus');
 
     // Manajemen Reservasi
-    Route::get('/manajemen-reservasi', [ReservationController::class, 'index'])
-         ->name('admin.reservasi.index'); // <-- Nama disesuaikan agar standar
+    
+    Route::get('/manajemen-reservasi', ManajemenReservasi::class)
+         ->name('admin.reservasi.index');   
 
     // 2. Route untuk aksi CHECK-IN
     Route::patch('/reservasi/{id}/checkin', [ReservationController::class, 'checkin'])

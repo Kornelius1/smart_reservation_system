@@ -3,80 +3,71 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\Reservation; // <-- Pastikan ini nama Model Anda
+use App\Models\Reservation; // Model Anda yang benar
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log; // Kita tetap pakai Log
 
 class UpdateReservationStatus extends Command
 {
-    /**
-     * Nama dan tanda tangan dari perintah konsol.
-     *
-     * @var string
-     */
     protected $signature = 'reservations:update-status';
-
-    /**
-     * Deskripsi perintah konsol.
-     *
-     * @var string
-     */
     protected $description = 'Memperbarui status reservasi otomatis berdasarkan waktu.';
 
-    /**
-     * Jalankan perintah konsol.
-     */
     public function handle()
     {
-        // Ambil waktu 'sekarang' dengan detail jam, menit, detik
-        $now = Carbon::now(); 
+        Log::info('======= MENJALANKAN UPDATE STATUS RESERVASI =======');
         
-        // Ambil tanggal hari ini, tapi set jamnya ke 00:00:00
-        // Ini berguna untuk perbandingan "sebelum hari ini"
-        $today = Carbon::today(); 
+        $now = Carbon::now(); 
+        $todayDateString = $now->toDateString(); 
+        $totalChanged = 0;
+
+        Log::info('Waktu server: ' . $now->toDateTimeString() . ' | Tanggal hari ini: ' . $todayDateString);
 
         // =================================================================
-        // LOGIKA 1 (BARU): Update reservasi yang sudah lewat (dari hari-hari sebelumnya)
+        // KITA LANGSUNG UPDATE, TANPA .get()
         // =================================================================
 
-        // 1. Ubah 'Berlangsung' dari kemarin -> 'Selesai'
-        //    (Sesuai permintaan Anda)
-        $completed = Reservation::where('tanggal', '<', $today)
-                              ->where('status', 'Berlangsung')
-                              ->update(['status' => 'Selesai']);
+        // Skenario: 'check-in' -> 'selesai'
+        // $completed akan berisi jumlah baris yang di-update (cth: 0, 1, 5)
+        $completed = Reservation::whereDate('tanggal', '<', $todayDateString)
+                              ->where('status', 'check-in')
+                              ->update(['status' => 'selesai']);
 
         if ($completed > 0) {
-            $this->info($completed . ' reservasi "Berlangsung" diubah menjadi "Selesai".');
+            $this->info($completed . ' reservasi "check-in" diubah menjadi "selesai".');
+            Log::info($completed . ' reservasi "check-in" diubah menjadi "selesai".');
+            $totalChanged += $completed;
         }
 
-        // 2. LOGIKA TAMBAHAN (SANGAT DISARANKAN):
-        //    Ubah 'Akan Datang' dari kemarin -> 'Tidak Datang'
-        //    (Ini untuk kasus tamu yang tidak check-in sama sekali)
-        $noShow = Reservation::where('tanggal', '<', $today)
-                           ->where('status', 'Akan Datang')
-                           ->update(['status' => 'Tidak Datang']);
+        // Skenario: 'akan datang' -> 'dibatalkan' (No-Show)
+        $noShow = Reservation::whereDate('tanggal', '<', $todayDateString)
+                           ->where('status', 'akan datang')
+                           ->update(['status' => 'dibatalkan']);
         
         if ($noShow > 0) {
-            $this->info($noShow . ' reservasi "Akan Datang" diubah menjadi "Tidak Datang".');
+            $this->info($noShow . ' reservasi "akan datang" diubah menjadi "dibatalkan" (No-Show).');
+            Log::info($noShow . ' reservasi "akan datang" diubah menjadi "dibatalkan" (No-Show).');
+            $totalChanged += $noShow;
         }
 
-        // =================================================================
-        // LOGIKA 2 (LAMA): Update reservasi 'Akan Datang' HARI INI
-        // =================================================================
-        
-        // Cek reservasi 'Akan Datang' yang tanggalnya HARI INI
-        // dan waktunya sudah tiba/lewat
-        $ongoing = Reservation::where('status', 'Akan Datang')
-            ->whereDate('tanggal', '=', $today->toDateString()) // Tanggal adalah HARI INI
-            ->whereTime('waktu', '<=', $now->toTimeString())   // Waktu sudah lewat
-            ->update(['status' => 'Berlangsung']);
+        // Skenario: 'akan datang' -> 'check-in' (Otomatis Check-in HARI INI)
+        $ongoing = Reservation::whereDate('tanggal', '=', $todayDateString)
+                            ->whereTime('waktu', '<=', $now->toTimeString())
+                            ->where('status', 'akan datang')
+                            ->update(['status' => 'check-in']);
 
         if ($ongoing > 0) {
-            $this->info($ongoing . ' reservasi "Akan Datang" diubah menjadi "Berlangsung".');
+            $this->info($ongoing . ' reservasi "akan datang" diubah menjadi "check-in" (Otomatis).');
+            Log::info($ongoing . ' reservasi "akan datang" diubah menjadi "check-in" (Otomatis).');
+            $totalChanged += $ongoing;
         }
 
-        // Pesan jika tidak ada yang diubah
-        if ($completed == 0 && $noShow == 0 && $ongoing == 0) {
-            $this->info('Tidak ada status reservasi yang perlu diperbarui.');
-        }
+        // =================================================================
+
+        // if ($totalChanged == 0) {
+        //     $this->info('Tidak ada status reservasi yang perlu diperbarui.');
+        //     Log::info('Tidak ada status reservasi yang perlu diperbarui.');
+        // }
+
+        // Log::info('======= SELESAI UPDATE STATUS RESERVASI =======');
     }
 }
