@@ -38,7 +38,7 @@ class ProductSeeder extends Seeder
             ['name' => 'Ubi Goreng', 'price' => 12000, 'category' => 'snack', 'image_url' => 'images/menus/ubi_goreng.webp'],
             ['name' => 'French Fries', 'price' => 12000, 'category' => 'snack', 'image_url' => 'images/menus/kentang_goreng.webp'],
             ['name' => 'Pisang Krispi', 'price' => 13000, 'category' => 'snack', 'image_url' => 'images/menus/pisang_goreng.webp'],
-            ['name' => 'Mix Platter', 'price' => 20000, 'category' => 'snack'], // <-- Akan pakai default
+            ['name' => 'Mix Platter', 'price' => 20000, 'category' => 'snack', 'image_url' => 'images/menus/mix_platter.webp'], // <-- Akan pakai default
 
             // --- HEAVY MEAL ---
             ['name' => 'Nasi Telur Ceplok', 'price' => 13000, 'category' => 'heavy-meal', 'image_url' => 'images/menus/nasi_telur.webp'],
@@ -65,11 +65,11 @@ class ProductSeeder extends Seeder
             ['name' => 'Ginger Milk (hot)', 'price' => 13000, 'category' => 'traditional', 'image_url' => 'images/menus/ginger_milk.webp'],
             ['name' => 'Wedang Jahe (hot)', 'price' => 13000, 'category' => 'traditional', 'image_url' => 'images/menus/wedang_jahe.webp'],
             ['name' => 'Bandrek Susu (hot)', 'price' => 13000, 'category' => 'traditional', 'image_url' => 'images/menus/bandrek_susu.webp'],
-            ['name' => 'Bandrek Telor (hot)', 'price' => 17000, 'category' => 'traditional'], // <-- Akan pakai default
+            ['name' => 'Bandrek Telor (hot)', 'price' => 17000, 'category' => 'traditional', 'image_url' => 'images/menus/bandrek_telor.webp'], 
             ['name' => 'Teh Telur (hot/ice)', 'price' => 15000, 'category' => 'traditional', 'image_url' => 'images/menus/teh_telur.webp'],
             ['name' => 'Teh Tarik (hot/ice)', 'price' => 15000, 'category' => 'traditional', 'image_url' => 'images/menus/teh_tarik.webp'],
             ['name' => 'Kopi Telor (hot)', 'price' => 15000, 'category' => 'traditional', 'image_url' => 'images/menus/kopi_telul.webp'],
-            ['name' => 'Kopi Cingcong (hot/ice)', 'price' => 15000, 'category' => 'traditional'], // <-- Akan pakai default
+            ['name' => 'Kopi Cingcong (hot/ice)', 'price' => 15000, 'category' => 'traditional', 'image_url' => 'images/menus/kopi_cingcong.webp'], // <-- Akan pakai default
 
             // --- FRESH DRINK ---
             ['name' => 'Jasmine Tea (hot/ice)', 'price' => 12000, 'category' => 'fresh-drink', 'image_url' => 'images/menus/jasmine_tea.webp'],
