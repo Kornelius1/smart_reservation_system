@@ -22,6 +22,13 @@
         input[type='number'] {
             -moz-appearance: textfield;
         }
+
+     
+        .modal-box .form-control {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; 
+        }
     </style>
 @endpush
 

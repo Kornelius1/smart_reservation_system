@@ -5,11 +5,12 @@ use App\Livewire\ManajemenReservasi;
 
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DokuController;
 use App\Http\Controllers\XenditController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\LaporanController;
-use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Customer\BayarController;
+use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Customer\DenahMejaController;
 use App\Http\Controllers\Customer\PesanMenuController;
 use App\Http\Controllers\Admin\ManajemenMenuController;
@@ -134,6 +135,9 @@ Route::match(['get', 'post'], '/konfirmasi-pesanan', [BayarController::class, 's
      
 Route::post('/xendit-webhook', [XenditController::class, 'handle'])
      ->name('xendit.webhook');
+
+// Doku Payment Gateway Route 
+Route::post('/reservasi/create-payment', [DokuController::class, 'createPayment'])->name('doku.createPayment');
 
 // ==========================================================
 // Rute Halaman Sukses

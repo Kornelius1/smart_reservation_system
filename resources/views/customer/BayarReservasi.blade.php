@@ -20,13 +20,17 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 14l2-2m0 0l2-2m-2 2l-2 2m2-2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {{-- Tampilkan error pertama yang ditemukan --}}
                     <span>{{ $errors->first() }}</span>
                 </div>
             @endif
 
-            {{-- 2. FORM ACTION (Tidak berubah) --}}
-            <form method="POST" action="{{ route('payment.process') }}">
+            {{-- ========================================================== --}}
+            {{-- PERUBAHAN 1:
+            - 'action' diubah ke route DOKU ('doku.createPayment')
+            - 'id' ditambahkan ke form ('form-pembayaran')
+            --}}
+            {{-- ========================================================== --}}
+            <form method="POST" action="{{ route('doku.createPayment') }}" id="form-pembayaran">
                 @csrf
 
                 {{-- INPUT HIDDEN (Tidak berubah) --}}
@@ -72,9 +76,7 @@
 
                 <div class="divider before:bg-white/25 after:bg-white/25 my-6"></div>
 
-                {{-- ========================================================== --}}
-                {{-- BARU: DETAIL PEMESAN (Sesuai model Reservation) --}}
-                {{-- ========================================================== --}}
+                {{-- DETAIL PEMESAN --}}
                 <h2 class="text-lg font-semibold mb-4">Detail Pemesan</h2>
                 <div class="space-y-4">
                     {{-- 1. Nama Customer --}}
@@ -90,6 +92,16 @@
                         <input type="tel" id="nomor_telepon" name="nomor_telepon" value="{{ old('nomor_telepon') }}"
                             required placeholder="08..." pattern="^08[0-9]{8,12}$" minlength="10" maxlength="14"
                             title="Format salah. Harus dimulai dengan '08' dan total 10-14 angka. Contoh: 08123456789"
+                            class="input input-bordered w-full bg-white/20 placeholder:text-white/50 pl-3 text-black">
+                    </div>
+
+                    {{-- ========================================================== --}}
+                    {{-- PERUBAHAN 2: Menambahkan input Email (Wajib untuk DOKU) --}}
+                    {{-- ========================================================== --}}
+                    <div>
+                        <label for="email" class="block text-sm font-medium mb-1">Email</label>
+                        <input type="email" id="email" name="email" value="{{ old('email') }}" required
+                            placeholder="nama@email.com"
                             class="input input-bordered w-full bg-white/20 placeholder:text-white/50 pl-3 text-black">
                     </div>
 
@@ -115,9 +127,6 @@
                         </div>
                     </div>
                 </div>
-                {{-- ========================================================== --}}
-                {{-- AKHIR BLOK BARU --}}
-                {{-- ========================================================== --}}
 
                 <div class="divider before:bg-white/25 after:bg-white/25 my-6"></div>
 
@@ -127,9 +136,14 @@
                     <span>Rp {{ number_format($totalPrice) }}</span>
                 </div>
 
-                {{-- TOMBOL SUBMIT (Tidak berubah) --}}
+                {{-- ========================================================== --}}
+                {{-- PERUBAHAN 3:
+                - 'type' diubah dari 'submit' menjadi 'button'
+                - 'id' ditambahkan ke tombol ('tombol-bayar')
+                --}}
+                {{-- ========================================================== --}}
                 <div class="mt-8">
-                    <button type="submit" class="btn bg-[#364132] hover:bg-[#2a3327] border-none text-white w-full">
+                    <button type="button" id="tombol-bayar" class="btn bg-[#364132] hover:bg-[#2a3327] border-none text-white w-full">
                         Bayar Sekarang 🛒
                     </button>
                 </div>
@@ -144,15 +158,72 @@
         </div>
     </div>
 
+    {{-- ========================================================== --}}
+    {{-- PERUBAHAN 4: Menambahkan Script AJAX untuk DOKU (Fase 2) --}}
+    {{-- ========================================================== --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Script asli Anda untuk set tanggal minimum (Tidak berubah)
             const tanggalInput = document.getElementById('tanggal');
-
-            // Buat tanggal hari ini dalam format YYYY-MM-DD
             const today = new Date().toISOString().split('T')[0];
-
-            // Set atribut 'min' pada input tanggal
             tanggalInput.setAttribute('min', today);
+
+            // --- SCRIPT BARU UNTUK PROSES PEMBAYARAN DOKU ---
+            const form = document.getElementById('form-pembayaran');
+            const tombolBayar = document.getElementById('tombol-bayar');
+
+            tombolBayar.addEventListener('click', async function (event) {
+                event.preventDefault(); // Mencegah submit form biasa
+
+                // 1. Validasi form HTML5 secara manual
+                if (!form.checkValidity()) {
+                    // Jika form tidak valid, tampilkan pesan error bawaan browser
+                    form.reportValidity();
+                    return;
+                }
+
+                // 2. Tampilkan status loading pada tombol
+                tombolBayar.disabled = true;
+                tombolBayar.innerHTML = 'Memproses Pembayaran...';
+
+                // 3. Siapkan data untuk dikirim
+                const formData = new FormData(form);
+                const url = form.action;
+                const csrfToken = form.querySelector('input[name="_token"]').value;
+
+                try {
+                    // 4. Kirim data form ke DokuController (Fase 1)
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json' // Meminta balasan JSON
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    // 5. Tangani balasan dari DokuController
+                    if (data.success && data.payment_url) {
+                        // SUKSES: Arahkan ke halaman pembayaran DOKU
+                        window.location.href = data.payment_url;
+                    } else {
+                        // GAGAL: Tampilkan pesan error
+                        alert('Gagal membuat pembayaran: ' + (data.message || 'Silakan coba lagi.'));
+                        // Kembalikan tombol ke status normal
+                        tombolBayar.disabled = false;
+                        tombolBayar.innerHTML = 'Bayar Sekarang 🛒';
+                    }
+                } catch (error) {
+                    // GAGAL JARINGAN: Tangani error
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan. Periksa koneksi Anda dan coba lagi.');
+                    // Kembalikan tombol ke status normal
+                    tombolBayar.disabled = false;
+                    tombolBayar.innerHTML = 'Bayar Sekarang 🛒';
+                }
+            });
         });
     </script>
 </body>

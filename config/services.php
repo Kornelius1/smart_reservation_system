@@ -42,4 +42,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT'),
     ],
 
+    'doku' => [
+    'client_id' => env('DOKU_CLIENT_ID'),
+    'secret_key' => env('DOKU_SECRET_KEY'),
+    'api_url' => env('DOKU_API_URL'),
+    ],
+
 ];

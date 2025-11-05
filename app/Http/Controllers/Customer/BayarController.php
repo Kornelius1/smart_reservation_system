@@ -10,21 +10,22 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
-
 // ==========================================================
-// IMPORT XENDIT SDK v7 (YANG BENAR)
+// IMPORT BARU UNTUK DOKU
 // ==========================================================
-use Xendit\Configuration;
-use Xendit\Invoice\InvoiceApi;
-use Xendit\Invoice\CreateInvoiceRequest;
-use Xendit\Invoice\InvoiceItem;
-use Xendit\ApiException; // <-- PERBAIKAN: Hapus namespace 'Exceptions'
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
+// ----------------------------------------------------------
+// SEMUA 'USE XENDIT' SUDAH DIHAPUS
+// ----------------------------------------------------------
 
 class BayarController extends Controller
 {
     /**
-     * Menampilkan halaman konfirmasi
+     * Menampilkan halaman konfirmasi (Tidak Berubah)
      */
     public function show(Request $request)
     {
@@ -53,7 +54,7 @@ class BayarController extends Controller
         foreach ($products as $product) {
             $quantity = $itemsFromRequest[$product->id];
             $cartItems[] = [
-                'id'       => $product->id,
+                'id'     => $product->id,
                 'name'     => $product->name,
                 'price'    => $product->price,
                 'quantity' => $quantity,
@@ -73,42 +74,61 @@ class BayarController extends Controller
     }
 
     /**
-     * Memproses data dan mengirim ke Xendit
+     * Memproses data dan mengirim ke DOKU
+     * Di-trigger oleh AJAX/Fetch dari BayarReservasi.blade.php
+     * * @return JsonResponse
      */
-    public function processPayment(Request $request)
+    public function processPayment(Request $request): JsonResponse
     {
         // 1. VALIDASI PESANAN (Item & Reservasi)
         $validationResult = $this->validateOrder($request);
+        
+        // PERUBAHAN: Tangkap RedirectResponse dan ubah jadi JSON
         if ($validationResult instanceof RedirectResponse) {
-            return redirect()->back()
-                ->withErrors($validationResult->getSession()->get('errors'))
-                ->withInput();
+            $errors = $validationResult->getSession()->get('errors');
+            $errorMessage = $errors ? $errors->first() : 'Validasi pesanan gagal.';
+            
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage
+            ], 422);
         }
 
-        // 2. VALIDASI DATA CUSTOMER
-        $customerData = $request->validate([
+        // 2. VALIDASI DATA CUSTOMER (dari Form)
+        // PERUBAHAN: Gunakan Validator manual agar bisa return JSON
+        $validator = Validator::make($request->all(), [
             'nama'          => 'required|string|max:255',
             'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
+            'email'         => 'required|email|max:255', // <-- Email ditambahkan (sesuai blade)
             'jumlah_orang'  => 'required|integer|min:1',
             'tanggal'       => 'required|date|after_or_equal:today',
             'waktu'         => 'required|date_format:H:i',
         ]);
 
-        // Unpack data
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first() // Ambil pesan error pertama
+            ], 422);
+        }
+        $customerData = $validator->validated(); // Ambil data yang sudah valid
+
+        // Unpack data (Tidak berubah)
         $totalPrice = $validationResult['totalPrice'];
         $reservationType = $validationResult['reservationType'];
         $reservationFkId = $validationResult['reservationFkId'];
         $products = $validationResult['products'];
         $itemsFromRequest = $validationResult['items'];
 
-        // 3. BUAT ID TRANSAKSI
+        // 3. BUAT ID TRANSAKSI (Tidak berubah)
         $id_transaksi = 'HOMEY-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
 
-        // 4. SIMPAN RESERVASI 'PENDING'
+        // 4. SIMPAN RESERVASI 'PENDING' (Tidak berubah)
         $dataToSave = [
             'id_transaksi'  => $id_transaksi,
             'nama'          => $customerData['nama'],
             'nomor_telepon' => $customerData['nomor_telepon'],
+            'email_customer'=> $customerData['email'], // <-- PERBAIKAN: Simpan email
             'jumlah_orang'  => $customerData['jumlah_orang'],
             'tanggal'       => $customerData['tanggal'],
             'waktu'         => $customerData['waktu'],
@@ -118,80 +138,92 @@ class BayarController extends Controller
         ];
         $reservation = Reservation::create($dataToSave);
 
-   // ==========================================================
-        // PERBAIKAN BARU: Simpan ID Transaksi ke Session
-        // ==========================================================
         session(['last_transaction_id' => $id_transaksi]);
 
-         // ==========================================================
-        // TAMBAHAN BARU (MASALAH #3): Simpan item ke pivot table
-        // ==========================================================
+        // Simpan item ke pivot table (Tidak berubah)
         foreach ($products as $product) {
             $quantity = $itemsFromRequest[$product->id];
-            
-            // 'attach' akan menyimpan data ke tabel pivot 'reservation_product'
             $reservation->products()->attach($product->id, [
                 'quantity' => $quantity,
-                'price'    => $product->price // Simpan harga saat itu
+                'price'    => $product->price 
             ]);
         }
 
-        // 5. PROSES XENDIT (SDK v7)
-        
-        // Set API Key
-        Configuration::getDefaultConfiguration()->setApiKey(config('xendit.api_key'));
-
-        // Siapkan item
-        $items_xendit = [];
-        foreach ($products as $product) {
-            $quantity = $itemsFromRequest[$product->id];
-            $items_xendit[] = new InvoiceItem([
-                'name'     => $product->name,
-                'quantity' => $quantity,
-                'price'    => $product->price,
-            ]);
-        }
-
-        // Siapkan customer (sebagai array)
-        $customer_data_array = [
-            'given_name'   => $customerData['nama'],
-            'mobile_number' => $customerData['nomor_telepon'],
-        ];
-
-        // Buat request invoice
-        $createInvoiceRequest = new CreateInvoiceRequest([
-            'external_id'           => $id_transaksi,
-            'amount'                => $totalPrice,
-            'description'           => 'Reservasi Homey Cafe ' . $id_transaksi,
-            'customer_object'       => $customer_data_array, // <-- PERBAIKAN: 'customer_object'
-            'items'                 => $items_xendit,
-            'currency'              => 'IDR',
-            'invoice_duration'      => 30, 
-            'success_redirect_url'  => route('payment.success'),
-            'failure_redirect_url'  => route('payment.failed'),
-        ]);
-
+        // ==========================================================
+        // 5. PROSES DOKU (Menggantikan Xendit)
+        // (Sesuai Fase 1, Langkah 6 dari doku_integration_guide.md)
+        // ==========================================================
         try {
-            // Buat instance API
-            $apiInstance = new InvoiceApi();
-            
-            // Buat Invoice
-            $invoice = $apiInstance->createInvoice($createInvoiceRequest);
+            // Siapkan variabel DOKU
+            $clientId = config('services.doku.client_id');
+            $secretKey = config('services.doku.secret_key');
+            $apiUrl = config('services.doku.api_url');
+            $path = '/checkout/v1/payment'; 
 
-            // Redirect ke Xendit
-            return redirect($invoice['invoice_url']);
+            // Siapkan data yang akan dikirim (Request Body)
+            $body = [
+                'order' => [
+                    'invoice_number' => $id_transaksi, // Pakai ID Transaksi kita
+                    'amount' => (int) $totalPrice      // Pastikan integer
+                ],
+                'payment' => [
+                    'payment_due_date' => 60 // Waktu kadaluarsa (menit)
+                ],
+                'customer' => [
+                    'name' => $customerData['nama'],  // Pakai data customer
+                    'email' => $customerData['email'] // Pakai data customer
+                ]
+            ];
 
-        } catch (ApiException $e) { // <-- PERBAIKAN: Ini sekarang sudah benar
-            // Tangani error dari Xendit
-            return redirect()->back()
-                ->withErrors(['msg' => 'Gagal membuat invoice Xendit: ' . $e->getMessage()])
-                ->withInput();
-        
+            // GENERATE SIGNATURE
+            $requestTimestamp = now()->toIso8601String();
+            $requestId = (string) Str::uuid();
+            $digest = base64_encode(hash('sha256', json_encode($body), true));
+
+            $stringToSign = "Client-Id:" . $clientId . "\n"
+                          . "Request-Id:" . $requestId . "\n"
+                          . "Request-Timestamp:" . $requestTimestamp . "\n"
+                          . "Request-Target:" . $path . "\n"
+                          . "Digest:" . $digest;
+
+            $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secretKey, true));
+
+            // Kirim Request ke DOKU
+            $response = Http::withHeaders([
+                'Client-Id' => $clientId,
+                'Request-Id' => $requestId,
+                'Request-Timestamp' => $requestTimestamp,
+                'Signature' => "HMACSHA256=" . $signature,
+            ])
+            ->withBody(json_encode($body), 'application/json')
+            ->post($apiUrl . $path);
+
+            $responseData = $response->json();
+
+            // Cek jika sukses dan ada URL pembayaran
+            if ($response->successful() && isset($responseData['response']['payment']['url'])) {
+                
+                // Kirim URL kembali ke Frontend (BayarReservasi.blade.php)
+                return response()->json([
+                    'success' => true,
+                    'payment_url' => $responseData['response']['payment']['url']
+                ]);
+            }
+
+            // Jika DOKU mengembalikan error
+            Log::error('DOKU API Error', $responseData ?? ['message' => $response->body()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat pembayaran DOKU: ' . ($responseData['error']['message'] ?? 'Unknown Error'),
+            ], 500);
+
         } catch (\Exception $e) {
-            // Tangani error umum
-            return redirect()->back()
-                ->withErrors(['msg' => 'Terjadi kesalahan umum: ' . $e->getMessage()])
-                ->withInput();
+            // Tangani error umum (koneksi, dll)
+            Log::error('DOKU General Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false, 
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ], 500);
         }
     }
 
