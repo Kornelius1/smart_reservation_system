@@ -10,17 +10,11 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
-// ==========================================================
-// IMPORT BARU UNTUK DOKU
-// ==========================================================
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
-// ----------------------------------------------------------
-// SEMUA 'USE XENDIT' SUDAH DIHAPUS
-// ----------------------------------------------------------
 
 class BayarController extends Controller
 {
