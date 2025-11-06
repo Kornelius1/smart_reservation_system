@@ -58,7 +58,8 @@ class ManajemenReservasi extends Component
                 'pending' => 3,
                 'selesai' => 4,
                 'dibatalkan' => 5,
-                default => 6,
+                'kedaluwarsa'=> 6,
+                default => 7,
             };
         });
 

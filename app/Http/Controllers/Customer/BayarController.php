@@ -162,7 +162,8 @@ class BayarController extends Controller
                     'amount' => (int) $totalPrice
                 ],
                 'payment' => [
-                    'payment_due_date' => 10
+                    'payment_due_date' => 1
+                    //jangan lupa ubah di updatereservationstatus.php juga agar sama
                 ],
                 'customer' => [
                     'name' => $customerData['nama'],

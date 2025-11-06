@@ -140,6 +140,10 @@
                                             <span class="badge badge-error text-white badge-sm">Dibatalkan</span>
                                             @break
 
+                                        @case('kedaluwarsa')
+                                        <span class="badge badge-neutral text-white badge-sm">Kedaluwarsa</span>
+                                        @break
+
                                         @default
                                             <span class="badge">{{ $reservation->status }}</span>
                                     @endswitch

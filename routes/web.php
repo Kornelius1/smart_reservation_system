@@ -122,10 +122,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
-// ==========================================================
-// BARU: Rute untuk Webhook Xendit
-// ==========================================================
-// Form dari 'pesanmenu' akan posting ke sini
+
 Route::match(['get', 'post'], '/konfirmasi-pesanan', [BayarController::class, 'show'])
      ->name('payment.show');
      
