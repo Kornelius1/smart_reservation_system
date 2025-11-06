@@ -1,14 +1,6 @@
-{{-- 
-======================================================================
-1. DIV PEMBUNGKUS UTAMA DENGAN 'wire:poll.5s'
-   Ini akan me-refresh data setiap 5 detik.
-   @extends dan @section telah dihapus.
-======================================================================
---}}
 <div class="p-4 lg:p-8" wire:poll.5s>
 
     @push('styles')
-        {{-- Style untuk toggle tidak lagi diperlukan, tapi saya biarkan jika dipakai di tempat lain --}}
         <style>
             .toggle {
                 --toggle-handle-color: white !important;

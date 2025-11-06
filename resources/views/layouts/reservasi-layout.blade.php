@@ -8,7 +8,7 @@
     <title>@yield('title', 'Homey Cafe')</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources\css\manajemen.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources\css\manajemen.css', 'resources/js/admin.js'])
     <style>
         body {
             background-color: var(--brand-bg);
@@ -23,7 +23,7 @@
     <div class="drawer drawer-open">
         <input id="my-drawer-4" type="checkbox" class="drawer-toggle peer" />
 
-        <div class="drawer-content transition-all duration-300 peer-checked:ml-64 ml-20">
+        <div class="drawer-content transition-all duration-300 peer-checked:ml-4 ml-4">
             <main>
                 {{ $slot }}
             </main>

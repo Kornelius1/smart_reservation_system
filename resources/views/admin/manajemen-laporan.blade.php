@@ -3,7 +3,7 @@
 @section('title', 'Laporan Reservasi')
 
 @section('content')
-    <div class="container mx-auto px-4 py-8">
+    <div class="px-4 py-8">
         {{-- Header --}}
         <div class="flex items-center gap-3 mb-8">
             <button onclick="window.history.back()" class="btn btn-ghost btn-sm">
