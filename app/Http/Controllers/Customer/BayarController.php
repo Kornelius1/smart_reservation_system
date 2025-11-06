@@ -74,6 +74,8 @@ class BayarController extends Controller
      */
     public function processPayment(Request $request): JsonResponse
     {
+
+        
         // 1. VALIDASI PESANAN (Item & Reservasi)
         $validationResult = $this->validateOrder($request);
         
@@ -144,8 +146,7 @@ class BayarController extends Controller
         }
 
         // ==========================================================
-        // 5. PROSES DOKU (Menggantikan Xendit)
-        // (Sesuai Fase 1, Langkah 6 dari doku_integration_guide.md)
+        // 5. PROSES DOKU
         // ==========================================================
         try {
             // Siapkan variabel DOKU
@@ -157,22 +158,31 @@ class BayarController extends Controller
             // Siapkan data yang akan dikirim (Request Body)
             $body = [
                 'order' => [
-                    'invoice_number' => $id_transaksi, // Pakai ID Transaksi kita
-                    'amount' => (int) $totalPrice      // Pastikan integer
+                    'invoice_number' => $id_transaksi,
+                    'amount' => (int) $totalPrice
                 ],
                 'payment' => [
-                    'payment_due_date' => 60 // Waktu kadaluarsa (menit)
+                    'payment_due_date' => 10
                 ],
                 'customer' => [
-                    'name' => $customerData['nama'],  // Pakai data customer
-                    'email' => $customerData['email'] // Pakai data customer
+                    'name' => $customerData['nama'],
+                    'email' => $customerData['email']
                 ]
             ];
+            
+            // =================================================
+            // !! PERBAIKAN BUG SIGNATURE DIMULAI DI SINI !!
+            // =================================================
+
+            // 1. Encode body HANYA SATU KALI
+            $requestBodyString = json_encode($body);
 
             // GENERATE SIGNATURE
-            $requestTimestamp = now()->toIso8601String();
+           $requestTimestamp = now()->utc()->format('Y-m-d\TH:i:s\Z');
             $requestId = (string) Str::uuid();
-            $digest = base64_encode(hash('sha256', json_encode($body), true));
+            
+            // 2. Gunakan string yang SAMA untuk Digest
+            $digest = base64_encode(hash('sha256', $requestBodyString, true));
 
             $stringToSign = "Client-Id:" . $clientId . "\n"
                           . "Request-Id:" . $requestId . "\n"
@@ -181,6 +191,9 @@ class BayarController extends Controller
                           . "Digest:" . $digest;
 
             $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secretKey, true));
+            
+            // (Log::info Anda masih di sini, itu bagus)
+            Log::info('DATA_REQUEST_DOKU:', ['body' => $body, 'total_price_raw' => $totalPrice]);
 
             // Kirim Request ke DOKU
             $response = Http::withHeaders([
@@ -189,7 +202,8 @@ class BayarController extends Controller
                 'Request-Timestamp' => $requestTimestamp,
                 'Signature' => "HMACSHA256=" . $signature,
             ])
-            ->withBody(json_encode($body), 'application/json')
+            // 3. Gunakan string yang SAMA untuk Body
+            ->withBody($requestBodyString, 'application/json')
             ->post($apiUrl . $path);
 
             $responseData = $response->json();
@@ -205,10 +219,25 @@ class BayarController extends Controller
             }
 
             // Jika DOKU mengembalikan error
-            Log::error('DOKU API Error', $responseData ?? ['message' => $response->body()]);
-            return response()->json([
+           return response()->json([
                 'success' => false,
-                'message' => 'Gagal membuat pembayaran DOKU: ' . ($responseData['error']['message'] ?? 'Unknown Error'),
+                'message' => 'DEBUG: DOKU Gagal. Lihat "doku_response" dan "data_sent".',
+                
+                // ===========================================
+                // INI ADALAH "LOG" BARU KITA
+                // ===========================================
+
+                // Ini adalah data yang DOKU kembalikan
+                'doku_response_raw' => $responseData ?? 'Tidak ada response JSON',
+                'doku_response_body_mentah' => $response->body(), // Teks mentah
+                'doku_status_code' => $response->status(), // Kode status (seharusnya 500)
+
+                // Ini adalah data yang KITA kirim
+                'data_yang_dikirim_ke_doku' => $body, 
+                'total_price_mentah' => $totalPrice,
+                'signature_yang_digunakan' => "HMACSHA256=" . $signature,
+                'client_id_yang_digunakan' => $clientId
+                
             ], 500);
 
         } catch (\Exception $e) {

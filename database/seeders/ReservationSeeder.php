@@ -116,7 +116,7 @@ class ReservationSeeder extends Seeder
                 'jumlah_orang' => 4,
                 'tanggal' => Carbon::today()->toDateString(), // HARI INI
                 'waktu' => '10:00:00',
-                'status' => 'pending', // Status 'pending'
+                'status' => 'dibatalkan', // Status 'pending'
                 'nomor_meja' => 8,
                 'nomor_ruangan' => null 
             ],

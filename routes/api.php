@@ -23,4 +23,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('/products', [ProductController::class, 'index'])->name('api.products.index');
 
-Route::post('/doku-notification', [DokuController::class, 'handleNotification']);
+Route::post('/doku/notification', [DokuController::class, 'handleNotification'])
+     ->name('doku.notification');

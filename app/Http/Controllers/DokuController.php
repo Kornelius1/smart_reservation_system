@@ -3,94 +3,62 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http; // <-- Import Laravel HTTP Client
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log; // <-- PENTING: Tambahkan ini
+use App\Models\Reservation;         // <-- PENTING: Tambahkan ini
 
 class DokuController extends Controller
 {
+
+    // ... (Method createPayment Anda yang sudah ada ada di sini) ...
+
+
     /**
-     * Membuat request pembayaran ke DOKU dan mengembalikan URL pembayaran.
+     * Menangani notifikasi (webhook) yang masuk dari DOKU.
      */
-    public function createPayment(Request $request)
+    public function handleNotification(Request $request)
     {
-        // 1. Dapatkan data dari request (misal: ID reservasi, total harga)
-        // Ini HANYA CONTOH. Anda harus mengambil data ini dari database
-        // berdasarkan ID reservasi yang di-request.
-        $invoiceNumber = 'INV-' . time(); // HARUS UNIK
-        $totalAmount = 150000; // Contoh total
-        $customerName = "Nama Pelanggan";
-        $customerEmail = "email@pelanggan.com";
+        // 1. LANGKAH KRUSIAL: Log SEMUANYA
+        // Kita log dulu untuk memastikan pesannya sampai.
+        Log::info('DOKU NOTIFICATION RECEIVED:', $request->all());
 
-        // 2. Siapkan variabel DOKU
-        $clientId = config('services.doku.client_id'); // Ambil dari .env (via config)
-        $secretKey = config('services.doku.secret_key');
-        $apiUrl = config('services.doku.api_url');
-        $path = '/checkout/v1/payment'; // Contoh path API DOKU (cek dokumentasi)
+        // 2. TODO: Verifikasi Signature Notifikasi
+        // (Untuk keamanan, Anda harus memverifikasi header 'Signature'
+        // yang dikirim DOKU, mirip cara kita membuat signature.
+        // Kita bisa lakukan ini nanti, yang penting fungsionalitas dulu.)
 
-        // 3. Siapkan data yang akan dikirim (Request Body)
-        // Struktur body ini WAJIB mengikuti dokumentasi DOKU
-        $body = [
-            'order' => [
-                'invoice_number' => $invoiceNumber,
-                'amount' => $totalAmount
-            ],
-            'payment' => [
-                'payment_due_date' => 60 // Waktu kadaluarsa (menit)
-            ],
-            'customer' => [
-                'name' => $customerName,
-                'email' => $customerEmail
-            ]
-        ];
+        // 3. Ambil data penting dari DOKU
+        // (Struktur body DOKU bisa berbeda, cek log Anda untuk pastinya)
+        $transactionStatus = $request->input('transaction.status');
+        $invoiceNumber = $request->input('order.invoice_number');
 
-        // 4. GENERATE SIGNATURE (Bagian Paling Penting & Tricky)
-        // Cara membuat signature BISA BERBEDA. SELALU CEK DOKUMENTASI DOKU.
-        // Ini adalah contoh umum:
-        $requestTimestamp = now()->toIso8601String();
-        $requestId = (string) Str::uuid();
-        $digest = base64_encode(hash('sha256', json_encode($body), true));
+        // 4. Cari dan Update Database
+        // Cek apakah transaksinya 'SUCCESS' dan ada invoice number
+        if ($transactionStatus == 'SUCCESS' && $invoiceNumber) {
 
-        $stringToSign = "Client-Id:" . $clientId . "\n"
-                      . "Request-Id:" . $requestId . "\n"
-                      . "Request-Timestamp:" . $requestTimestamp . "\n"
-                      . "Request-Target:" . $path . "\n"
-                      . "Digest:" . $digest;
+            // Cari reservasi di database kita yang statusnya masih 'pending'
+            $reservation = Reservation::where('id_transaksi', $invoiceNumber)
+                                      ->where('status', 'pending')
+                                      ->first();
 
-        $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secretKey, true));
-
-        // 5. Kirim Request ke DOKU
-        try {
-            $response = Http::withHeaders([
-                'Client-Id' => $clientId,
-                'Request-Id' => $requestId,
-                'Request-Timestamp' => $requestTimestamp,
-                'Signature' => "HMACSHA256=" . $signature,
-            ])
-            ->withBody(json_encode($body), 'application/json')
-            ->post($apiUrl . $path);
-
-            $responseData = $response->json();
-
-      
-            if ($response->successful() && isset($responseData['response']['payment']['url'])) {
-
-                return response()->json([
-                    'success' => true,
-                    'payment_url' => $responseData['response']['payment']['url']
+            if ($reservation) {
+                // DITEMUKAN! Update statusnya.
+                $reservation->update([
+                    'status' => 'akan datang' // Atau 'paid', 'confirmed', dll.
                 ]);
+
+                Log::info('RESERVATION UPDATED: ' . $invoiceNumber . ' to "akan datang"');
+
+            } else {
+                // Transaksi sukses, tapi tidak ditemukan di DB (atau sudah di-update)
+                Log::warning('RESERVATION NOT FOUND (or already updated): ' . $invoiceNumber);
             }
-
-            // Jika gagal
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal membuat pembayaran DOKU',
-                'details' => $responseData
-            ], 500);
-
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-    }
 
-    // Kita akan tambahkan method handleNotification di sini nanti
+        // 5. Kirim balasan 'OK' ke DOKU
+        // Ini WAJIB. Jika DOKU tidak menerima 200 OK,
+        // mereka akan terus mengirim notifikasi yang sama berulang-ulang.
+        return response()->json(['status' => 'success'], 200);
+    }
 }

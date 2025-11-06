@@ -5,7 +5,6 @@ use App\Livewire\ManajemenReservasi;
 
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DokuController;
 use App\Http\Controllers\XenditController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\LaporanController;
@@ -122,9 +121,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/manajemen-menu/{id}', [ManajemenMenuController::class, 'destroy'])->name('menu.destroy');
 });
 
-// === ROUTES UNTUK Halaman Pembayaran  ===
-Route::post('/proses-pembayaran', [BayarController::class, 'processPayment'])
-     ->name('payment.process');
 
 // ==========================================================
 // BARU: Rute untuk Webhook Xendit
@@ -137,8 +133,7 @@ Route::post('/xendit-webhook', [XenditController::class, 'handle'])
      ->name('xendit.webhook');
 
 // Doku Payment Gateway Route 
-Route::post('/reservasi/create-payment', [DokuController::class, 'createPayment'])->name('doku.createPayment');
-
+Route::post('/reservasi/create-payment', [BayarController::class, 'processPayment'])->name('doku.createPayment');
 // ==========================================================
 // Rute Halaman Sukses
 // ==========================================================
