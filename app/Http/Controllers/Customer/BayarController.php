@@ -135,27 +135,61 @@ class BayarController extends Controller
             $apiUrl    = 'https://api.doku.com';
             $path      = '/checkout/v1/payment';
 
+           // DOKU Config
+            $clientId  = config('services.doku.client_id');
+            $secretKey = config('services.doku.secret_key');
+            $apiUrl    = 'https://api.doku.com'; // Pastikan ini URL Sandbox/Prod yang benar
+            $path      = '/checkout/v1/payment';
+
             $body = [
                 'order' => [
                     'invoice_number' => $id_transaksi,
                     'amount'         => round($totalPrice),
                     'currency'       => 'IDR',
                     'auto_redirect'  => true,
+                    
+                    // REKOMENDASI: Tambahkan URL redirect untuk pelanggan
+                    'success_url'    => route('payment.success'), // Dari rute yang kita bahas
+                    'failed_url'     => route('payment.failed'),   // Dari rute yang kita bahas
                 ],
                 'customer' => [
                     'name'  => $customerData['nama'],
                     'email' => $customerData['email'],
                 ],
-                // Tambahkan metode pembayaran jika perlu
-                // 'payment' => [
-                //     'payment_method_types' => ['VIRTUAL_ACCOUNT_BCA', 'VIRTUAL_ACCOUNT_MANDIRI'],
-                // ],
+            ];
+            
+            // 1. Ubah body array menjadi string JSON
+            // Penting: DOKU butuh string JSON untuk membuat Digest
+            $bodyJson = json_encode($body);
+
+            // 2. Siapkan komponen untuk signature
+            $requestId = (string) Str::uuid(); // Buat Request-Id unik
+            $isoTimestamp = now()->toIso8601String(); // Format: 2025-11-12T02:50:00Z
+
+            // 3. 🔐 Panggil method helper yang BENAR
+            $signature = \App\Helpers\DokuSignatureHelper::generateSignature(
+                $clientId,
+                $secretKey,
+                $requestId,
+                $isoTimestamp,
+                $path,
+                $bodyJson // Kirim string JSON, bukan array
+            );
+
+            // 4. Susun headers secara manual
+            $headers = [
+                'Client-Id' => $clientId,
+                'Request-Id' => $requestId,
+                'Request-Timestamp' => $isoTimestamp,
+                'Signature' => $signature,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
             ];
 
-            // 🔐 Gunakan Helper Signature
-            $headers = DokuSignatureHelper::generateRequestHeaders($clientId, $secretKey, $path, $body);
-
-            $response = Http::withHeaders($headers)->post($apiUrl . $path, $body);
+            // 5. Kirim request dengan body string
+            $response = Http::withHeaders($headers)
+                            ->withBody($bodyJson, 'application/json') // Gunakan withBody untuk kirim raw string
+                            ->post($apiUrl . $path);
 
             if ($response->successful() && isset($response['payment']['url'])) {
                 $reservation->update([
