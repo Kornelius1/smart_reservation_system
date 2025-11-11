@@ -132,7 +132,7 @@ Route::match(['get', 'post'], '/konfirmasi-pesanan', [BayarController::class, 's
 // Route::post('/doku/create-payment', [DokuController::class, 'createPayment'])
 //     ->name('doku.createPayment');
 
-Route::post('/doku/create-payment', [BayarController::class, 'processPayment'])->name('doku.create.payment');
+Route::post('/doku/create-payment', [BayarController::class, 'processPayment'])->name('doku.createPayment');
 
 // Halaman sukses / gagal
 Route::get('/sukses', [DokuController::class, 'success'])
