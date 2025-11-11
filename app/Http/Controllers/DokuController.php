@@ -54,28 +54,25 @@ class DokuController extends Controller
         $requestPath = $request->getPathInfo();
        
 
-
-        // Buat Digest
-        $digest = base64_encode(hash('sha256', $requestBody, true));
-
-        // Buat String-To-Sign
-        $stringToSign = "Client-Id:" . $clientId . "\n"
-            . "Request-Id:" . $headerRequestId . "\n"
-            . "Request-Timestamp:" . $headerTimestamp . "\n"
-            . "Request-Target:" . $requestPath . "\n"
-            . "Digest:" . $digest;
-
-        // Buat Signature Lokal
-        $ourSignature = 'HMACSHA256=' . base64_encode(hash_hmac('sha256', $stringToSign, $secretKey, true));
-
+        $ourSignature = \App\Helpers\DokuSignatureHelper::generateSignature(
+        $clientId,
+        $secretKey,
+        $headerRequestId,
+        $headerTimestamp,
+        $requestPath,
+        $requestBody
+    );
+        
         // Bandingkan hasil
         if (!hash_equals($ourSignature, $headerSignature)) {
             Log::error('DOKU SIGNATURE MISMATCH.');
-            Log::error('String-to-Sign: ' . $stringToSign);
             Log::error('Our Signature: ' . $ourSignature);
             Log::error('DOKU Signature: ' . $headerSignature);
             return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 401);
         }
+
+        // 3. Jika lolos, artinya aman
+        Log::info('DOKU SIGNATURE VERIFIED.');
 
     } catch (\Exception $e) {
         Log::error('DOKU SIGNATURE VERIFICATION FAILED: ' . $e->getMessage());
