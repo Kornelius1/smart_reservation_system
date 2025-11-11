@@ -1,0 +1,10 @@
+!private/
+!public/
+
+!storage/
+!storage/app/
+!storage/app/seed-images/
+!storage/app/seed-images-rooms/
+
+
+!.gitignore

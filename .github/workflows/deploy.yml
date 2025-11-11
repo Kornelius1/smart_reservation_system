@@ -1,0 +1,54 @@
+# Nama workflow yang akan muncul di tab "Actions" GitHub
+name: Deploy to VPS
+
+# Memicu workflow ini setiap kali ada 'push' ke branch 'main'
+on:
+  push:
+    branches:
+      - 'main'  # Ganti 'main' jika Anda menggunakan 'master' atau 'production'
+
+# Pekerjaan yang harus dilakukan
+jobs:
+  deploy:
+    # Menjalankan ini di runner Ubuntu terbaru
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Langkah untuk Checkout (mengunduh) kode Anda ke runner
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Langkah untuk SSH dan menjalankan perintah di VPS
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v0.1.10 # Menggunakan Action yang sudah jadi
+        with:
+          host: ${{ secrets.VPS_HOST }}        # Ambil IP dari secrets
+          username: ${{ secrets.VPS_USERNAME }} # Ambil username dari secrets
+          key: ${{ secrets.VPS_SSH_KEY }}       # Ambil kunci SSH dari secrets
+          port: 22                            # Port SSH (default 22)
+
+          # Perintah yang akan dijalankan di VPS Anda
+          # Ini adalah bagian terpentING
+          script: |
+            cd ${{ secrets.VPS_PROJECT_PATH }}
+
+            # 1. Ambil kode terbaru
+            git pull origin main
+
+            # 2. Install dependensi (abaikan dev)
+            composer install --no-interaction --no-dev --optimize-autoloader
+
+            # 3. Install dependensi NPM & build aset
+            npm install
+            npm run build
+
+            # 4. Migrasi database (gunakan --force karena ini non-interaktif)
+            php artisan migrate --force
+
+            # 5. Optimasi Laravel (cache config, route, dan view)
+            php artisan optimize
+
+            # 6. (Opsional) Restart queue worker jika Anda menggunakannya
+            # php artisan queue:restart
+
+            echo "✅ Deployment Selesai!"
