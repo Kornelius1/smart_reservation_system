@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
-// Pengurutan 'use' statement Anda sudah bagus, saya akan ikuti
+// Pengurutan 'use' statement Anda sudah bagus
 use App\Models\Meja;
 use App\Models\Room;
 use App\Models\Product;
@@ -27,6 +27,7 @@ class BayarController extends Controller
      */
     public function show(Request $request)
     {
+        // ... (Fungsi ini sudah benar, tidak ada perubahan) ...
         $validationResult = $this->validateOrder($request);
 
         if ($validationResult instanceof RedirectResponse) {
@@ -92,8 +93,8 @@ class BayarController extends Controller
         $totalPrice = $validationResult['totalPrice'];
         $reservationType = $validationResult['reservationType'];
         $reservationFkId = $validationResult['reservationFkId'];
-        $products = $validationResult['products'];
-        $itemsFromRequest = $validationResult['items'];
+        $products = $validationResult['products']; // <-- Kita akan gunakan ini
+        $itemsFromRequest = $validationResult['items']; // <-- Kita akan gunakan ini
 
         $id_transaksi = 'HOMEY-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
 
@@ -114,27 +115,35 @@ class BayarController extends Controller
                 'nomor_ruangan'  => ($reservationType === 'ruangan') ? $reservationFkId : null,
             ]);
 
-            // Lampirkan produk ke reservasi
+            // Lampirkan produk ke reservasi DAN siapkan line_items
+            $lineItems = [];
             foreach ($products as $product) {
                 $quantity = $itemsFromRequest[$product->id];
+                // 1. Lampirkan ke database kita
                 $reservation->products()->attach($product->id, [
                     'quantity' => $quantity,
                     'price'    => $product->price,
                 ]);
+                
+                // 2. Siapkan untuk DOKU
+                $lineItems[] = [
+                    'name'     => (string) $product->name,
+                    'price'    => (int) $product->price,
+                    'quantity' => (int) $quantity,
+                ];
             }
 
-            // 4️⃣ Siapkan body JSON untuk DOKU (Versi v2 yang BENAR)
+            // 4️⃣ Siapkan body JSON untuk DOKU (Termasuk line_items)
             $body = [
                 'order' => [
                     'invoice_number' => $id_transaksi,
-                    'amount'         => (int) round($totalPrice),
+                    'amount'         => (int) round($totalPrice), // Total amount HARUS sama dengan total line_items
                     'currency'       => 'IDR',
                     'auto_redirect'  => true,
-                    
-                    // INI ADALAH FIELD WAJIB UNTUK /checkout/v1/payment
                     'success_url'    => route('payment.success'),
                     'failed_url'     => route('payment.failed'),
                 ],
+                'line_items' => $lineItems, // <-- INI DIA BAGIAN YANG HILANG
                 'customer' => [
                     'name'  => $customerData['nama'],
                     'email' => $customerData['email'],
@@ -208,66 +217,6 @@ class BayarController extends Controller
             Log::error('CRITICAL Payment Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan kritis di server: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * 🧮 Validasi pesanan
-     */
-    private function validateOrder(Request $request)
-    {
-        // ... (Fungsi ini sudah benar, tidak perlu diubah)
-        // ... (Saya salin kode Anda yang sudah ada di sini)
-
-        $itemsFromRequest = $request->input('items', []);
-        $roomName = trim($request->input('reservation_room_name'));
-        $tableNumber = trim($request->input('reservation_table_number'));
-
-        if (empty($itemsFromRequest)) {
-            return redirect('/pesanmenu')->withErrors(['msg' => 'Keranjang kosong!']);
-        }
-
-        $productIds = array_keys($itemsFromRequest);
-        $products = Product::findMany($productIds);
-        $totalPrice = 0;
-        foreach ($products as $product) {
-            $totalPrice += $product->price * $itemsFromRequest[$product->id];
-        }
-
-        if ($roomName) {
-            $room = Room::where('nama_ruangan', $roomName)->first();
-            if (!$room) return redirect('/pesanmenu')->withErrors(['msg' => 'Ruangan tidak valid.']);
-            if ($totalPrice < $room->minimum_order) {
-                return redirect('/pesanmenu')->withErrors(['msg' => 'Belanja belum memenuhi minimal ruangan.']);
-            }
-            return [
-                'products' => $products,
-                'items' => $itemsFromRequest,
-                'totalPrice' => $totalPrice,
-                'reservationType' => 'ruangan',
-                'reservationDetail' => $roomName,
-                'reservationFkId' => $room->id,
-            ];
-        }
-
-        if ($tableNumber) {
-            $meja = Meja::where('nomor_meja', $tableNumber)->where('status_aktif', true)->first();
-            if (!$meja) return redirect('/pilih-meja')->withErrors(['msg' => 'Meja tidak tersedia.']);
-            if ($totalPrice < self::MINIMUM_ORDER_FOR_TABLE) {
-                return redirect('/pesanmenu')->withErrors(['msg' => 'Belanja belum memenuhi minimal meja.']);
-            }
-            return [
-                'products' => $products,
-                'items' => $itemsFromRequest,
-                'totalPrice' => $totalPrice,
-                'reservationType' => 'meja',
-                'reservationDetail' => $tableNumber,
-                'reservationFkId' => $meja->id,
-            ];
-        }
-
-        return redirect('/pilih-reservasi')->withErrors(['msg' => 'Pilih jenis reservasi.']);
+                'message' => 'Terjadi kesalahan kritis di server: ' (Catatan: Anda sudah memiliki fungsi ini, tidak perlu diubah) ...
     }
 }
