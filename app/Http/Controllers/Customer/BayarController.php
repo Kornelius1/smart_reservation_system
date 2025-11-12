@@ -215,8 +215,67 @@ class BayarController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('CRITICAL Payment Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            // ⬇️⬇️ PERBAIKAN DI SINI ⬇️⬇️
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan kritis di server: ' (Catatan: Anda sudah memiliki fungsi ini, tidak perlu diubah) ...
+                'message' => 'Terjadi kesalahan kritis di server: ' . $e->getMessage()
+            ], 500);
+        }
+    } // ⬅️ Kurung kurawal penutup 'processPayment' yang hilang
+
+    /**
+     * 🧮 Validasi pesanan
+     */
+    private function validateOrder(Request $request)
+    {
+        // ⬇️⬇️ KODE LENGKAP FUNGSI INI YANG TERPOTONG ⬇️⬇️
+        $itemsFromRequest = $request->input('items', []);
+        $roomName = trim($request->input('reservation_room_name'));
+        $tableNumber = trim($request->input('reservation_table_number'));
+
+        if (empty($itemsFromRequest)) {
+            return redirect('/pesanmenu')->withErrors(['msg' => 'Keranjang kosong!']);
+        }
+
+        $productIds = array_keys($itemsFromRequest);
+        $products = Product::findMany($productIds);
+        $totalPrice = 0;
+        foreach ($products as $product) {
+            $totalPrice += $product->price * $itemsFromRequest[$product->id];
+        }
+
+        if ($roomName) {
+            $room = Room::where('nama_ruangan', $roomName)->first();
+            if (!$room) return redirect('/pesanmenu')->withErrors(['msg' => 'Ruangan tidak valid.']);
+            if ($totalPrice < $room->minimum_order) {
+                return redirect('/pesanmenu')->withErrors(['msg' => 'Belanja belum memenuhi minimal ruangan.']);
+            }
+            return [
+                'products' => $products,
+                'items' => $itemsFromRequest,
+                'totalPrice' => $totalPrice,
+                'reservationType' => 'ruangan',
+                'reservationDetail' => $roomName,
+                'reservationFkId' => $room->id,
+            ];
+        }
+
+        if ($tableNumber) {
+            $meja = Meja::where('nomor_meja', $tableNumber)->where('status_aktif', true)->first();
+            if (!$meja) return redirect('/pilih-meja')->withErrors(['msg' => 'Meja tidak tersedia.']);
+            if ($totalPrice < self::MINIMUM_ORDER_FOR_TABLE) {
+                return redirect('/pesanmenu')->withErrors(['msg' => 'Belanja belum memenuhi minimal meja.']);
+            }
+            return [
+                'products' => $products,
+                'items' => $itemsFromRequest,
+                'totalPrice' => $totalPrice,
+                'reservationType' => 'meja',
+                'reservationDetail' => $tableNumber,
+                'reservationFkId' => $meja->id,
+            ];
+        }
+
+        return redirect('/pilih-reservasi')->withErrors(['msg' => 'Pilih jenis reservasi.']);
     }
-}
+} // ⬅️ Kurung kurawal penutup 'class' yang hilang
