@@ -56,8 +56,8 @@ class BayarController extends Controller
         ];
 
         return view('customer.BayarReservasi', [
-            'cartItems'  => $cartItems,
-            'totalPrice' => $totalPrice,
+            'cartItems'   => $cartItems,
+            'totalPrice'  => $totalPrice,
             'reservationDetails' => $reservationData,
         ]);
     }
@@ -73,15 +73,11 @@ class BayarController extends Controller
             return response()->json(['success' => false, 'message' => 'Pesanan tidak valid'], 422);
         }
 
-        // 2️⃣ Validasi data customer
+        // 2️⃣ Validasi data customer (Versi bersih tanpa duplikat)
         $validator = Validator::make($request->all(), [
             'nama'          => 'required|string|max:255',
             'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
-            'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
             'email'         => 'required|email|max:255',
-            'jumlah_orang'  => 'required|integer|min:1',
-            'tanggal'       => 'required|date|after_or_equal:today',
-            'waktu'         => 'required|date_format:H:i',
             'jumlah_orang'  => 'required|integer|min:1',
             'tanggal'       => 'required|date|after_or_equal:today',
             'waktu'         => 'required|date_format:H:i',
@@ -103,16 +99,12 @@ class BayarController extends Controller
         try {
             DB::beginTransaction();
 
-            // Simpan reservasi
+            // Simpan reservasi (Versi bersih tanpa duplikat)
             $reservation = Reservation::create([
                 'id_transaksi'   => $id_transaksi,
                 'nama'           => $customerData['nama'],
                 'nomor_telepon'  => $customerData['nomor_telepon'],
-                'nomor_telepon'  => $customerData['nomor_telepon'],
                 'email_customer' => $customerData['email'],
-                'jumlah_orang'   => $customerData['jumlah_orang'],
-                'tanggal'        => $customerData['tanggal'],
-                'waktu'          => $customerData['waktu'],
                 'jumlah_orang'   => $customerData['jumlah_orang'],
                 'tanggal'        => $customerData['tanggal'],
                 'waktu'          => $customerData['waktu'],
@@ -121,24 +113,11 @@ class BayarController extends Controller
                 'nomor_ruangan'  => ($reservationType === 'ruangan') ? $reservationFkId : null,
             ]);
 
-            foreach ($products as $product) {
-                $quantity = $itemsFromRequest[$product->id];
-                $reservation->products()->attach($product->id, [
-                    'quantity' => $quantity,
-                    'price'    => $product->price,
-                ]);
-            }
-
-            // DOKU Config
+            // DOKU Config (Versi bersih tanpa duplikat - HANYA BLOK YANG BENAR)
             $clientId  = config('services.doku.client_id');
             $secretKey = config('services.doku.secret_key');
-            $apiUrl    = 'https://api.doku.com';
-            $path      = '/checkout/v1/payment';
-
-           // DOKU Config
-            $clientId  = config('services.doku.client_id');
-            $secretKey = config('services.doku.secret_key');
-            $apiUrl    = 'https://api.doku.com'; // Pastikan ini URL Sandbox/Prod yang benar
+            //  ⬇️ INI DIA PERUBAHANNYA ⬇️
+            $apiUrl    = config('services.doku.api_base'); // Mengambil dari config, BUKAN hard-code
             $path      = '/checkout/v1/payment';
 
             $body = [
@@ -178,12 +157,12 @@ class BayarController extends Controller
 
             // 4. Susun headers secara manual
             $headers = [
-                'Client-Id' => $clientId,
-                'Request-Id' => $requestId,
+                'Client-Id'       => $clientId,
+                'Request-Id'      => $requestId,
                 'Request-Timestamp' => $isoTimestamp,
-                'Signature' => $signature,
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
+                'Signature'       => $signature,
+                'Content-Type'    => 'application/json',
+                'Accept'          => 'application/json',
             ];
 
             // 5. Kirim request dengan body string
@@ -205,6 +184,7 @@ class BayarController extends Controller
 
             // Jika DOKU gagal (error signature, dll)
             DB::rollBack();
+            Log::error('DOKU Payment Failed:', $response->json()); // Tambahkan Log Error
             return response()->json([
                 'success'  => false,
                 'message'  => 'DOKU gagal memproses pembayaran',
@@ -213,7 +193,7 @@ class BayarController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('CRITICAL Payment Error: ' . $e->getMessage());
+            Log::error('CRITICAL Payment Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]); // Log trace
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan kritis di server: ' . $e->getMessage()], 500);
         }
     }
