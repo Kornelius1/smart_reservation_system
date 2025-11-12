@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\Customer;
 
-use App\Http\Controllers\Controller;
-use App\Helpers\DokuSignatureHelper;
+use App\Models\Meja;
+
+use App\Models\Room;
+use App\Models\Product;
+use App\Models\Reservation;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Helpers\DokuSignatureHelper;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use App\Models\Product;
-use App\Models\Room;
-use App\Models\Meja;
-use App\Models\Reservation;
 
 class BayarController extends Controller
 {
@@ -123,7 +124,7 @@ class BayarController extends Controller
             $body = [
                 'order' => [
                     'invoice_number' => $id_transaksi,
-                    'amount'         => round($totalPrice),
+                    'amount'         => (int) round($totalPrice), // Casting ke (int)
                     'currency'       => 'IDR',
                     'auto_redirect'  => true,
                     
@@ -146,7 +147,7 @@ class BayarController extends Controller
             $isoTimestamp = now()->toIso8601String(); // Format: 2025-11-12T02:50:00Z
 
             // 3. 🔐 Panggil method helper yang BENAR
-            $signature = \App\Helpers\DokuSignatureHelper::generateSignature(
+            $signature = DokuSignatureHelper::generateSignature(
                 $clientId,
                 $secretKey,
                 $requestId,

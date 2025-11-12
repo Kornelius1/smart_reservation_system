@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log; // <-- PENTING: Tambahkan ini
-use App\Models\Reservation;         // <-- PENTING: Tambahkan ini
+use Illuminate\Support\Facades\Log; 
+use App\Models\Reservation;        
 
 class DokuController extends Controller
 {

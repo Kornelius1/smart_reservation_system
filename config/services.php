@@ -44,11 +44,11 @@ return [
         'redirect' => env('GOOGLE_REDIRECT'),
     ],
 
-'doku' => [
-    'client_id'  => env('DOKU_CLIENT_ID'),
-    'secret_key' => env('DOKU_SECRET_KEY'),
-    'api_base'   => env('DOKU_API_URL', 'https://api.doku.com'),
-    'env'        => env('DOKU_ENV', 'sandbox'),
-],
+    'doku' => [
+        'client_id'  => env('DOKU_CLIENT_ID'),
+        'secret_key' => env('DOKU_SECRET_KEY'),
+        'api_base'   => env('DOKU_API_URL', 'https://api-sandbox.doku.com'), 
+        'env'        => env('DOKU_ENV', 'sandbox'),
+    ],
 
 ];
