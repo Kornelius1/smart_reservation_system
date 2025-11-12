@@ -166,12 +166,14 @@ class BayarController extends Controller
             Log::info('--- DATA DIKIRIM KE DOKU ---', [
                 'url'     => $url,
                 'headers' => $headers,
-                'body'    => json_decode($bodyJson) // log sebagai array agar mudah dibaca
+                'body'    => json_decode($bodyJson, true) 
             ]);
 
     
 
-            $response = Http::withHeaders($headers)->post($url, $body);
+            $response = Http::withHeaders($headers)
+                ->withBody($bodyJson, 'application/json')
+                ->post($url);
 
             if ($response->successful() && isset($response['payment']['url'])) {
                 $reservation->update([
