@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Customer;
 
+// Pengurutan 'use' statement Anda sudah bagus, saya akan ikuti
 use App\Models\Meja;
-
 use App\Models\Room;
 use App\Models\Product;
 use App\Models\Reservation;
@@ -66,144 +66,161 @@ class BayarController extends Controller
     /**
      * 💳 Memproses pembayaran ke DOKU
      */
-  public function processPayment(Request $request): JsonResponse
-{
-    // 1️⃣ Validasi pesanan
-    $validationResult = $this->validateOrder($request);
-    if ($validationResult instanceof RedirectResponse) {
-        return response()->json(['success' => false, 'message' => 'Pesanan tidak valid'], 422);
-    }
-
-    // 2️⃣ Validasi data customer
-    $validator = Validator::make($request->all(), [
-        'nama'          => 'required|string|max:255',
-        'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
-        'email'         => 'required|email|max:255',
-        'jumlah_orang'  => 'required|integer|min:1',
-        'tanggal'       => 'required|date|after_or_equal:today',
-        'waktu'         => 'required|date_format:H:i',
-    ]);
-    if ($validator->fails()) {
-        return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
-    }
-    $customerData = $validator->validated();
-
-    // 3️⃣ Data pesanan
-    $totalPrice = $validationResult['totalPrice'];
-    $reservationType = $validationResult['reservationType'];
-    $reservationFkId = $validationResult['reservationFkId'];
-
-    $id_transaksi = 'HOMEY-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
-
-    try {
-        DB::beginTransaction();
-
-        // Simpan reservasi
-        $reservation = Reservation::create([
-            'id_transaksi'   => $id_transaksi,
-            'nama'           => $customerData['nama'],
-            'nomor_telepon'  => $customerData['nomor_telepon'],
-            'email_customer' => $customerData['email'],
-            'jumlah_orang'   => $customerData['jumlah_orang'],
-            'tanggal'        => $customerData['tanggal'],
-            'waktu'          => $customerData['waktu'],
-            'status'         => 'pending',
-            'nomor_meja'     => ($reservationType === 'meja') ? $reservationFkId : null,
-            'nomor_ruangan'  => ($reservationType === 'ruangan') ? $reservationFkId : null,
-        ]);
-
-        // 4️⃣ Siapkan body JSON untuk DOKU
-        $body = [
-            'order' => [
-                'invoice_number' => $id_transaksi,
-                'amount'         => (int) round($totalPrice),
-                'currency'       => 'IDR',
-                'callback_url'   => 'https://homey.my.id/api/doku/notification',
-            ],
-            'customer' => [
-                'name'  => $customerData['nama'],
-                'email' => $customerData['email'],
-            ],
-        ];
-        $bodyJson = json_encode($body);
-
-        // 5️⃣ Siapkan signature
-        $clientId  = config('services.doku.client_id');
-        $secretKey = config('services.doku.secret_key');
-        $apiUrl    = config('services.doku.api_base'); // contoh: https://api-sandbox.doku.com
-        $path      = '/checkout/v1/payment';
-        $url       = $apiUrl . $path;
-
-        $requestId    = (string) Str::uuid();
-        $isoTimestamp = now()->utc()->format('Y-m-d\TH:i:s\Z');
-
-        $signature = DokuSignatureHelper::generateSignature(
-            $clientId,
-            $secretKey,
-            $requestId,
-            $isoTimestamp,
-            $path,
-            $bodyJson
-        );
-
-        // 6️⃣ Headers DOKU
-        $headers = [
-            'Client-Id'         => $clientId,
-            'Request-Id'        => $requestId,
-            'Request-Timestamp' => $isoTimestamp,
-            'Signature'         => $signature,
-            'Content-Type'      => 'application/json',
-            'Accept'            => 'application/json',
-        ];
-
-        // 7️⃣ Log data untuk debugging
-        Log::info('--- DATA DIKIRIM KE DOKU ---', [
-            'url'     => $url,
-            'headers' => $headers,
-            'body'    => $bodyJson, // string JSON asli, sinkron dengan signature
-        ]);
-
-        // 8️⃣ Kirim request ke DOKU
-        $response = Http::withHeaders($headers)
-            ->withBody($bodyJson, 'application/json')
-            ->post($url);
-
-        // 9️⃣ Cek response
-        if ($response->successful() && isset($response['payment']['url'])) {
-            $reservation->update([
-                'raw_response' => json_encode($response->json()),
-            ]);
-            DB::commit();
-
-            return response()->json([
-                'success'     => true,
-                'payment_url' => $response['payment']['url'],
-            ]);
+    public function processPayment(Request $request): JsonResponse
+    {
+        // 1️⃣ Validasi pesanan
+        $validationResult = $this->validateOrder($request);
+        if ($validationResult instanceof RedirectResponse) {
+            return response()->json(['success' => false, 'message' => 'Pesanan tidak valid'], 422);
         }
 
-        DB::rollBack();
-        Log::error('DOKU Payment Failed:', $response->json());
-        return response()->json([
-            'success'  => false,
-            'message'  => 'DOKU gagal memproses pembayaran',
-            'response' => $response->json(),
-        ], 500);
+        // 2️⃣ Validasi data customer
+        $validator = Validator::make($request->all(), [
+            'nama'          => 'required|string|max:255',
+            'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
+            'email'         => 'required|email|max:255',
+            'jumlah_orang'  => 'required|integer|min:1',
+            'tanggal'       => 'required|date|after_or_equal:today',
+            'waktu'         => 'required|date_format:H:i',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+        $customerData = $validator->validated();
 
-    } catch (\Throwable $e) {
-        DB::rollBack();
-        Log::error('CRITICAL Payment Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-        return response()->json([
-            'success' => false,
-            'message' => 'Terjadi kesalahan kritis di server: ' . $e->getMessage()
-        ], 500);
+        // 3️⃣ Data pesanan
+        $totalPrice = $validationResult['totalPrice'];
+        $reservationType = $validationResult['reservationType'];
+        $reservationFkId = $validationResult['reservationFkId'];
+        $products = $validationResult['products'];
+        $itemsFromRequest = $validationResult['items'];
+
+        $id_transaksi = 'HOMEY-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+
+        try {
+            DB::beginTransaction();
+
+            // Simpan reservasi
+            $reservation = Reservation::create([
+                'id_transaksi'   => $id_transaksi,
+                'nama'           => $customerData['nama'],
+                'nomor_telepon'  => $customerData['nomor_telepon'],
+                'email_customer' => $customerData['email'],
+                'jumlah_orang'   => $customerData['jumlah_orang'],
+                'tanggal'        => $customerData['tanggal'],
+                'waktu'          => $customerData['waktu'],
+                'status'         => 'pending',
+                'nomor_meja'     => ($reservationType === 'meja') ? $reservationFkId : null,
+                'nomor_ruangan'  => ($reservationType === 'ruangan') ? $reservationFkId : null,
+            ]);
+
+            // Lampirkan produk ke reservasi
+            foreach ($products as $product) {
+                $quantity = $itemsFromRequest[$product->id];
+                $reservation->products()->attach($product->id, [
+                    'quantity' => $quantity,
+                    'price'    => $product->price,
+                ]);
+            }
+
+            // 4️⃣ Siapkan body JSON untuk DOKU (Versi v2 yang BENAR)
+            $body = [
+                'order' => [
+                    'invoice_number' => $id_transaksi,
+                    'amount'         => (int) round($totalPrice),
+                    'currency'       => 'IDR',
+                    'auto_redirect'  => true,
+                    
+                    // INI ADALAH FIELD WAJIB UNTUK /checkout/v1/payment
+                    'success_url'    => route('payment.success'),
+                    'failed_url'     => route('payment.failed'),
+                ],
+                'customer' => [
+                    'name'  => $customerData['nama'],
+                    'email' => $customerData['email'],
+                ],
+            ];
+            $bodyJson = json_encode($body);
+
+        
+            $clientId  = config('services.doku.client_id');
+            $secretKey = config('services.doku.secret_key');
+            $apiUrl    = config('services.doku.api_base'); 
+            $path      = '/checkout/v1/payment'; // Endpoint v2
+            $url       = $apiUrl . $path;
+
+            $requestId    = (string) Str::uuid();
+            $isoTimestamp = now()->utc()->format('Y-m-d\TH:i:s\Z'); // Format UTC "Z"
+
+            $signature = DokuSignatureHelper::generateSignature(
+                $clientId,
+                $secretKey,
+                $requestId,
+                $isoTimestamp,
+                $path,
+                $bodyJson
+            );
+        
+            $headers = [
+                'Client-Id'       => $clientId,
+                'Request-Id'      => $requestId,
+                'Request-Timestamp' => $isoTimestamp,
+                'Signature'       => $signature,
+                'Content-Type'    => 'application/json',
+                'Accept'          => 'application/json',
+            ];
+
+            // 7️⃣ Log data untuk debugging (versi bersih)
+            Log::info('--- DATA DIKIRIM KE DOKU ---', [
+                'url'     => $url,
+                'headers' => $headers,
+                'body'    => $body, // Log array PHP, lebih mudah dibaca
+            ]);
+
+        
+            $response = Http::withHeaders($headers)
+                ->withBody($bodyJson, 'application/json')
+                ->post($url);
+
+            // 9️⃣ Cek response
+            if ($response->successful() && isset($response['payment']['url'])) {
+                $reservation->update([
+                    'raw_response' => json_encode($response->json()),
+                ]);
+                DB::commit();
+
+                return response()->json([
+                    'success'     => true,
+                    'payment_url' => $response['payment']['url'],
+                ]);
+            }
+
+            DB::rollBack();
+            Log::error('DOKU Payment Failed:', $response->json());
+            return response()->json([
+                'success'  => false,
+                'message'  => 'DOKU gagal memproses pembayaran',
+                'response' => $response->json(),
+            ], 500);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('CRITICAL Payment Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan kritis di server: ' . $e->getMessage()
+            ], 500);
+        }
     }
-}
 
     /**
      * 🧮 Validasi pesanan
      */
     private function validateOrder(Request $request)
     {
+        // ... (Fungsi ini sudah benar, tidak perlu diubah)
+        // ... (Saya salin kode Anda yang sudah ada di sini)
+
         $itemsFromRequest = $request->input('items', []);
         $roomName = trim($request->input('reservation_room_name'));
         $tableNumber = trim($request->input('reservation_table_number'));

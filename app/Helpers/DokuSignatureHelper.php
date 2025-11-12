@@ -10,9 +10,9 @@ class DokuSignatureHelper
      * @param string $clientId
      * @param string $secretKey
      * @param string $requestId
-     * @param string $isoTimestamp
-     * @param string $requestTarget
-     * @param string $bodyJson
+     * @param string $isoTimestamp (Format UTC "Z")
+     * @param string $requestTarget (Contoh: /checkout/v1/payment)
+     * @param string $bodyJson (Raw string JSON)
      * @return string
      */
     public static function generateSignature(
@@ -24,6 +24,7 @@ class DokuSignatureHelper
         string $bodyJson
     ): string {
         // 1️⃣ Buat Digest dari body JSON
+        // Jika body kosong (untuk GET), string-nya adalah ""
         $digest = base64_encode(hash('sha256', $bodyJson, true));
 
         // 2️⃣ Buat String-To-Sign sesuai urutan wajib DOKU
