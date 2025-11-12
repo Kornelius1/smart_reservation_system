@@ -120,12 +120,14 @@ class BayarController extends Controller
             //  ⬇️ INI DIA PERUBAHANNYA ⬇️
             $apiUrl    = config('services.doku.api_base'); // Mengambil dari config, BUKAN hard-code
             $path      = '/checkout/v1/payment';
+            $url       = $apiUrl . $path;
 
-            $body = [
+          $body = [
                 'order' => [
                     'invoice_number' => $id_transaksi,
-                    'amount'         => (int) round($totalPrice), // Casting ke (int)
-                    'currency'       => 'IDR',
+                    'amount' => (int) round($totalPrice),
+                    'currency' => 'IDR',
+                    'callback_url' => 'https://homey.my.id/api/doku/notification',
                 ],
                 'customer' => [
                     'name'  => $customerData['nama'],
@@ -162,15 +164,14 @@ class BayarController extends Controller
             ];
 
             Log::info('--- DATA DIKIRIM KE DOKU ---', [
-                'url'     => $apiUrl . $path,
+                'url'     => $url,
                 'headers' => $headers,
                 'body'    => json_decode($bodyJson) // log sebagai array agar mudah dibaca
             ]);
 
-            // 5. Kirim request dengan body string
-            $response = Http::withHeaders($headers)
-                            ->withBody($bodyJson, 'application/json') // Gunakan withBody untuk kirim raw string
-                            ->post($apiUrl . $path);
+    
+
+            $response = Http::withHeaders($headers)->post($url, $body);
 
             if ($response->successful() && isset($response['payment']['url'])) {
                 $reservation->update([
