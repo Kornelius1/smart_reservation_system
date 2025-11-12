@@ -126,11 +126,6 @@ class BayarController extends Controller
                     'invoice_number' => $id_transaksi,
                     'amount'         => (int) round($totalPrice), // Casting ke (int)
                     'currency'       => 'IDR',
-                    'auto_redirect'  => true,
-                    
-                    // REKOMENDASI: Tambahkan URL redirect untuk pelanggan
-                    'success_url'    => route('payment.success'), // Dari rute yang kita bahas
-                    'failed_url'     => route('payment.failed'),   // Dari rute yang kita bahas
                 ],
                 'customer' => [
                     'name'  => $customerData['nama'],
