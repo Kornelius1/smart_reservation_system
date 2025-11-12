@@ -166,6 +166,12 @@ class BayarController extends Controller
                 'Accept'          => 'application/json',
             ];
 
+            Log::info('--- DATA DIKIRIM KE DOKU ---', [
+                'url'     => $apiUrl . $path,
+                'headers' => $headers,
+                'body'    => json_decode($bodyJson) // log sebagai array agar mudah dibaca
+            ]);
+
             // 5. Kirim request dengan body string
             $response = Http::withHeaders($headers)
                             ->withBody($bodyJson, 'application/json') // Gunakan withBody untuk kirim raw string
