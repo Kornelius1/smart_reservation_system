@@ -144,7 +144,7 @@ class BayarController extends Controller
 
             // 2. Siapkan komponen untuk signature
             $requestId = (string) Str::uuid(); // Buat Request-Id unik
-            $isoTimestamp = now()->toIso8601String(); // Format: 2025-11-12T02:50:00Z
+            $isoTimestamp = now()->utc()->format('Y-m-d\TH:i:s\Z');// Format: 2025-11-12T02:50:00Z
 
             // 3. 🔐 Panggil method helper yang BENAR
             $signature = DokuSignatureHelper::generateSignature(
