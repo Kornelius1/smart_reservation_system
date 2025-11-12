@@ -159,7 +159,7 @@ class BayarController extends Controller
             $url       = $apiUrl . $path;
 
             $requestId    = (string) Str::uuid();
-            $isoTimestamp = now()->utc()->format('Y-m-d\TH:i:sZ'); // Format UTC "Z"
+           $isoTimestamp = now()->utc()->format('Y-m-d\TH:i:s\Z');
 
             $signature = DokuSignatureHelper::generateSignature(
                 $clientId,
