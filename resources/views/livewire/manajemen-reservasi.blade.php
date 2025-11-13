@@ -106,15 +106,11 @@
                                 {{-- Kolom Daftar Pesanan --}}
                                 <td class="text-xs text-left">
                                     @if ($reservation->products->isEmpty())
-                                        <span>-</span>
+                                    <span>-</span>
                                     @else
-                                        <ul class="list-disc list-inside">
-                                            @foreach ($reservation->products as $product)
-                                                <li class="whitespace-nowrap">
-                                                    {{ $product->name }} ({{ $product->pivot->quantity }}x)
-                                                </li>
-                                            @endforeach
-                                        </ul>
+                                    {{-- Tombol untuk membuka modal --}}
+                                            <button class="btn btn-xs btn-ghost text-blue-600" onclick="modal_{{ $reservation->id_reservasi }}.showModal()">
+                                    Lihat ({{ $reservation->products->count() }} item)</button>
                                     @endif
                                 </td>
 
@@ -200,6 +196,39 @@
                                 </td>
                             </tr>
                         @empty
+
+                        {{-- MODAL (Ditempatkan di luar <tr> tapi di dalam @forelse) --}}
+                            @if (!$reservation->products->isEmpty())
+                                <dialog id="modal_{{ $reservation->id_reservasi }}" class="modal">
+                                    <div class="modal-box">
+                                        <h3 class="font-bold text-lg text-brand-text">Daftar Pesanan</h3>
+                                        <p class="py-2 text-brand-text">Invoice: {{ $reservation->id_transaksi }}</p>
+                                        
+                                        <ul class="list-disc list-inside py-4 text-brand-text text-left">
+                                            @foreach ($reservation->products as $product)
+                                                <li class="text-sm">
+                                                    {{ $product->name }} 
+                                                    <span class="font-semibold">
+                                                        ({{ $product->pivot->quantity }}x @ Rp {{ number_format($product->pivot->price) }})
+                                                    </span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+
+                                        <div class="modal-action">
+                                            <form method="dialog">
+                                                <button class="btn">Tutup</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    
+                                    {{-- Klik di luar untuk menutup --}}
+                                    <form method="dialog" class="modal-backdrop">
+                                        <button>close</button>
+                                    </form>
+                                </dialog>
+                            @endif
+
                             {{-- Jika tidak ada data --}}
                             <tr>
                                 <td colspan="12" class="text-center py-4">Tidak ada data reservasi ditemukan.</td>
