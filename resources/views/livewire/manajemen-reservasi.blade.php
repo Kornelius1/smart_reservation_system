@@ -94,7 +94,9 @@
                                 // Waktu di set ke 60 detik (1 menit)
                                 $isNew = $reservation->status == 'akan datang' && $reservation->created_at->diffInSeconds(now()) < 60;
                             @endphp
-                           <tr class="text-center {{ $isNew ? 'bg-yellow-50/70 border-l-4 border-yellow-500 transition-colors duration-1000' : '' }}">
+                            
+                            {{-- 1. BARIS TABEL UNTUK SETIAP RESERVASI --}}
+                            <tr class="text-center {{ $isNew ? 'bg-yellow-50/70 border-l-4 border-yellow-500 transition-colors duration-1000' : '' }}">
                                 {{-- <th>{{ $reservation->id_reservasi }}</th> --}}
                                 <td>{{ $reservation->id_transaksi }}</td>
                                 <td>{{ $reservation->nomor_meja ?? '-' }}</td>
@@ -106,11 +108,11 @@
                                 {{-- Kolom Daftar Pesanan --}}
                                 <td class="text-xs text-left">
                                     @if ($reservation->products->isEmpty())
-                                    <span>-</span>
+                                        <span>-</span>
                                     @else
-                                    {{-- Tombol untuk membuka modal --}}
-                                            <button class="btn btn-xs btn-ghost text-blue-600" onclick="modal_{{ $reservation->id_reservasi }}.showModal()">
-                                    Lihat ({{ $reservation->products->count() }} item)</button>
+                                        {{-- Tombol untuk membuka modal --}}
+                                        <button class="btn btn-xs btn-ghost text-blue-600" onclick="modal_{{ $reservation->id_reservasi }}.showModal()">
+                                            Lihat ({{ $reservation->products->count() }} item)</button>
                                     @endif
                                 </td>
 
@@ -119,7 +121,7 @@
                                 <td>{{ $reservation->waktu ? \Carbon\Carbon::parse($reservation->waktu)->format('H:i') : '-' }} WIB</td>
                                 
                             
-                                {{-- Blok Status (SAMA SEPERTI YANG ANDA BERIKAN) --}}
+                                {{-- Blok Status --}}
                                 <td class="whitespace-nowrap">
                                     @switch($reservation->status)
                                         @case('pending')
@@ -143,15 +145,15 @@
                                             @break
 
                                         @case('kedaluwarsa')
-                                        <span class="badge badge-neutral text-white badge-sm">Kedaluwarsa</span>
-                                        @break
+                                            <span class="badge badge-neutral text-white badge-sm">Kedaluwarsa</span>
+                                            @break
 
                                         @default
                                             <span class="badge">{{ $reservation->status }}</span>
                                     @endswitch
                                 </td>
                                 
-                                {{-- Blok Aksi (SAMA SEPERTI YANG ANDA BERIKAN) --}}
+                                {{-- Blok Aksi --}}
                                 <td class="whitespace-nowrap">
                                     <div class="flex items-center justify-center gap-2">
                                         
@@ -165,7 +167,7 @@
 
                                             {{-- Form untuk Batalkan --}}
                                             <form action="{{ route('admin.reservasi.cancel', $reservation->id_reservasi) }}" method="POST" class="m-0"
-                                                  onsubmit="return confirm('Apakah Anda yakin ingin MEMBATALKAN reservasi ini?');">
+                                                    onsubmit="return confirm('Apakah Anda yakin ingin MEMBATALKAN reservasi ini?');">
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit" class="btn btn-error btn-xs text-white">Batalkan</button>
@@ -174,7 +176,7 @@
                                         @elseif ($reservation->status == 'pending')
                                             {{-- Form untuk Batalkan (hanya pending) --}}
                                             <form action="{{ route('admin.reservasi.cancel', $reservation->id_reservasi) }}" method="POST" class="m-0"
-                                                  onsubmit="return confirm('Apakah Anda yakin ingin MEMBATALKAN reservasi ini?');">
+                                                    onsubmit="return confirm('Apakah Anda yakin ingin MEMBATALKAN reservasi ini?');">
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit" class="btn btn-error btn-xs text-white">Batalkan</button>
@@ -195,13 +197,8 @@
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            {{-- Jika tidak ada data --}}
-                            <tr>
-                                <td colspan="12" class="text-center py-4">Tidak ada data reservasi ditemukan.</td>
-                            </tr>
 
-                          {{-- MODAL (Ditempatkan di luar <tr> tapi di dalam @forelse) --}}
+                            {{-- 2. MODAL UNTUK RESERVASI INI (DIPINDAHKAN KE SINI) --}}
                             @if (!$reservation->products->isEmpty())
                                 <dialog id="modal_{{ $reservation->id_reservasi }}" class="modal">
                                     <div class="modal-box">
@@ -232,6 +229,12 @@
                                     </form>
                                 </dialog>
                             @endif
+
+                        @empty
+                            {{-- 3. BLOK @empty SEKARANG HANYA BERISI PESAN "TIDAK ADA DATA" --}}
+                            <tr>
+                                <td colspan="12" class="text-center py-4">Tidak ada data reservasi ditemukan.</td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
