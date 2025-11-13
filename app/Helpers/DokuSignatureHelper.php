@@ -6,15 +6,15 @@ use Illuminate\Support\Str;
 
 class DokuSignatureHelper
 {
-    /**
+/**
      * Menghasilkan header tanda tangan DOKU untuk permintaan POST/PUT.
      *
-     * @param array $requestBody Body permintaan dalam bentuk array asosiatif.
+     * @param string $jsonBody Body permintaan dalam bentuk STRING JSON yang sudah di-encode. // <-- DIPERBAIKI
      * @param string $requestTarget Path endpoint API (misal: /checkout/v1/payment)
      * @return array Array yang berisi header untuk HTTP Client.
      * @throws \Exception Jika Client ID atau Secret Key tidak diatur.
      */
-    public static function generate(array $requestBody, string $requestTarget): array
+    public static function generate(string $jsonBody, string $requestTarget): array // <-- DIPERBAIKI
     {
         // 1. Ambil Kredensial dari file config
         $clientId = config('doku.client_id');
@@ -30,7 +30,8 @@ class DokuSignatureHelper
         $requestTimestamp = gmdate("Y-m-d\TH:i:s\Z"); // Format ISO8601 UTC
 
         // 3. Buat Digest
-        // Penting: Ubah array body menjadi string JSON
+        // [DIPERBAIKI] Kita tidak perlu json_encode lagi,
+        // karena kita menerimanya sebagai string dari controller.
         $digest = self::generateDigest($jsonBody);
 
         // 4. Susun String-to-Sign
@@ -51,7 +52,6 @@ class DokuSignatureHelper
             'Signature' => $signature
         ];
     }
-
     /**
      * Helper privat untuk membuat Digest (SHA256 -> Base64)
      */
