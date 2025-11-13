@@ -75,7 +75,7 @@ class DokuNotificationController extends Controller
             // [PERBAIKAN] Kasus 3: Logika Bisnis Utama (Sesuai Aturan Checkout)
             if ($paymentStatus === 'SUCCESS') {
                 
-                $reservation->status = 'Akan Datang'; // Sesuai permintaan Anda
+                $reservation->status = 'akan datang'; // Sesuai permintaan Anda
                 $reservation->save();
                 DB::commit();
 
