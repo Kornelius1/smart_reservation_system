@@ -49,8 +49,8 @@ class DokuSignatureHelper
     }
 
 
-    /**
-     * [FUNGSI YANG DIPERBARUI]
+/**
+     * [FUNGSI BARU - LEBIH PINTAR]
      * Memvalidasi tanda tangan notifikasi yang masuk dari DOKU.
      *
      * @param Request $request Request yang masuk dari DOKU
@@ -62,18 +62,27 @@ class DokuSignatureHelper
             // 1. Ambil "Bahan Baku" dari Header DOKU
             $dokuClientId = $request->header('Client-Id');
             $dokuRequestId = $request->header('Request-Id');
-            
-            // [PERBAIKAN]
-            // Dokumentasi Best Practice Notifikasi (Non-SNAP)
-            // secara spesifik meminta 'Request-Timestamp', BUKAN 'Response-Timestamp'.
-            $dokuTimestamp = $request->header('Request-Timestamp'); 
-            
             $dokuSignature = $request->header('Signature');
+            
+            // [PERBAIKAN] Tangani ambiguitas DOKU
+            // Cek 'Request-Timestamp' (dari tombol Tes)
+            // ATAU 'Response-Timestamp' (dari notifikasi Asli)
+            
+            $timestampHeaderKey = '';
+            $dokuTimestamp = null;
+
+            if ($request->hasHeader('Request-Timestamp')) {
+                $dokuTimestamp = $request->header('Request-Timestamp');
+                $timestampHeaderKey = 'Request-Timestamp';
+            } elseif ($request->hasHeader('Response-Timestamp')) {
+                $dokuTimestamp = $request->header('Response-Timestamp');
+                $timestampHeaderKey = 'Response-Timestamp';
+            }
 
             // 2. Ambil "Bahan Baku" dari Server Kita
             $secretKey = config('doku.secret_key');
-            $requestTarget = '/' . $request->path(); // mis. '/api/doku/notification'
-            $jsonBody = $request->getContent(); // Ambil body mentah
+            $requestTarget = '/' . $request->path();
+            $jsonBody = $request->getContent();
 
             if (!$dokuClientId || !$dokuRequestId || !$dokuTimestamp || !$dokuSignature || !$secretKey) {
                 Log::warning('DOKU Validate: Missing required headers or secret key.');
@@ -84,17 +93,17 @@ class DokuSignatureHelper
             $ourDigest = self::generateDigest($jsonBody);
 
             // 4. [PERBAIKAN] Buat ulang 'String-to-Sign'
-            // Menggunakan 'Request-Timestamp' sesuai dokumentasi
+            // Menggunakan kunci 'Timestamp' yang benar
             $stringToSign = "Client-Id:" . $dokuClientId . "\n" .
                             "Request-Id:" . $dokuRequestId . "\n" .
-                            "Request-Timestamp:" . $dokuTimestamp . "\n" . // <-- PERBAIKAN DI SINI
+                            $timestampHeaderKey . ":" . $dokuTimestamp . "\n" . // <-- PERBAIKAN DINAMIS
                             "Request-Target:" . $requestTarget . "\n" .
                             "Digest:" . $ourDigest;
 
             // 5. Buat ulang 'Signature'
             $ourSignature = self::generateHmac($stringToSign, $secretKey);
             
-            // 6. Bandingkan dengan aman (mencegah timing attacks)
+            // 6. Bandingkan dengan aman
             return hash_equals($ourSignature, $dokuSignature);
 
         } catch (\Exception $e) {
