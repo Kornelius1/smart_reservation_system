@@ -44,6 +44,7 @@ class ReservationSeeder extends Seeder
                 'nomor_ruangan' => null, 
                 'payment_token' => null,   
                 'expired_at' => null,
+                'total_price' => 92000.00 
             ],
             [
                 'id_transaksi' => 'TRS002',
@@ -56,7 +57,8 @@ class ReservationSeeder extends Seeder
                 'nomor_meja' => null,
                 'payment_token' => null,   // <== TAMBAHKAN INI
                 'expired_at' => null,
-                'nomor_ruangan' => 1 
+                'nomor_ruangan' => 1,
+                'total_price' => 43000.00  
             ],
             [
                 'id_transaksi' => 'TRS003',
@@ -69,7 +71,8 @@ class ReservationSeeder extends Seeder
                 'nomor_meja' => 3,
                 'payment_token' => null,   // <== TAMBAHKAN INI
                 'expired_at' => null,
-                'nomor_ruangan' => null 
+                'nomor_ruangan' => null,
+                'total_price' => 43000.00 
             ],
             [
                 'id_transaksi' => 'TRS004',
@@ -82,7 +85,8 @@ class ReservationSeeder extends Seeder
                 'nomor_meja' => null,
                 'payment_token' => null, 
                 'expired_at' => null,
-                'nomor_ruangan' => 2 
+                'nomor_ruangan' => 2,
+                'total_price' => 40000.00  
             ],
             [
                 'id_transaksi' => 'TRS005',
@@ -95,7 +99,8 @@ class ReservationSeeder extends Seeder
                 'nomor_meja' => 5,
                 'payment_token' => null,   
                 'expired_at' => null,
-                'nomor_ruangan' => null 
+                'nomor_ruangan' => null,
+                'total_price' => 30000.00
             ],
             [
                 'id_transaksi' => 'TRS006',
@@ -108,7 +113,8 @@ class ReservationSeeder extends Seeder
                 'nomor_meja' => 6,
                 'payment_token' => null,   
                 'expired_at' => null,
-                'nomor_ruangan' => null 
+                'nomor_ruangan' => null,
+                'total_price' => 24000.00  
             ],
             [
                 'id_transaksi' => 'TRS007',
@@ -121,7 +127,8 @@ class ReservationSeeder extends Seeder
                 'nomor_meja' => 7,
                 'payment_token' => null,   
                 'expired_at' => null,
-                'nomor_ruangan' => null 
+                'nomor_ruangan' => null,
+                'total_price' => 150000.00
             ],
             [
                 'id_transaksi' => 'TRS008',
@@ -134,7 +141,8 @@ class ReservationSeeder extends Seeder
                 'nomor_meja' => 8,
                 'payment_token' => null,   
                 'expired_at' => null,
-                'nomor_ruangan' => null 
+                'nomor_ruangan' => null,
+                'total_price' => 45000.00  
             ],
         ];
 
