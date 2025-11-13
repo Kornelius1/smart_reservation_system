@@ -289,14 +289,17 @@ class BayarController extends Controller
             // 7. Tentukan Endpoint DOKU
             $requestTarget = '/checkout/v1/payment'; 
 
+            $jsonBody = json_encode($requestBody, JSON_UNESCAPED_SLASHES);
+
             // 8. Panggil Helper untuk membuat SEMUA header
-            $headers = DokuSignatureHelper::generate($requestBody, $requestTarget);
+            $headers = DokuSignatureHelper::generate($jsonBody, $requestTarget)
 
             // 9. Hit API DOKU
             $response = Http::withHeaders($headers)
+                ->withBody($jsonBody, 'application/json') // <-- Kirim sebagai string mentah
                 ->post(
-                    config('doku.base_url') . $requestTarget,
-                    $requestBody
+                    config('doku.base_url') . $requestTarget
+                    // (Hapus body dari sini karena sudah diatur oleh withBody)
                 );
 
             if (!$response->successful()) {

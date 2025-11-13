@@ -31,7 +31,6 @@ class DokuSignatureHelper
 
         // 3. Buat Digest
         // Penting: Ubah array body menjadi string JSON
-        $jsonBody = json_encode($requestBody, JSON_UNESCAPED_SLASHES);
         $digest = self::generateDigest($jsonBody);
 
         // 4. Susun String-to-Sign
