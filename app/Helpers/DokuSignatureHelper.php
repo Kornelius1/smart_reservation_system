@@ -3,37 +3,30 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request; // <-- Pastikan 'use' statement ini ada
+use Illuminate\Support\Facades\Log; // <-- Tambahkan 'use' statement ini
 
 class DokuSignatureHelper
 {
-/**
+    /**
+     * [FUNGSI YANG SUDAH ADA]
      * Menghasilkan header tanda tangan DOKU untuk permintaan POST/PUT.
-     *
-     * @param string $jsonBody Body permintaan dalam bentuk STRING JSON yang sudah di-encode. // <-- DIPERBAIKI
-     * @param string $requestTarget Path endpoint API (misal: /checkout/v1/payment)
-     * @return array Array yang berisi header untuk HTTP Client.
-     * @throws \Exception Jika Client ID atau Secret Key tidak diatur.
+     * (Tidak ada perubahan di sini, ini sudah benar)
      */
-    public static function generate(string $jsonBody, string $requestTarget): array // <-- DIPERBAIKI
+    public static function generate(string $jsonBody, string $requestTarget): array
     {
-        // 1. Ambil Kredensial dari file config
+        // 1. Ambil Kredensial
         $clientId = config('doku.client_id');
         $secretKey = config('doku.secret_key');
-
         if (!$clientId || !$secretKey) {
-            // Ini adalah error fatal. Hentikan eksekusi.
             throw new \Exception('DOKU_CLIENT_ID atau DOKU_SECRET_KEY belum diatur di .env');
         }
 
         // 2. Buat Komponen Dinamis
-        $requestId = Str::uuid()->toString(); // Menggunakan UUID untuk jaminan keunikan
-        $requestTimestamp = gmdate("Y-m-d\TH:i:s\Z"); // Format ISO8601 UTC
+        $requestId = Str::uuid()->toString();
+        $requestTimestamp = gmdate("Y-m-d\TH:i:s\Z"); 
 
         // 3. Buat Digest
-        // [DIPERBAIKI] Kita tidak perlu json_encode lagi,
-        // karena kita menerimanya sebagai string dari controller.
         $digest = self::generateDigest($jsonBody);
 
         // 4. Susun String-to-Sign
@@ -46,7 +39,7 @@ class DokuSignatureHelper
         // 5. Buat Tanda Tangan (Signature)
         $signature = self::generateHmac($stringToSign, $secretKey);
 
-        // 6. Kembalikan array header yang siap pakai
+        // 6. Kembalikan array header
         return [
             'Client-Id' => $clientId,
             'Request-Id' => $requestId,
@@ -54,32 +47,10 @@ class DokuSignatureHelper
             'Signature' => $signature
         ];
     }
-    /**
-     * Helper privat untuk membuat Digest (SHA256 -> Base64)
-     */
-    private static function generateDigest(string $jsonBody): string
-    {
-        // Parameter 'true' di hash() mengembalikan data biner mentah
-        $hashedBody = hash('sha256', $jsonBody, true);
-        return base64_encode($hashedBody);
-    }
-
-    /**
-     * Helper privat untuk membuat Signature (HMAC-SHA256 -> Base64 -> Prefix)
-     */
-    private static function generateHmac(string $stringToSign, string $secretKey): string
-    {
-        // Parameter 'true' di hash_hmac() mengembalikan data biner mentah
-        $hmac = hash_hmac('sha256', $stringToSign, $secretKey, true);
-        $base64Hmac = base64_encode($hmac);
-        
-        // Tambahkan prefix sesuai dokumentasi
-        return "HMACSHA256=" . $base64Hmac;
-    }
 
 
     /**
-     * [FUNGSI BARU]
+     * [FUNGSI YANG DIPERBARUI]
      * Memvalidasi tanda tangan notifikasi yang masuk dari DOKU.
      *
      * @param Request $request Request yang masuk dari DOKU
@@ -91,7 +62,12 @@ class DokuSignatureHelper
             // 1. Ambil "Bahan Baku" dari Header DOKU
             $dokuClientId = $request->header('Client-Id');
             $dokuRequestId = $request->header('Request-Id');
-            $dokuTimestamp = $request->header('Response-Timestamp'); // DOKU mengirim 'Response-Timestamp'
+            
+            // [PERBAIKAN]
+            // Dokumentasi Best Practice Notifikasi (Non-SNAP)
+            // secara spesifik meminta 'Request-Timestamp', BUKAN 'Response-Timestamp'.
+            $dokuTimestamp = $request->header('Request-Timestamp'); 
+            
             $dokuSignature = $request->header('Signature');
 
             // 2. Ambil "Bahan Baku" dari Server Kita
@@ -107,15 +83,15 @@ class DokuSignatureHelper
             // 3. Buat ulang 'Digest'
             $ourDigest = self::generateDigest($jsonBody);
 
-            // 4. Buat ulang 'String-to-Sign' (HARUS SESUAI DOKUMENTASI RESPONSE)
+            // 4. [PERBAIKAN] Buat ulang 'String-to-Sign'
+            // Menggunakan 'Request-Timestamp' sesuai dokumentasi
             $stringToSign = "Client-Id:" . $dokuClientId . "\n" .
                             "Request-Id:" . $dokuRequestId . "\n" .
-                            "Response-Timestamp:" . $dokuTimestamp . "\n" . // <-- Kuncinya "Response-..."
+                            "Request-Timestamp:" . $dokuTimestamp . "\n" . // <-- PERBAIKAN DI SINI
                             "Request-Target:" . $requestTarget . "\n" .
                             "Digest:" . $ourDigest;
 
             // 5. Buat ulang 'Signature'
-            // (Kita panggil helper 'generateHmac' yang sudah ada)
             $ourSignature = self::generateHmac($stringToSign, $secretKey);
             
             // 6. Bandingkan dengan aman (mencegah timing attacks)
@@ -125,5 +101,25 @@ class DokuSignatureHelper
             Log::error('DOKU Signature Validation Exception', ['error' => $e->getMessage()]);
             return false;
         }
+    }
+
+
+    /**
+     * [FUNGSI PRIVAT - TIDAK BERUBAH]
+     */
+    private static function generateDigest(string $jsonBody): string
+    {
+        $hashedBody = hash('sha256', $jsonBody, true);
+        return base64_encode($hashedBody);
+    }
+
+    /**
+     * [FUNGSI PRIVAT - TIDAK BERUBAH]
+     */
+    private static function generateHmac(string $stringToSign, string $secretKey): string
+    {
+        $hmac = hash_hmac('sha256', $stringToSign, $secretKey, true);
+        $base64Hmac = base64_encode($hmac);
+        return "HMACSHA256=" . $base64Hmac;
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Helpers\DokuSignatureHelper;
+use App\Helpers\DokuSignatureHelper; // <-- Pastikan 'use' ini ada
 use App\Http\Controllers\Controller;
 
 class DokuNotificationController extends Controller
@@ -20,21 +20,19 @@ class DokuNotificationController extends Controller
      */
     public function handle(Request $request): JsonResponse
     {
-        // 1. Log MENTAH (Sangat Penting untuk Debugging)
-        // Kita log *sebelum* validasi, untuk melihat apa yang sebenarnya dikirim DOKU.
+        // 1. Log MENTAH
         Log::info('DOKU Notification Received', [
             'headers' => $request->headers->all(),
             'body' => $request->getContent()
         ]);
 
         // 2. Validasi Signature (KEAMANAN)
-        // Kita panggil method 'validate' baru dari helper kita.
+        // (Sekarang menggunakan helper yang sudah diperbarui)
         if (!DokuSignatureHelper::validate($request)) {
             Log::warning('DOKU Signature Validation FAILED', [
                 'ip' => $request->ip()
             ]);
-            // Tolak permintaan yang tidak valid.
-            return response()->json(['status' => 'FORBIDDEN'], 403);
+            return response()->json(['status' => 'FORBIDDEN_INVALID_SIGNATURE'], 403);
         }
 
         // --- Signature Valid: Lanjutkan ke Logika Bisnis ---
@@ -42,13 +40,12 @@ class DokuNotificationController extends Controller
         $data = $request->json()->all();
 
         // 3. Ambil Data Kunci dari JSON
-        // PERHATIAN: Sesuaikan path ini jika DOKU mengirim struktur yang berbeda
         try {
+            // Sesuaikan path ini jika DOKU mengirim struktur yang berbeda
             $invoiceNumber = $data['order']['invoice_number'];
-            $paymentStatus = $data['transaction']['status']; // mis. 'SUCCESS', 'FAILED'
+            $paymentStatus = $data['transaction']['status']; 
         } catch (\Exception $e) {
             Log::error('DOKU Notification: Invalid JSON structure', ['body' => $data]);
-            // Kita tetap kirim 200 OK agar DOKU berhenti retrying.
             return response()->json(['status' => 'OK_INVALID_STRUCTURE']);
         }
 
@@ -57,43 +54,51 @@ class DokuNotificationController extends Controller
         try {
             DB::beginTransaction();
 
-            // Kunci reservasi ini untuk mencegah 'race condition'
             $reservation = Reservation::where('id_transaksi', $invoiceNumber)
-                                      ->lockForUpdate()
+                                      ->lockForUpdate() // Kunci baris untuk keamanan
                                       ->first();
 
             // Kasus 1: Reservasi tidak ditemukan
             if (!$reservation) {
                 Log::warning('DOKU Notification: Reservation not found', ['invoice' => $invoiceNumber]);
-                DB::commit(); // Tidak ada yang perlu dilakukan, tapi anggap sukses
+                DB::commit(); 
                 return response()->json(['status' => 'OK_NOT_FOUND']);
             }
 
             // Kasus 2: Reservasi sudah diproses (Idempotency)
-            // Jika statusnya BUKAN 'PENDING', berarti kita sudah memproses notifikasi sebelumnya.
             if ($reservation->status !== 'PENDING') {
                 Log::info('DOKU Notification: Reservation already processed', ['invoice' => $invoiceNumber]);
                 DB::commit();
                 return response()->json(['status' => 'OK_ALREADY_PROCESSED']);
             }
 
-            // Kasus 3: Logika Bisnis Utama
+            // [PERBAIKAN] Kasus 3: Logika Bisnis Utama (Sesuai Aturan Checkout)
             if ($paymentStatus === 'SUCCESS') {
+                
                 $reservation->status = 'Akan Datang'; // Sesuai permintaan Anda
-                // Anda juga bisa menyimpan data lain di sini jika perlu
-                // $reservation->payment_token = $data['payment']['token_id'];
+                $reservation->save();
+                DB::commit();
+
+                Log::info('DOKU Notification: Processed successfully', ['invoice' => $invoiceNumber, 'new_status' => $reservation->status]);
+                // Kirim 200 OK agar DOKU berhenti
+                return response()->json(['status' => 'OK_SUCCESS']);
+            
             } else {
-                // mis. 'EXPIRED', 'FAILED', 'CANCELLED'
-                $reservation->status = 'Gagal'; // Atau 'Dibatalkan', 'Kadaluarsa'
+                
+                // [PERBAIKAN] Jika status 'FAILED', 'EXPIRED', 'CANCELLED', dll.
+                // Sesuai Best Practice DOKU Checkout, kita ABAIKAN.
+                // Biarkan status tetap 'PENDING' di DB.
+                // Biarkan Task Scheduler Anda yang menanganinya nanti.
+                
+                DB::commit(); // Tidak ada perubahan, tapi tutup transaksi.
+                
+                Log::info('DOKU Notification: Ignoring non-SUCCESS status', [
+                    'invoice' => $invoiceNumber, 
+                    'status_from_doku' => $paymentStatus
+                ]);
+                // Kita tetap kirim 200 OK agar DOKU berhenti
+                return response()->json(['status' => 'OK_IGNORED_NON_SUCCESS']);
             }
-
-            $reservation->save();
-            DB::commit();
-
-            Log::info('DOKU Notification: Processed successfully', ['invoice' => $invoiceNumber, 'new_status' => $reservation->status]);
-
-            // Kirim 200 OK untuk memberitahu DOKU agar berhenti mengirim
-            return response()->json(['status' => 'OK']);
 
         } catch (\Exception $e) {
             DB::rollBack();
