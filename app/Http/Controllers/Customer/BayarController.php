@@ -64,114 +64,6 @@ class BayarController extends Controller
         ]);
     }
 
-
-    /**
-     * 🚀 Memproses pembayaran dan membuat invoice DOKU (via AJAX)
-     * Ini adalah method yang dipanggil oleh route('doku.createPayment')
-     */
-    public function processPayment(Request $request): JsonResponse // Pastikan return type adalah JsonResponse
-    {
-        // 1. Validasi Keamanan (Harus selalu ada)
-        // Gunakan logika 'validateOrder' Anda
-        $validationResult = $this->validateOrderForPayment($request); 
-
-        if ($validationResult instanceof RedirectResponse) {
-            // Jika validasi gagal, kembalikan error JSON
-            return response()->json([
-                'message' => 'Data pesanan tidak valid atau tidak memenuhi syarat.'
-            ], 422); // 422 Unprocessable Entity
-        }
-
-        // Ambil data pelanggan dari request (setelah lolos HTML5 validation)
-        $customerData = $request->validate([
-            'nama' => 'required|string|min:3',
-            'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
-            'email' => 'required|email',
-            'jumlah_orang' => 'required|integer|min:1',
-            'tanggal' => 'required|date|after_or_equal:today',
-            'waktu' => 'required|date_format:H:i',
-        ]);
-        
-        $totalPrice = $validationResult['totalPrice'];
-        $invoiceNumber = 'INV-' . time() . Str::random(5);
-
-        // --- MULAI LOGIKA DOKU ---
-        DB::beginTransaction();
-        try {
-            // 2. Buat reservasi di DB (status 'pending')
-            $reservation = Reservation::create([
-                'invoice_number' => $invoiceNumber,
-                'total_price' => $totalPrice,
-                'status' => 'PENDING',
-                'customer_name' => $customerData['nama'],
-                'customer_email' => $customerData['email'],
-                'customer_phone' => $customerData['nomor_telepon'],
-                // ... (simpan meja_id, room_id, dll dari $validationResult) ...
-            ]);
-
-            // 3. Siapkan Body untuk DOKU
-            $requestBody = [
-                'order' => [
-                    'amount' => $totalPrice,
-                    'invoice_number' => $invoiceNumber,
-                    // 'callback_url' => route('doku.notification') // PENTING untuk notifikasi
-                ],
-                'customer' => [
-                    'name' => $customerData['nama'],
-                    'email' => $customerData['email'],
-                    'phone' => $customerData['nomor_telepon'],
-                ]
-                // ... (data lain sesuai kebutuhan DOKU) ...
-            ];
-
-            // 4. Generate Signature (Memanggil Helper Anda)
-            // (Ini adalah Pseude-code, sesuaikan dengan helper Anda)
-            $signatureResult = DokuSignatureHelper::generate($requestBody);
-
-            // 5. Hit API DOKU
-            $response = Http::withHeaders([
-                'Client-Id' => $signatureResult['client_id'],
-                'Request-Id' => $signatureResult['request_id'],
-                'Request-Timestamp' => $signatureResult['timestamp'],
-                'Signature' => $signatureResult['signature'],
-            ])->post(config('doku.base_url') . '/checkout/v1/payment', $requestBody);
-
-            if (!$response->successful()) {
-                throw new \Exception('Gagal menghubungi DOKU: ' . $response->body());
-            }
-
-            $paymentUrl = $response->json('payment.url');
-            
-            // 6. Update reservasi dengan payment_url & Commit DB
-            $reservation->payment_url = $paymentUrl;
-            $reservation->save();
-            DB::commit();
-
-            // 7. Sukses! Kembalikan URL ke Frontend
-            return response()->json([
-                'payment_url' => $paymentUrl
-            ]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // Error validasi data pelanggan
-            DB::rollBack();
-            return response()->json([
-                'message' => 'Data pemesan tidak valid.',
-                'errors' => $e->errors(),
-            ], 422);
-            } catch (\Exception $e) {
-                // Error DOKU atau Database
-                DB::rollBack();
-                Log::error('DOKU Payment Error: ' . $e->getMessage());
-                
-                // KODE YANG SUDAH DIPERBAIKI:
-                return response()->json([
-                'message' => 'Terjadi kesalahan internal. Silakan coba beberapa saat lagi.'
-            ], 500); // 500 Internal Server Error
-        }
-    }
-
-
     private function validateOrder(Request $request)
     {
         
@@ -231,5 +123,202 @@ class BayarController extends Controller
         }
 
         return redirect('/pilih-reservasi')->withErrors(['msg' => 'Pilih jenis reservasi.']);
+    }
+
+    /**
+     * Validasi data yang disubmit untuk *diproses* ke pembayaran.
+     * HARUS KETAT dan bisa mengembalikan redirect DENGAN error
+     * (untuk menangani manipulasi data).
+     *
+     * @param Request $request
+     * @return array|RedirectResponse
+     */
+    private function validateOrderForPayment(Request $request)
+    {
+        // Ambil data (sama seperti fungsi 'show')
+        $itemsFromRequest = $request->input('items', []);
+        $roomName = trim($request->input('reservation_room_name'));
+        $tableNumber = trim($request->input('reservation_table_number'));
+
+        // 1. Validasi Keranjang Kosong (Harus ada error di sini)
+        if (empty($itemsFromRequest)) {
+            // Ini seharusnya tidak terjadi jika JS berjalan,
+            // jadi jika terjadi, ini adalah masalah keamanan/manipulasi.
+            return redirect('/pesanmenu')->withErrors(['msg' => 'Keranjang kosong!']);
+        }
+
+        $productIds = array_keys($itemsFromRequest);
+        $products = Product::findMany($productIds);
+        $totalPrice = 0;
+        foreach ($products as $product) {
+            $totalPrice += $product->price * $itemsFromRequest[$product->id];
+        }
+
+        // 2. Validasi untuk Reservasi Ruangan
+        if ($roomName) {
+            $room = Room::where('nama_ruangan', $roomName)->first();
+
+            // Jika ruangan tidak valid atau minimal order tidak terpenuhi
+            if (!$room) {
+                 return redirect('/pesanmenu')->withErrors(['msg' => 'Ruangan tidak valid.']);
+            }
+            if ($totalPrice < $room->minimum_order) {
+                 return redirect('/pesanmenu')->withErrors(['msg' => 'Belanja belum memenuhi minimal ruangan.']);
+            }
+
+            // Sukses validasi ruangan
+            return [
+                'products' => $products,
+                'items' => $itemsFromRequest,
+                'totalPrice' => $totalPrice,
+                'reservationType' => 'ruangan',
+                'reservationDetail' => $roomName,
+                'reservationFkId' => $room->id,
+            ];
+        }
+
+        // 3. Validasi untuk Reservasi Meja
+        if ($tableNumber) {
+            $meja = Meja::where('nomor_meja', $tableNumber)->where('status_aktif', true)->first();
+
+            // Jika meja tidak tersedia
+            if (!$meja) {
+                return redirect('/pilih-meja')->withErrors(['msg' => 'Meja tidak tersedia.']);
+            }
+            
+            // Jika minimal order tidak terpenuhi
+            if ($totalPrice < self::MINIMUM_ORDER_FOR_TABLE) {
+                return redirect('/pesanmenu')->withErrors(['msg' => 'Belanja belum memenuhi minimal meja.']);
+            }
+
+            // Sukses validasi meja
+            return [
+                'products' => $products,
+                'items' => $itemsFromRequest,
+                'totalPrice' => $totalPrice,
+                'reservationType' => 'meja',
+                'reservationDetail' => $tableNumber,
+                'reservationFkId' => $meja->id,
+            ];
+        }
+
+        // 4. Jika tidak ada reservasi yang dipilih
+        return redirect('/pilih-reservasi')->withErrors(['msg' => 'Pilih jenis reservasi.']);
+    }
+
+    public function processPayment(Request $request): JsonResponse
+    {
+        // 1. Validasi Keamanan (Benteng Backend)
+        $validationResult = $this->validateOrderForPayment($request);
+
+        if ($validationResult instanceof RedirectResponse) {
+            // Jika validasi gagal (misal: minimal order tidak pas, dll)
+            return response()->json([
+                'message' => 'Data pesanan tidak valid atau tidak memenuhi syarat.'
+            ], 422); // 422 Unprocessable Entity
+        }
+
+        // 2. Validasi Data Pemesan
+        $customerData = $request->validate([
+            'nama' => 'required|string|min:3',
+            'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
+            'email' => 'required|email',
+            'jumlah_orang' => 'required|integer|min:1',
+            'tanggal' => 'required|date|after_or_equal:today',
+            'waktu' => 'required|date_format:H:i',
+        ]);
+        
+        // 3. Siapkan Data Internal
+        $totalPrice = $validationResult['totalPrice'];
+        $invoiceNumber = 'INV-' . time() . Str::random(5); // Str::random butuh "use Illuminate\Support\Str;"
+
+        // --- MULAI TRANSAKSI DATABASE DAN LOGIKA DOKU ---
+        DB::beginTransaction();
+        try {
+            // 4. Siapkan data untuk tabel 'reservations'
+            $reservationData = [
+                'invoice_number' => $invoiceNumber,
+                'total_price' => $totalPrice,
+                'status' => 'PENDING',
+                'customer_name' => $customerData['nama'],
+                'customer_email' => $customerData['email'],
+                'customer_phone' => $customerData['nomor_telepon'],
+                'jumlah_orang' => $customerData['jumlah_orang'],
+                'reservation_date' => $customerData['tanggal'] . ' ' . $customerData['waktu'] . ':00', // Format Y-m-d H:i:s
+            ];
+
+            // Simpan Foreign Key berdasarkan tipe reservasi
+            if ($validationResult['reservationType'] === 'meja') {
+                $reservationData['meja_id'] = $validationResult['reservationFkId'];
+            } elseif ($validationResult['reservationType'] === 'ruangan') {
+                $reservationData['room_id'] = $validationResult['reservationFkId'];
+            }
+
+            // 5. Buat reservasi di DB
+            $reservation = Reservation::create($reservationData);
+
+            // 6. Siapkan Body untuk DOKU API
+            $requestBody = [
+                'order' => [
+                    'amount' => $totalPrice,
+                    'invoice_number' => $invoiceNumber,
+                    'callback_url' => route('doku.notification'), // PENTING untuk notifikasi server-to-server
+                ],
+                'customer' => [
+                    'name' => $customerData['nama'],
+                    'email' => $customerData['email'],
+                    'phone' => $customerData['nomor_telepon'],
+                ]
+            ];
+
+            // 7. Tentukan Endpoint DOKU
+            $requestTarget = '/checkout/v1/payment'; 
+
+            // 8. [PERUBAHAN UTAMA] Panggil Helper untuk membuat SEMUA header
+            // $headers akan berisi ['Client-Id' => ..., 'Request-Id' => ..., 'Signature' => ...]
+            $headers = DokuSignatureHelper::generate($requestBody, $requestTarget);
+
+            // 9. Hit API DOKU
+            $response = Http::withHeaders($headers) // <-- Kita hanya perlu memasukkan 1 variabel ini
+                ->post(
+                    config('doku.base_url') . $requestTarget, // Ambil URL dari config
+                    $requestBody
+                );
+
+            if (!$response->successful()) {
+                // Jika DOKU mengembalikan error (400, 500, dll)
+                DB::rollBack();
+                Log::error('DOKU API Error: ' . $response->body(), ['request' => $requestBody]);
+                throw new \Exception('Gagal menghubungi DOKU: ' . $response->body());
+            }
+
+            // 10. Sukses! Simpan URL pembayaran
+            $paymentUrl = $response->json('payment.url');
+            
+            $reservation->payment_url = $paymentUrl;
+            $reservation->save();
+            DB::commit(); // Simpan semua perubahan ke DB
+
+            // 11. Kembalikan URL ke Frontend (untuk di-redirect oleh SweetAlert)
+            return response()->json([
+                'payment_url' => $paymentUrl
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Error dari $request->validate()
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Data pemesan tidak valid.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            // Error lain (DOKU gagal, DB gagal, dll)
+            DB::rollBack();
+            Log::error('DOKU Payment Error: ' . $e->getMessage());
+            
+            return response()->json([
+                'message' => 'Terjadi kesalahan internal. Silakan coba beberapa saat lagi.'
+            ], 500); // 500 Internal Server Error
+        }
     }
 } 
