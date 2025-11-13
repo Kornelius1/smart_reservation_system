@@ -27,7 +27,7 @@ class BayarController extends Controller
      */
     public function show(Request $request)
     {
-        // ... (Fungsi ini sudah benar, tidak ada perubahan) ...
+
         $validationResult = $this->validateOrder($request);
 
         if ($validationResult instanceof RedirectResponse) {
@@ -64,171 +64,117 @@ class BayarController extends Controller
         ]);
     }
 
+
     /**
-     * 💳 Memproses pembayaran ke DOKU
+     * 🚀 Memproses pembayaran dan membuat invoice DOKU (via AJAX)
+     * Ini adalah method yang dipanggil oleh route('doku.createPayment')
      */
-    public function processPayment(Request $request): JsonResponse
+    public function processPayment(Request $request): JsonResponse // Pastikan return type adalah JsonResponse
     {
-        // 1️⃣ Validasi pesanan
-        $validationResult = $this->validateOrder($request);
+        // 1. Validasi Keamanan (Harus selalu ada)
+        // Gunakan logika 'validateOrder' Anda
+        $validationResult = $this->validateOrderForPayment($request); 
+
         if ($validationResult instanceof RedirectResponse) {
-            return response()->json(['success' => false, 'message' => 'Pesanan tidak valid'], 422);
+            // Jika validasi gagal, kembalikan error JSON
+            return response()->json([
+                'message' => 'Data pesanan tidak valid atau tidak memenuhi syarat.'
+            ], 422); // 422 Unprocessable Entity
         }
 
-        // 2️⃣ Validasi data customer
-        $validator = Validator::make($request->all(), [
-            'nama'          => 'required|string|max:255',
+        // Ambil data pelanggan dari request (setelah lolos HTML5 validation)
+        $customerData = $request->validate([
+            'nama' => 'required|string|min:3',
             'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
-            'email'         => 'required|email|max:255',
-            'jumlah_orang'  => 'required|integer|min:1',
-            'tanggal'       => 'required|date|after_or_equal:today',
-            'waktu'         => 'required|date_format:H:i',
+            'email' => 'required|email',
+            'jumlah_orang' => 'required|integer|min:1',
+            'tanggal' => 'required|date|after_or_equal:today',
+            'waktu' => 'required|date_format:H:i',
         ]);
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
-        }
-        $customerData = $validator->validated();
-
-        // 3️⃣ Data pesanan
+        
         $totalPrice = $validationResult['totalPrice'];
-        $reservationType = $validationResult['reservationType'];
-        $reservationFkId = $validationResult['reservationFkId'];
-        $products = $validationResult['products']; // <-- Kita akan gunakan ini
-        $itemsFromRequest = $validationResult['items']; // <-- Kita akan gunakan ini
+        $invoiceNumber = 'INV-' . time() . Str::random(5);
 
-        $id_transaksi = 'HOMEY-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
-
+        // --- MULAI LOGIKA DOKU ---
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
-            // Simpan reservasi
+            // 2. Buat reservasi di DB (status 'pending')
             $reservation = Reservation::create([
-                'id_transaksi'   => $id_transaksi,
-                'nama'           => $customerData['nama'],
-                'nomor_telepon'  => $customerData['nomor_telepon'],
-                'email_customer' => $customerData['email'],
-                'jumlah_orang'   => $customerData['jumlah_orang'],
-                'tanggal'        => $customerData['tanggal'],
-                'waktu'          => $customerData['waktu'],
-                'status'         => 'pending',
-                'nomor_meja'     => ($reservationType === 'meja') ? $reservationFkId : null,
-                'nomor_ruangan'  => ($reservationType === 'ruangan') ? $reservationFkId : null,
+                'invoice_number' => $invoiceNumber,
+                'total_price' => $totalPrice,
+                'status' => 'PENDING',
+                'customer_name' => $customerData['nama'],
+                'customer_email' => $customerData['email'],
+                'customer_phone' => $customerData['nomor_telepon'],
+                // ... (simpan meja_id, room_id, dll dari $validationResult) ...
             ]);
 
-            // Lampirkan produk ke reservasi DAN siapkan line_items
-            $lineItems = [];
-            foreach ($products as $product) {
-                $quantity = $itemsFromRequest[$product->id];
-                // 1. Lampirkan ke database kita
-                $reservation->products()->attach($product->id, [
-                    'quantity' => $quantity,
-                    'price'    => $product->price,
-                ]);
-                
-                // 2. Siapkan untuk DOKU
-                $lineItems[] = [
-                    'name'     => (string) $product->name,
-                    'price'    => (int) $product->price,
-                    'quantity' => (int) $quantity,
-                ];
-            }
-
-            // 4️⃣ Siapkan body JSON untuk DOKU (Termasuk line_items)
-            $body = [
+            // 3. Siapkan Body untuk DOKU
+            $requestBody = [
                 'order' => [
-                    'invoice_number' => $id_transaksi,
-                    'amount'         => (int) round($totalPrice), // Total amount HARUS sama dengan total line_items
-                    'currency'       => 'IDR',
-                    'auto_redirect'  => true,
-                    'success_url'    => route('payment.success'),
-                    'failed_url'     => route('payment.failed'),
+                    'amount' => $totalPrice,
+                    'invoice_number' => $invoiceNumber,
+                    // 'callback_url' => route('doku.notification') // PENTING untuk notifikasi
                 ],
-                'line_items' => $lineItems, // <-- INI DIA BAGIAN YANG HILANG
                 'customer' => [
-                    'name'  => $customerData['nama'],
+                    'name' => $customerData['nama'],
                     'email' => $customerData['email'],
-                ],
-            ];
-            $bodyJson = json_encode($body);
-
-        
-            $clientId  = config('services.doku.client_id');
-            $secretKey = config('services.doku.secret_key');
-            $apiUrl    = config('services.doku.api_base'); 
-            $path      = '/checkout/v1/payment'; // Endpoint v2
-            $url       = $apiUrl . $path;
-
-            $requestId    = (string) Str::uuid();
-           $isoTimestamp = now()->utc()->format('Y-m-d\TH:i:s\Z');
-
-            $signature = DokuSignatureHelper::generateSignature(
-                $clientId,
-                $secretKey,
-                $requestId,
-                $isoTimestamp,
-                $path,
-                $bodyJson
-            );
-        
-            $headers = [
-                'Client-Id'       => $clientId,
-                'Request-Id'      => $requestId,
-                'Request-Timestamp' => $isoTimestamp,
-                'Signature'       => $signature,
-                'Content-Type'    => 'application/json',
-                'Accept'          => 'application/json',
+                    'phone' => $customerData['nomor_telepon'],
+                ]
+                // ... (data lain sesuai kebutuhan DOKU) ...
             ];
 
-            // 7️⃣ Log data untuk debugging (versi bersih)
-            Log::info('--- DATA DIKIRIM KE DOKU ---', [
-                'url'     => $url,
-                'headers' => $headers,
-                'body'    => $body, // Log array PHP, lebih mudah dibaca
-            ]);
+            // 4. Generate Signature (Memanggil Helper Anda)
+            // (Ini adalah Pseude-code, sesuaikan dengan helper Anda)
+            $signatureResult = DokuSignatureHelper::generate($requestBody);
 
-        
-            $response = Http::withHeaders($headers)
-                ->withBody($bodyJson, 'application/json')
-                ->post($url);
+            // 5. Hit API DOKU
+            $response = Http::withHeaders([
+                'Client-Id' => $signatureResult['client_id'],
+                'Request-Id' => $signatureResult['request_id'],
+                'Request-Timestamp' => $signatureResult['timestamp'],
+                'Signature' => $signatureResult['signature'],
+            ])->post(config('doku.base_url') . '/checkout/v1/payment', $requestBody);
 
-            // 9️⃣ Cek response
-            if ($response->successful() && isset($response['payment']['url'])) {
-                $reservation->update([
-                    'raw_response' => json_encode($response->json()),
-                ]);
-                DB::commit();
-
-                return response()->json([
-                    'success'     => true,
-                    'payment_url' => $response['payment']['url'],
-                ]);
+            if (!$response->successful()) {
+                throw new \Exception('Gagal menghubungi DOKU: ' . $response->body());
             }
 
-            DB::rollBack();
-            Log::error('DOKU Payment Failed:', $response->json());
-            return response()->json([
-                'success'  => false,
-                'message'  => 'DOKU gagal memproses pembayaran',
-                'response' => $response->json(),
-            ], 500);
+            $paymentUrl = $response->json('payment.url');
+            
+            // 6. Update reservasi dengan payment_url & Commit DB
+            $reservation->payment_url = $paymentUrl;
+            $reservation->save();
+            DB::commit();
 
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('CRITICAL Payment Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            // ⬇️⬇️ PERBAIKAN DI SINI ⬇️⬇️
+            // 7. Sukses! Kembalikan URL ke Frontend
             return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan kritis di server: ' . $e->getMessage()
-            ], 500);
+                'payment_url' => $paymentUrl
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Error validasi data pelanggan
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Data pemesan tidak valid.',
+                'errors' => $e->errors(),
+            ], 422);
+            } catch (\Exception $e) {
+                // Error DOKU atau Database
+                DB::rollBack();
+                Log::error('DOKU Payment Error: ' . $e->getMessage());
+                
+                // KODE YANG SUDAH DIPERBAIKI:
+                return response()->json([
+                'message' => 'Terjadi kesalahan internal. Silakan coba beberapa saat lagi.'
+            ], 500); // 500 Internal Server Error
         }
-    } // ⬅️ Kurung kurawal penutup 'processPayment' yang hilang
+    }
 
-    /**
-     * 🧮 Validasi pesanan
-     */
+
     private function validateOrder(Request $request)
     {
-        // ⬇️⬇️ KODE LENGKAP FUNGSI INI YANG TERPOTONG ⬇️⬇️
+        
         $itemsFromRequest = $request->input('items', []);
         $roomName = trim($request->input('reservation_room_name'));
         $tableNumber = trim($request->input('reservation_table_number'));
@@ -242,6 +188,14 @@ class BayarController extends Controller
         $totalPrice = 0;
         foreach ($products as $product) {
             $totalPrice += $product->price * $itemsFromRequest[$product->id];
+        }
+
+            // Validasi 2: Belum Pilih Reservasi
+        if (empty($roomName) && empty($tableNumber)) {
+            // Ini adalah skenario Anda!
+            // Kirim mereka kembali ke halaman pilih reservasi, beri tahu alasannya.
+            return redirect('/pilih-reservasi')
+                ->with('show_alert_error', 'Anda harus memilih meja atau ruangan terlebih dahulu.');
         }
 
         if ($roomName) {
@@ -278,4 +232,4 @@ class BayarController extends Controller
 
         return redirect('/pilih-reservasi')->withErrors(['msg' => 'Pilih jenis reservasi.']);
     }
-} // ⬅️ Kurung kurawal penutup 'class' yang hilang
+} 

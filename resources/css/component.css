@@ -46,7 +46,16 @@ html {
     cursor: -webkit-grabbing;
 }
 
+.flex-body,
+.flex-wrapper {
+    display: flex;
+    flex-direction: column; /* Menumpuk elemen (header, main, footer) secara vertikal */
+    min-height: 100vh; /* Memaksa wrapper setidaknya setinggi layar penuh */
+}
 
+.content-grow {
+    flex-grow: 1; /* INI KUNCINYA: Memaksa <main> untuk mengambil semua ruang kosong */
+}
 
 /* * {
   outline: 1px solid red !important;

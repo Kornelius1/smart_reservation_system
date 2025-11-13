@@ -42,9 +42,9 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,      
             RoomSeeder::class, 
             MejaSeeder::class, 
+            ProductSeeder::class, 
             ProductImageSeeder::class,
             RoomImageSeeder::class,
-            ProductSeeder::class, 
             ReservationSeeder::class, 
         ]);
     }

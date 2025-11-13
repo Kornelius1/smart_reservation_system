@@ -5,15 +5,17 @@ import ProductCard from "@/components/ProductCard.vue";
 
 // --- STATE MANAGEMENT ---
 const allProducts = ref([]);
-const isLoading = ref(true);
+// [PERBAIKAN 1] Set default isLoading ke false.
+// Kita tidak tahu apakah kita perlu memuat, sampai validasi selesai.
+const isLoading = ref(false); 
 const error = ref(null);
 const searchQuery = ref("");
 const debouncedSearchQuery = ref("");
 let debounceTimer = null;
 
-// --- STATE BARU UNTUK RESERVASI ---
-const reservationType = ref(null); // Akan berisi 'meja' atau 'ruangan'
-const reservationDetail = ref(null); // Akan berisi nomor meja atau nama ruangan
+// --- STATE RESERVASI ---
+const reservationType = ref(null);
+const reservationDetail = ref(null);
 const minimumOrder = ref(0);
 
 const csrfToken = ref(
@@ -25,31 +27,42 @@ onMounted(async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const room = urlParams.get("room_name");
     const tableNumber = urlParams.get("table_number");
-    const minOrder = urlParams.get("min_order"); // Variabel ini sekarang bisa datang dari meja atau ruangan
+    const minOrder = urlParams.get("min_order");
 
-    // --- LOGIKA CERDAS BARU DI SINI ---
+    // --- LOGIKA VALIDASI ---
     if (tableNumber && minOrder) {
-        // Ini adalah reservasi MEJA
         reservationType.value = "meja";
         reservationDetail.value = tableNumber;
         minimumOrder.value = parseInt(minOrder, 10);
     } else if (room && minOrder) {
-        // Ini adalah reservasi RUANGAN
         reservationType.value = "ruangan";
         reservationDetail.value = room;
         minimumOrder.value = parseInt(minOrder, 10);
     } else {
-        // Jika tidak ada parameter reservasi sama sekali, alihkan
-        alert("Silakan pilih jenis reservasi terlebih dahulu.");
-        window.location.href = "/pilih-reservasi"; // Ganti dengan URL halaman pemilihan utama Anda
-        return;
+        // [PERBAIKAN 2] Ganti alert() dengan SweetAlert
+        
+        // Hentikan eksekusi 'onMounted' karena kita akan redirect.
+        // Tampilkan pop-up
+        await Swal.fire({
+            icon: 'warning',
+            title: 'Oops... Anda Belum Memilih',
+            text: 'Silakan pilih meja atau ruangan terlebih dahulu.',
+            confirmButtonText: 'Pilih Reservasi',
+            allowOutsideClick: false // Mencegah user menutup pop-up
+        });
+
+        // Setelah pengguna mengklik "Pilih Reservasi", alihkan halaman.
+        window.location.href = "/pilih-reservasi";
+        return; // Hentikan sisa eksekusi 'onMounted'
     }
 
-    // roomName.value = room;
-    // minimumOrder.value = parseInt(minOrder, 10);
-
-    //fetch produk
+    // --- FETCH PRODUK ---
+    // Jika lolos validasi di atas, BARU kita set isLoading ke true
+    // dan mulai mengambil data.
     try {
+        // [PERBAIKAN 3] Pindahkan isLoading.value = true ke sini.
+        isLoading.value = true; 
+        
         const response = await axios.get("/api/products");
         allProducts.value = response.data.map((product) => ({
             ...product,
@@ -59,6 +72,8 @@ onMounted(async () => {
         console.error("Gagal mengambil data menu:", err);
         error.value = "Tidak dapat memuat menu. Silakan coba lagi nanti.";
     } finally {
+        // Ini sekarang akan BISA dijangkau dan akan menyembunyikan
+        // "Memuat menu..." setelah selesai.
         isLoading.value = false;
     }
 });
@@ -87,7 +102,7 @@ const getFilteredProductsByCategory = (category) => {
 };
 
 // =================================================================
-// --- TAMBAHKAN SEMUA KATEGORI DI SINI ---
+// --- KATEGORI ANDA (Tidak berubah) ---
 const filteredCoffees = getFilteredProductsByCategory("coffee");
 const filteredSnacks = getFilteredProductsByCategory("snack");
 const filteredHeavyMeals = getFilteredProductsByCategory("heavy-meal");
@@ -98,16 +113,11 @@ const filteredSpecialTastes = getFilteredProductsByCategory("special-taste");
 const filteredIceCreams = getFilteredProductsByCategory("ice-cream");
 // =================================================================
 
-// --- METHODS ---
+// --- METHODS (Tidak berubah) ---
 function increaseQuantity(product) {
-    // ==================================================
-    // --- PERBAIKAN DI SINI ---
-    // Cek apakah kuantitas saat ini masih di bawah stok
-    // Jika stok = 0, (0 < 0) adalah false, jadi tidak akan bertambah.
-    // Jika stok = 5 & kuantitas = 5, (5 < 5) adalah false, jadi tidak akan bertambah.
     if (product.quantity < product.stock) {
         product.quantity++;
-    } // ==================================================
+    }
 }
 
 function decreaseQuantity(product) {
@@ -116,7 +126,7 @@ function decreaseQuantity(product) {
     }
 }
 
-// --- LOGIKA DRAG-TO-SCROLL ---
+// --- LOGIKA DRAG-TO-SCROLL (Tidak berubah) ---
 const isDown = ref(false);
 const startX = ref(0);
 const scrollLeft = ref(0);
@@ -145,7 +155,7 @@ function handleMouseMove(e) {
     slider.scrollLeft = scrollLeft.value - walk;
 }
 
-// --- COMPUTED PROPERTIES UNTUK KERANJANG ---
+// --- COMPUTED PROPERTIES UNTUK KERANJANG (Tidak berubah) ---
 const totalItems = computed(() => {
     return allProducts.value.reduce((total, p) => total + p.quantity, 0);
 });
