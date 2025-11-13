@@ -42,7 +42,8 @@ class Reservation extends Model
         'waktu',         
         'status',         
         'nomor_meja',     
-        'nomor_ruangan'   
+        'nomor_ruangan',  
+        'total_price' 
     ];
 
     

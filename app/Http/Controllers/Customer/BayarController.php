@@ -206,6 +206,11 @@ class BayarController extends Controller
         return redirect('/pilih-reservasi')->withErrors(['msg' => 'Pilih jenis reservasi.']);
     }
 
+/**
+     * 🚀 Memproses pembayaran dan membuat invoice DOKU (via AJAX)
+     * Ini adalah method yang dipanggil oleh route('doku.createPayment')
+     * * [VERSI INI SUDAH DISESUAIKAN DENGAN SKEMA DB ANDA]
+     */
     public function processPayment(Request $request): JsonResponse
     {
         // 1. Validasi Keamanan (Benteng Backend)
@@ -222,7 +227,7 @@ class BayarController extends Controller
         $customerData = $request->validate([
             'nama' => 'required|string|min:3',
             'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
-            'email' => 'required|email',
+            'email' => 'required|email', // <-- Kita akan ganti nama key ini saat menyimpan
             'jumlah_orang' => 'required|integer|min:1',
             'tanggal' => 'required|date|after_or_equal:today',
             'waktu' => 'required|date_format:H:i',
@@ -235,73 +240,84 @@ class BayarController extends Controller
         // --- MULAI TRANSAKSI DATABASE DAN LOGIKA DOKU ---
         DB::beginTransaction();
         try {
-            // 4. Siapkan data untuk tabel 'reservations'
+            // 4. [PERBAIKAN] Siapkan data untuk tabel 'reservations'
+            //    Menggunakan nama kolom dari $fillable Anda
             $reservationData = [
-                'invoice_number' => $invoiceNumber,
-                'total_price' => $totalPrice,
+                'id_transaksi' => $invoiceNumber,
+                'total_price' => $totalPrice, // <--- PERHATIAN: 'total_price' tidak ada di $fillable Anda.
                 'status' => 'PENDING',
-                'customer_name' => $customerData['nama'],
-                'customer_email' => $customerData['email'],
-                'customer_phone' => $customerData['nomor_telepon'],
+                
+                // Menggunakan key dari database
+                'nama' => $customerData['nama'],
+                'email_customer' => $customerData['email'], // Ganti 'email' -> 'email_customer'
+                'nomor_telepon' => $customerData['nomor_telepon'],
                 'jumlah_orang' => $customerData['jumlah_orang'],
-                'reservation_date' => $customerData['tanggal'] . ' ' . $customerData['waktu'] . ':00', // Format Y-m-d H:i:s
+                'tanggal' => $customerData['tanggal'], // Simpan terpisah
+                'waktu' => $customerData['waktu'] . ':00', // Simpan terpisah (tambah detik)
             ];
 
-            // Simpan Foreign Key berdasarkan tipe reservasi
+            // [PERBAIKAN] Simpan nomor meja/ruangan, bukan ID
             if ($validationResult['reservationType'] === 'meja') {
-                $reservationData['meja_id'] = $validationResult['reservationFkId'];
+                $reservationData['nomor_meja'] = $validationResult['reservationDetail'];
             } elseif ($validationResult['reservationType'] === 'ruangan') {
-                $reservationData['room_id'] = $validationResult['reservationFkId'];
+                $reservationData['nomor_ruangan'] = $validationResult['reservationDetail'];
             }
 
             // 5. Buat reservasi di DB
             $reservation = Reservation::create($reservationData);
 
-            // 6. Siapkan Body untuk DOKU API
+            // 6. [PERBAIKAN] Siapkan Body untuk DOKU
+            //    (Menggunakan data yang SUDAH divalidasi)
+            $customerPhone = $customerData['nomor_telepon'];
+            if (str_starts_with($customerPhone, '08')) {
+                $customerPhone = '+62' . substr($customerPhone, 1);
+            }
+
             $requestBody = [
                 'order' => [
-                    'amount' => $totalPrice,
+                    'amount' => (int) $totalPrice,
                     'invoice_number' => $invoiceNumber,
-                    'callback_url' => route('doku.notification'), // PENTING untuk notifikasi server-to-server
+                    'callback_url' => route('doku.notification'),
                 ],
                 'customer' => [
                     'name' => $customerData['nama'],
-                    'email' => $customerData['email'],
-                    'phone' => $customerData['nomor_telepon'],
+                    'email' => $customerData['email'], // DOKU mengharapkan 'email'
+                    'phone' => $customerPhone, // DOKU mengharapkan 'phone'
                 ]
             ];
 
             // 7. Tentukan Endpoint DOKU
             $requestTarget = '/checkout/v1/payment'; 
 
-            // 8. [PERUBAHAN UTAMA] Panggil Helper untuk membuat SEMUA header
-            // $headers akan berisi ['Client-Id' => ..., 'Request-Id' => ..., 'Signature' => ...]
+            // 8. Panggil Helper untuk membuat SEMUA header
             $headers = DokuSignatureHelper::generate($requestBody, $requestTarget);
 
             // 9. Hit API DOKU
-            $response = Http::withHeaders($headers) // <-- Kita hanya perlu memasukkan 1 variabel ini
+            $response = Http::withHeaders($headers)
                 ->post(
-                    config('doku.base_url') . $requestTarget, // Ambil URL dari config
+                    config('doku.base_url') . $requestTarget,
                     $requestBody
                 );
 
             if (!$response->successful()) {
-                // Jika DOKU mengembalikan error (400, 500, dll)
+                // Jika DOKU mengembalikan error
                 DB::rollBack();
                 Log::error('DOKU API Error: ' . $response->body(), ['request' => $requestBody]);
                 throw new \Exception('Gagal menghubungi DOKU: ' . $response->body());
             }
 
-            // 10. Sukses! Simpan URL pembayaran
-            $paymentUrl = $response->json('payment.url');
+            // 10. [PERBAIKAN] Sukses! Simpan token & expired_at dari DOKU
+            $dokuResponse = $response->json();
             
-            $reservation->payment_url = $paymentUrl;
-            $reservation->save();
+            $reservation->payment_token = $dokuResponse['payment']['token_id'];
+            $reservation->expired_at = $dokuResponse['payment']['expired_datetime']; // Gunakan Y-m-d H:i:s
+            $reservation->save(); // Simpan data baru ini
+            
             DB::commit(); // Simpan semua perubahan ke DB
 
-            // 11. Kembalikan URL ke Frontend (untuk di-redirect oleh SweetAlert)
+            // 11. Kembalikan URL ke Frontend
             return response()->json([
-                'payment_url' => $paymentUrl
+                'payment_url' => $dokuResponse['payment']['url'] // Kirim URL ke frontend
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {

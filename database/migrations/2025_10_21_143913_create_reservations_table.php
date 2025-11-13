@@ -15,6 +15,7 @@ return new class extends Migration
           
             $table->id('id_reservasi');
             $table->string('id_transaksi')->unique(); 
+            $table->decimal('total_price', 15, 2)->default(0)->after('id_transaksi');
             $table->string('nama'); 
             $table->string('nomor_telepon')->nullable(); 
             $table->string('email_customer')->nullable(); 
