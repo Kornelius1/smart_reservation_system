@@ -3,6 +3,8 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class DokuSignatureHelper
 {
@@ -73,5 +75,55 @@ class DokuSignatureHelper
         
         // Tambahkan prefix sesuai dokumentasi
         return "HMACSHA256=" . $base64Hmac;
+    }
+
+
+    /**
+     * [FUNGSI BARU]
+     * Memvalidasi tanda tangan notifikasi yang masuk dari DOKU.
+     *
+     * @param Request $request Request yang masuk dari DOKU
+     * @return bool True jika tanda tangan valid
+     */
+    public static function validate(Request $request): bool
+    {
+        try {
+            // 1. Ambil "Bahan Baku" dari Header DOKU
+            $dokuClientId = $request->header('Client-Id');
+            $dokuRequestId = $request->header('Request-Id');
+            $dokuTimestamp = $request->header('Response-Timestamp'); // DOKU mengirim 'Response-Timestamp'
+            $dokuSignature = $request->header('Signature');
+
+            // 2. Ambil "Bahan Baku" dari Server Kita
+            $secretKey = config('doku.secret_key');
+            $requestTarget = '/' . $request->path(); // mis. '/api/doku/notification'
+            $jsonBody = $request->getContent(); // Ambil body mentah
+
+            if (!$dokuClientId || !$dokuRequestId || !$dokuTimestamp || !$dokuSignature || !$secretKey) {
+                Log::warning('DOKU Validate: Missing required headers or secret key.');
+                return false;
+            }
+
+            // 3. Buat ulang 'Digest'
+            $ourDigest = self::generateDigest($jsonBody);
+
+            // 4. Buat ulang 'String-to-Sign' (HARUS SESUAI DOKUMENTASI RESPONSE)
+            $stringToSign = "Client-Id:" . $dokuClientId . "\n" .
+                            "Request-Id:" . $dokuRequestId . "\n" .
+                            "Response-Timestamp:" . $dokuTimestamp . "\n" . // <-- Kuncinya "Response-..."
+                            "Request-Target:" . $requestTarget . "\n" .
+                            "Digest:" . $ourDigest;
+
+            // 5. Buat ulang 'Signature'
+            // (Kita panggil helper 'generateHmac' yang sudah ada)
+            $ourSignature = self::generateHmac($stringToSign, $secretKey);
+            
+            // 6. Bandingkan dengan aman (mencegah timing attacks)
+            return hash_equals($ourSignature, $dokuSignature);
+
+        } catch (\Exception $e) {
+            Log::error('DOKU Signature Validation Exception', ['error' => $e->getMessage()]);
+            return false;
+        }
     }
 }

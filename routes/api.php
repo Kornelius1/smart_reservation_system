@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DokuController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Customer\DokuNotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,5 +29,5 @@ Route::post('/doku/test-notification', function(Request $request) {
 
 Route::get('/products', [ProductController::class, 'index'])->name('api.products.index');
 
-Route::post('/doku/notification', [DokuController::class, 'handleNotification'])
+Route::post('/doku/notification', [DokuNotificationController::class, 'handle'])
      ->name('doku.notification');
