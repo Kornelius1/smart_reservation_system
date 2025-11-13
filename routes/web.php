@@ -1,11 +1,10 @@
 <?php
 
-use Illuminate\Http\Request;
+
 use App\Livewire\ManajemenReservasi;
 
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DokuController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Customer\BayarController;
@@ -129,22 +128,8 @@ Route::match(['get', 'post'], '/konfirmasi-pesanan', [BayarController::class, 's
      
 
 
-// POST untuk membuat payment DOKU
-// Route::post('/doku/create-payment', [DokuController::class, 'createPayment'])
-//     ->name('doku.createPayment');
-
 Route::post('/doku/create-payment', [BayarController::class, 'processPayment'])->name('doku.createPayment');
 
-// Halaman sukses / gagal
-Route::get('/sukses', [DokuController::class, 'success'])
-    ->name('payment.success');
-
-Route::get('/gagal', [DokuController::class, 'failed'])
-    ->name('payment.failed');
-
-// DOKU return & webhook
-Route::get('/doku/return', [DokuController::class, 'handleReturn'])->name('doku.return');
-Route::post('/api/doku/notification', [DokuController::class, 'handleNotification'])->name('doku.notification');
 
 require __DIR__.'/auth.php';
 
