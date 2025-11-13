@@ -239,7 +239,7 @@ class BayarController extends Controller
         try {
             // 4. Siapkan data reservasi (Sudah Benar)
             $reservationData = [
-                'id_transaksi' => $invoiceNumber, 'total_price' => $totalPrice, 'status' => 'PENDING',
+                'id_transaksi' => $invoiceNumber, 'total_price' => $totalPrice, 'status' => 'pending',
                 'nama' => $customerData['nama'], 'email_customer' => $customerData['email'],
                 'nomor_telepon' => $customerData['nomor_telepon'], 'jumlah_orang' => $customerData['jumlah_orang'],
                 'tanggal' => $customerData['tanggal'], 'waktu' => $customerData['waktu'] . ':00',

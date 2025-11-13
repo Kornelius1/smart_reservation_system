@@ -66,7 +66,7 @@ class DokuNotificationController extends Controller
             }
 
             // Kasus 2: Reservasi sudah diproses (Idempotency)
-            if ($reservation->status !== 'PENDING') {
+            if ($reservation->status !== 'pending') {
                 Log::info('DOKU Notification: Reservation already processed', ['invoice' => $invoiceNumber]);
                 DB::commit();
                 return response()->json(['status' => 'OK_ALREADY_PROCESSED']);
