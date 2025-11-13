@@ -212,15 +212,14 @@ class BayarController extends Controller
      * * [VERSI INI SUDAH DISESUAIKAN DENGAN SKEMA DB ANDA]
      */
 // GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI LEBIH AMAN)
+// GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI LEBIH AMAN)
     public function processPayment(Request $request): JsonResponse
     {
-        // 1. Validasi Keamanan (Benteng Backend)
+        // 1. Validasi Keamanan & Data Pemesan
         $validationResult = $this->validateOrderForPayment($request);
         if ($validationResult instanceof RedirectResponse) {
             return response()->json(['message' => 'Data pesanan tidak valid atau tidak memenuhi syarat.'], 422);
         }
-
-        // 2. Validasi Data Pemesan
         $customerData = $request->validate([
             'nama' => 'required|string|min:3',
             'nomor_telepon' => 'required|string|regex:/^08[0-9]{8,12}$/',
@@ -237,7 +236,6 @@ class BayarController extends Controller
         // --- MULAI TRANSAKSI DATABASE DAN LOGIKA DOKU ---
         DB::beginTransaction();
         try {
-            // ... (Kode Reservation::create Anda sudah benar) ...
             // 4. Siapkan data untuk tabel 'reservations'
             $reservationData = [
                 'id_transaksi' => $invoiceNumber,
@@ -304,24 +302,33 @@ class BayarController extends Controller
                 ->withBody($jsonBody, 'application/json') 
                 ->post(config('doku.base_url') . $requestTarget);
 
-            // Periksa kegagalan HTTP (4xx, 5xx)
-            if (!$response->successful()) {
-                DB::rollBack();
-                Log::error('DOKU API Error (HTTP Fail): ' . $response->body(), ['request' => $requestBody]);
-                throw new \Exception('Gagal menghubungi DOKU (HTTP Error): ' . $response->body());
-            }
-
-            // 12. [PERBAIKAN KRUSIAL] Periksa kegagalan Logis (HTTP 200 tapi isi error)
             $dokuResponse = $response->json();
 
-            if (!isset($dokuResponse['payment']) && isset($dokuResponse['error'])) {
-                // Ini adalah error logis dari DOKU, misal "Amount too low", dll.
-                DB::rollBack();
-                // Log error yang *sebenarnya* dari DOKU
-                Log::error('DOKU API Error (Logic Fail): ' . $response->body(), ['request' => $requestBody]);
+            // [PERBAIKAN KRUSIAL]
+            // Kita hanya memeriksa 1 hal: Apakah 'payment' ada?
+            // Jika TIDAK, berarti itu adalah error.
+            if (!isset($dokuResponse['payment'])) {
+                DB::rollBack(); // Batalkan reservasi di DB
+
+                // Coba cari pesan error yang sebenarnya dari DOKU
+                $errorMessage = 'DOKU mengembalikan respons tidak valid.';
+                if (isset($dokuResponse['message'])) {
+                    $errorMessage = 'DOKU Error: ' . (is_array($dokuResponse['message']) ? implode(', ', $dokuResponse['message']) : $dokuResponse['message']);
+                } elseif (isset($dokuResponse['error']['message'])) {
+                    $errorMessage = 'DOKU Error: ' . $dokuResponse['error']['message'];
+                }
+
+                // Log error yang *sebenarnya*
+                Log::error('DOKU API Error (Logic Fail): ' . $response->body(), [
+                    'request' => $requestBody,
+                    'response' => $dokuResponse
+                ]);
+                
                 // Lempar exception baru dengan pesan error DOKU
-                throw new \Exception('DOKU mengembalikan error: ' . ($dokuResponse['error']['message'] ?? $response->body()));
+                throw new \Exception($errorMessage);
             }
+            // [AKHIR PERBAIKAN]
+
 
             // 13. [AMAN] Jika kita sampai di sini, $dokuResponse['payment'] PASTI ada.
             $reservation->payment_token = $dokuResponse['payment']['token_id'];
@@ -340,7 +347,7 @@ class BayarController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             // Ini akan menangkap exception baru kita dari blok [PERBAIKAN KRUSIAL]
-            Log::error('DOKU Payment Error (Caught): ' . $e->getMessage());
+            Log::error('DOKU Payment Error (Caught): ' . $e->getMessage()); // <-- Log yang Anda lihat
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
