@@ -22,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
 
     ->withSchedule(function (Schedule $schedule) {
-        $schedule->command('reservations:cancel-expired')->everyMinute();
+        $schedule->command('reservations:update-status')->everyMinute();
     })
 
 
