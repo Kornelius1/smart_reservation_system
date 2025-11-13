@@ -292,7 +292,7 @@ class BayarController extends Controller
             $jsonBody = json_encode($requestBody, JSON_UNESCAPED_SLASHES);
 
             // 8. Panggil Helper untuk membuat SEMUA header
-            $headers = DokuSignatureHelper::generate($jsonBody, $requestTarget)
+            $headers = DokuSignatureHelper::generate($jsonBody, $requestTarget);
 
             // 9. Hit API DOKU
             $response = Http::withHeaders($headers)
