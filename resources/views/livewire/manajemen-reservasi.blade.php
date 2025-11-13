@@ -71,7 +71,7 @@
                     {{-- HEADER TABEL (SAMA SEPERTI YANG ANDA BERIKAN) --}}
                     <thead>
                         <tr class="brand-text-1 text-center" style="background-color: #C6D2B9;">
-                            <th>ID Reservasi</th>
+                            {{-- <th>ID Reservasi</th> --}}
                             <th>ID Transaksi</th>
                             <th>Nomor Meja</th>
                             <th>Nomor Ruangan</th>
@@ -79,6 +79,7 @@
                             <th>Nomor Telepon</th>
                             <th>Jumlah Orang</th>
                             <th>Daftar Pesanan</th>
+                            <th>Total Harga</th>
                             <th>Tanggal</th>
                             <th>Waktu Reservasi</th>
                             <th>Status</th>
@@ -89,8 +90,12 @@
                     {{-- ISI TABEL (SAMA SEPERTI YANG ANDA BERIKAN) --}}
                     <tbody class="text-brand-text">
                         @forelse ($reservations as $reservation)
-                            <tr class="text-center">
-                                <th>{{ $reservation->id_reservasi }}</th>
+                            @php
+                                // Waktu di set ke 60 detik (1 menit)
+                                $isNew = $reservation->status == 'akan datang' && $reservation->created_at->diffInSeconds(now()) < 60;
+                            @endphp
+                           <tr class="text-center {{ $isNew ? 'bg-yellow-50/70 border-l-4 border-yellow-500 transition-colors duration-1000' : '' }}">
+                                {{-- <th>{{ $reservation->id_reservasi }}</th> --}}
                                 <td>{{ $reservation->id_transaksi }}</td>
                                 <td>{{ $reservation->nomor_meja ?? '-' }}</td>
                                 <td>{{ $reservation->nomor_ruangan ?? '-' }}</td>
@@ -113,6 +118,7 @@
                                     @endif
                                 </td>
 
+                                <td>Rp {{ number_format($reservation->total_price) }}</td>
                                 <td>{{ $reservation->tanggal ? $reservation->tanggal->format('d-m-Y') : '-' }}</td>
                                 <td>{{ $reservation->waktu ? \Carbon\Carbon::parse($reservation->waktu)->format('H:i') : '-' }} WIB</td>
                                 
@@ -121,7 +127,7 @@
                                 <td class="whitespace-nowrap">
                                     @switch($reservation->status)
                                         @case('pending')
-                                            <span class="badge badge-warning text-white badge-sm">Pending</span>
+                                            <span class="badge badge-warning text-white badge-sm">Belum Dibayar</span>
                                             @break
                                         
                                         @case('akan datang')
