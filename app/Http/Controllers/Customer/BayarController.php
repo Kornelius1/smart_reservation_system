@@ -261,7 +261,7 @@ class BayarController extends Controller
 
             // 7. Buat Request Body (Sudah Benar)
             $requestBody = [
-                'order' => ['amount' => (int) $totalPrice, 'invoice_number' => $invoiceNumber, 'currency' => 'IDR', 'callback_url' => route('doku.notification'), 'line_items' => $lineItems],
+                'order' => ['amount' => (int) $totalPrice, 'invoice_number' => $invoiceNumber, 'currency' => 'IDR', 'callback_url' => route('doku.notification'), 'callback_url_result' => route('payment.success', ['invoice' => $invoiceNumber]), 'line_items' => $lineItems],
                 'payment' => ['payment_due_date' => 60],
                 'customer' => ['name' => $this->sanitizeForDoku($customerData['nama']), 'email' => $customerData['email'], 'phone' => $customerPhone, 'address' => $this->sanitizeForDoku('Plaza Asia Office Park Unit 3'), 'country' => 'ID']
             ];

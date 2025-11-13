@@ -7,6 +7,7 @@ use App\Livewire\ManajemenReservasi;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\LaporanController;
+use App\Http\Controllers\Customer\DokuController;
 use App\Http\Controllers\Customer\BayarController;
 use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Customer\DenahMejaController;
@@ -130,6 +131,11 @@ Route::match(['get', 'post'], '/konfirmasi-pesanan', [BayarController::class, 's
 
 Route::post('/doku/create-payment', [BayarController::class, 'processPayment'])->name('doku.createPayment');
 
+Route::get('/pembayaran/sukses/{invoice}', [DokuController::class, 'handleSuccessRedirect']) 
+    ->name('payment.success');
 
+Route::get('/pembayaran/gagal/{invoice}', [DokuController::class, 'handleFailedRedirect'])
+    ->name('payment.failed');
+    
 require __DIR__.'/auth.php';
 
