@@ -196,8 +196,12 @@
                                 </td>
                             </tr>
                         @empty
+                            {{-- Jika tidak ada data --}}
+                            <tr>
+                                <td colspan="12" class="text-center py-4">Tidak ada data reservasi ditemukan.</td>
+                            </tr>
 
-                        {{-- MODAL (Ditempatkan di luar <tr> tapi di dalam @forelse) --}}
+                          {{-- MODAL (Ditempatkan di luar <tr> tapi di dalam @forelse) --}}
                             @if (!$reservation->products->isEmpty())
                                 <dialog id="modal_{{ $reservation->id_reservasi }}" class="modal">
                                     <div class="modal-box">
@@ -228,11 +232,6 @@
                                     </form>
                                 </dialog>
                             @endif
-
-                            {{-- Jika tidak ada data --}}
-                            <tr>
-                                <td colspan="12" class="text-center py-4">Tidak ada data reservasi ditemukan.</td>
-                            </tr>
                         @endforelse
                     </tbody>
                 </table>
