@@ -211,7 +211,8 @@ class BayarController extends Controller
      * Ini adalah method yang dipanggil oleh route('doku.createPayment')
      * * [VERSI INI SUDAH DISESUAIKAN DENGAN SKEMA DB ANDA]
      */
-public function processPayment(Request $request): JsonResponse
+
+    public function processPayment(Request $request): JsonResponse
     {
         // 1. Validasi Keamanan (Benteng Backend)
         $validationResult = $this->validateOrderForPayment($request);
@@ -241,15 +242,14 @@ public function processPayment(Request $request): JsonResponse
                 'id_transaksi' => $invoiceNumber,
                 'total_price' => $totalPrice, 
                 'status' => 'PENDING',
-                'nama' => $customerData['nama'],
+                'nama' => $customerData['nama'], // Simpan data MENTAH di DB Anda
                 'email_customer' => $customerData['email'],
                 'nomor_telepon' => $customerData['nomor_telepon'],
                 'jumlah_orang' => $customerData['jumlah_orang'],
                 'tanggal' => $customerData['tanggal'],
                 'waktu' => $customerData['waktu'] . ':00',
             ];
-
-            // Simpan Foreign Key (integer)
+            
             if ($validationResult['reservationType'] === 'meja') {
                 $reservationData['nomor_meja'] = $validationResult['reservationFkId'];
             } elseif ($validationResult['reservationType'] === 'ruangan') {
@@ -259,13 +259,13 @@ public function processPayment(Request $request): JsonResponse
             // 5. Buat reservasi di DB
             $reservation = Reservation::create($reservationData);
             
-            // 6. Siapkan 'line_items' dari data keranjang
+            // 6. [PERBAIKAN] Siapkan 'line_items' DENGAN SANITASI
             $lineItems = [];
             $products = $validationResult['products'];
             $itemsFromRequest = $validationResult['items'];
             foreach ($products as $product) {
                 $lineItems[] = [
-                    'name' => $product->name,
+                    'name' => $this->sanitizeForDoku($product->name), // <-- DIBERSIHKAN
                     'price' => (int) $product->price,
                     'quantity' => (int) $itemsFromRequest[$product->id]
                 ];
@@ -277,39 +277,39 @@ public function processPayment(Request $request): JsonResponse
                 $customerPhone = '+62' . substr($customerPhone, 1);
             }
 
-            // 7. [PENTING] Buat FULL Request Body
+            // 7. [PERBAIKAN] Buat FULL Request Body DENGAN SANITASI
             $requestBody = [
                 'order' => [
                     'amount' => (int) $totalPrice,
-                    'invoice_number' => $invoiceNumber,
+                    'invoice_number' => $invoiceNumber, // (Aman, kita buat sendiri)
                     'currency' => 'IDR',
                     'callback_url' => route('doku.notification'),
-                    'line_items' => $lineItems
+                    'line_items' => $lineItems // (Sudah bersih)
                 ],
                 'payment' => [
                     'payment_due_date' => 60
                 ],
                 'customer' => [
-                    'name' => $customerData['nama'],
-                    'email' => $customerData['email'],
-                    'phone' => $customerPhone,
-                    'address' => 'Plaza Asia Office Park Unit 3', // Placeholder
-                    'country' => 'ID' // Placeholder
+                    'name' => $this->sanitizeForDoku($customerData['nama']), // <-- DIBERSIHKAN
+                    'email' => $customerData['email'], // (Aman, divalidasi)
+                    'phone' => $customerPhone, // (Aman, divalidasi)
+                    'address' => $this->sanitizeForDoku('Plaza Asia Office Park Unit 3'), // <-- DIBERSIHKAN
+                    'country' => 'ID'
                 ]
             ];
 
             // 8. Tentukan Endpoint DOKU
             $requestTarget = '/checkout/v1/payment'; 
 
-            // 9. Encode body SEKALI SAJA, dengan flag yang benar
+            // 9. Encode body SEKALI SAJA
             $jsonBody = json_encode($requestBody, JSON_UNESCAPED_SLASHES);
 
-            // 10. Panggil Helper menggunakan string JSON
+            // 10. Panggil Helper
             $headers = DokuSignatureHelper::generate($jsonBody, $requestTarget);
 
             // 11. Hit API DOKU
             $response = Http::withHeaders($headers)
-                ->withBody($jsonBody, 'application/json') // Kirim sebagai string mentah
+                ->withBody($jsonBody, 'application/json') 
                 ->post(config('doku.base_url') . $requestTarget);
 
             if (!$response->successful()) {
@@ -318,7 +318,7 @@ public function processPayment(Request $request): JsonResponse
                 throw new \Exception('Gagal menghubungi DOKU: ' . $response->body());
             }
 
-            // 12. Sukses! Simpan token & expired_at dari DOKU
+            // 12. Sukses!
             $dokuResponse = $response->json();
             $reservation->payment_token = $dokuResponse['payment']['token_id'];
             $reservation->expired_at = $dokuResponse['payment']['expired_datetime']; 
@@ -339,4 +339,22 @@ public function processPayment(Request $request): JsonResponse
             return response()->json(['message' => 'Terjadi kesalahan internal. Silakan coba beberapa saat lagi.'], 500);
         }
     }
+    /**
+     * Membersihkan string agar sesuai dengan aturan karakter DOKU.
+     * Hanya mengizinkan: a-z A-Z 0-9 dan simbol . - / + , = _ : ' @ %
+     *
+     * @param string $string
+     * @return string
+     */
+    private function sanitizeForDoku(string $string): string
+    {
+        // Regex ini akan MENGHAPUS semua karakter
+        // yang BUKAN (^) karakter di dalam daftar.
+        
+        // [^a-zA-Z0-9\.\-\/\+\,=\_:'@%]
+        
+        // Kita ganti karakter yang tidak valid dengan string kosong ''
+        return preg_replace("/[^a-zA-Z0-9\.\-\/\+\,=\_:'@%]/", '', $string);
+    }
+    
 } 
