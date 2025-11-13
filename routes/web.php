@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\ManajemenRuanganController;
 use App\Http\Controllers\Customer\ReservasiRoomController;
 use App\Http\Controllers\Admin\ManajemenRescheduleController;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
