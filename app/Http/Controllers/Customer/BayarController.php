@@ -258,9 +258,9 @@ class BayarController extends Controller
 
             // [PERBAIKAN] Simpan nomor meja/ruangan, bukan ID
             if ($validationResult['reservationType'] === 'meja') {
-                $reservationData['nomor_meja'] = $validationResult['reservationDetail'];
+                $reservationData['nomor_meja'] = $validationResult['reservationFkId'];
             } elseif ($validationResult['reservationType'] === 'ruangan') {
-                $reservationData['nomor_ruangan'] = $validationResult['reservationDetail'];
+                $reservationData['nomor_ruangan'] = $validationResult['reservationFkId'];
             }
 
             // 5. Buat reservasi di DB
