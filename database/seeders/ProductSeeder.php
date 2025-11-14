@@ -112,7 +112,7 @@ class ProductSeeder extends Seeder
             ['name' => 'Mix', 'price' => 15000, 'category' => 'ice-cream', 'image_url' => 'images/menus/ice_cream_mix.webp'],
             
             // --- COFFEE ---
-            ['name' => 'Black Coffee (hot/ice)', 'price' => 5, 'category' => 'coffee', 'image_url' => 'images/menus/black_coffee_hot_ice.webp'],
+            ['name' => 'Black Coffee (hot/ice)', 'price' => 10000, 'category' => 'coffee', 'image_url' => 'images/menus/black_coffee_hot_ice.webp'],
             ['name' => 'Chocolate Coffee (ice)', 'price' => 18000, 'category' => 'coffee', 'image_url' => 'images/menus/chocolate_coffee_ice.webp'],
             ['name' => 'Brown Sugar Coffee (ice)', 'price' => 18000, 'category' => 'coffee', 'image_url' => 'images/menus/brown_sugar_coffee_ice.webp'],
             ['name' => 'Brown Sugar Pandan (ice)', 'price' => 18000, 'category' => 'coffee', 'image_url' => 'images/menus/brown_sugar_pandan.webp'],
@@ -123,7 +123,7 @@ class ProductSeeder extends Seeder
             ['name' => 'Butterscotch Coffee (ice)', 'price' => 18000, 'category' => 'coffee', 'image_url' => 'images/menus/butterscotch_coffee_ice.webp'],
             ['name' => 'Affogato', 'price' => 18000, 'category' => 'coffee', 'image_url' => 'images/menus/affogato.webp'],
             ['name' => 'Kopmil (ice)', 'price' => 15000, 'category' => 'coffee', 'image_url' => 'images/menus/kopmil_ice.webp'],
-            ['name' => 'Vietnam Drip (hot)', 'price' => 5, 'category' => 'coffee', 'image_url' => 'images/menus/vietnam_drip_hot.webp'],
+            ['name' => 'Vietnam Drip (hot)', 'price' => 10000, 'category' => 'coffee', 'image_url' => 'images/menus/vietnam_drip_hot.webp'],
         ];
 
         // Loop data dan buat record menggunakan Model
