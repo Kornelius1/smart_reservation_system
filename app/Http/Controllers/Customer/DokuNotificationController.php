@@ -7,8 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Helpers\DokuSignatureHelper; // <-- Pastikan 'use' ini ada
+use App\Helpers\DokuSignatureHelper; // Pastikan 'use' ini ada
 use App\Http\Controllers\Controller;
+use Carbon\Carbon; // <-- TAMBAHKAN 'use' Carbon
 
 class DokuNotificationController extends Controller
 {
@@ -27,7 +28,7 @@ class DokuNotificationController extends Controller
         ]);
 
         // 2. Validasi Signature (KEAMANAN)
-        // (Sekarang menggunakan helper yang sudah diperbarui)
+        // (Menggunakan helper "pintar" v2.1 kita yang sudah benar)
         if (!DokuSignatureHelper::validate($request)) {
             Log::warning('DOKU Signature Validation FAILED', [
                 'ip' => $request->ip()
@@ -41,7 +42,6 @@ class DokuNotificationController extends Controller
 
         // 3. Ambil Data Kunci dari JSON
         try {
-            // Sesuaikan path ini jika DOKU mengirim struktur yang berbeda
             $invoiceNumber = $data['order']['invoice_number'];
             $paymentStatus = $data['transaction']['status']; 
         } catch (\Exception $e) {
@@ -49,8 +49,7 @@ class DokuNotificationController extends Controller
             return response()->json(['status' => 'OK_INVALID_STRUCTURE']);
         }
 
-
-        // 4. Proses Transaksi Database
+        // 4. [PERBAIKAN] Proses Transaksi Database (Logika Baru Anda)
         try {
             DB::beginTransaction();
 
@@ -65,40 +64,56 @@ class DokuNotificationController extends Controller
                 return response()->json(['status' => 'OK_NOT_FOUND']);
             }
 
-            // Kasus 2: Reservasi sudah diproses (Idempotency)
-            if ($reservation->status !== 'pending') {
-                Log::info('DOKU Notification: Reservation already processed', ['invoice' => $invoiceNumber]);
+            // Kasus 2: Hanya proses jika DOKU bilang 'SUCCESS'
+            if ($paymentStatus !== 'SUCCESS') {
                 DB::commit();
-                return response()->json(['status' => 'OK_ALREADY_PROCESSED']);
-            }
-
-            // [PERBAIKAN] Kasus 3: Logika Bisnis Utama (Sesuai Aturan Checkout)
-            if ($paymentStatus === 'SUCCESS') {
-                
-                $reservation->status = 'akan datang'; // Sesuai permintaan Anda
-                $reservation->save();
-                DB::commit();
-
-                Log::info('DOKU Notification: Processed successfully', ['invoice' => $invoiceNumber, 'new_status' => $reservation->status]);
-                // Kirim 200 OK agar DOKU berhenti
-                return response()->json(['status' => 'OK_SUCCESS']);
-            
-            } else {
-                
-                // [PERBAIKAN] Jika status 'FAILED', 'EXPIRED', 'CANCELLED', dll.
-                // Sesuai Best Practice DOKU Checkout, kita ABAIKAN.
-                // Biarkan status tetap 'PENDING' di DB.
-                // Biarkan Task Scheduler Anda yang menanganinya nanti.
-                
-                DB::commit(); // Tidak ada perubahan, tapi tutup transaksi.
-                
                 Log::info('DOKU Notification: Ignoring non-SUCCESS status', [
                     'invoice' => $invoiceNumber, 
                     'status_from_doku' => $paymentStatus
                 ]);
-                // Kita tetap kirim 200 OK agar DOKU berhenti
                 return response()->json(['status' => 'OK_IGNORED_NON_SUCCESS']);
             }
+
+            // Kasus 3: [PERBAIKAN] Idempotency Check (Pemeriksaan Duplikat)
+            // Kita HANYA berhenti jika statusnya SUDAH lunas.
+            // Kita HARUS melanjutkan jika statusnya 'pending' ATAU 'kedaluwarsa'.
+            $processedStatuses = ['akan datang', 'check-in', 'selesai'];
+            if (in_array($reservation->status, $processedStatuses)) {
+                Log::info('DOKU Notification: Reservation already processed (Idempotent)', ['invoice' => $invoiceNumber]);
+                DB::commit();
+                return response()->json(['status' => 'OK_ALREADY_PROCESSED']);
+            }
+
+            // Kasus 4: [LOGIKA BARU ANDA] Tentukan status baru
+            // Jika kita sampai di sini, artinya status DOKU 'SUCCESS'
+            // dan status kita saat ini 'pending' ATAU 'kedaluwarsa'.
+            // Kita akan MENIMPANYA (OVERWRITE).
+
+            $newStatus = '';
+            $today = Carbon::now()->toDateString();
+            
+            // Ambil tanggal reservasi (sudah di-cast sebagai objek 'date' oleh model)
+            $reservationDate = $reservation->tanggal->toDateString(); 
+
+            if ($today === $reservationDate) {
+                // Sesuai permintaan Anda: "statusnya berlangsung"
+                $newStatus = 'check-in'; 
+            } else {
+                // Sesuai permintaan Anda: "menjadi akan datang"
+                $newStatus = 'akan datang'; 
+            }
+
+            $reservation->status = $newStatus;
+            $reservation->save();
+            DB::commit();
+
+            Log::info('DOKU Notification: Processed successfully (Overwrote status)', [
+                'invoice' => $invoiceNumber, 
+                'new_status' => $newStatus
+            ]);
+
+            // Kirim 200 OK untuk memberitahu DOKU agar berhenti mengirim
+            return response()->json(['status' => 'OK_SUCCESS']);
 
         } catch (\Exception $e) {
             DB::rollBack();

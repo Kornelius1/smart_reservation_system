@@ -29,15 +29,20 @@ class UpdateReservationStatus extends Command
 
         Log::info('Waktu server: ' . $now->toDateTimeString() . ' | Tanggal hari ini: ' . $todayDateString);
 
-        // =================================================================
-        // [LOGIKA BARU DIGABUNGKAN]
-        // Skenario: 'pending' -> 'kedaluwarsa' (Diambil dari CancelExpiredReservations)
-        // -----------------------------------------------------------------
-        // Cari reservasi 'pending' yang 'expired_at'-nya (dari DOKU) sudah lewat.
-        $expired = Reservation::where('status', 'pending') // <-- Menggunakan 'pending' (huruf kecil)
-                                ->whereNotNull('expired_at') // Pastikan 'expired_at' ada
-                                ->where('expired_at', '<=', $now)
-                                ->update(['status' => 'kedaluwarsa']);
+        // Kita beri "masa tenggang" (grace period), misal 30 MENIT.
+        // Ini memberi waktu bagi notifikasi 'SUCCESS' DOKU untuk tiba, 
+        // bahkan jika pelanggan membayar tepat di detik-detik terakhir.
+        // Anda bisa mengubah angka 30 ini jika dirasa terlalu lama/cepat.
+        $cutoffTime = $now->copy()->subMinutes(30);
+
+
+
+        // HANYA batalkan reservasi yang 'pending' DAN 
+        // 'expired_at'-nya sudah lewat LEBIH DARI 30 MENIT.
+        $expired = Reservation::where('status', 'pending')
+            ->whereNotNull('expired_at')
+            ->where('expired_at', '<=', $cutoffTime) // <-- Menggunakan waktu batas baru
+            ->update(['status' => 'kedaluwarsa']);
 
         if ($expired > 0) {
             $this->info($expired . ' reservasi "pending" diubah menjadi "kedaluwarsa".');
