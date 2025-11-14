@@ -415,7 +415,7 @@
               <div><img src="{{ asset('images/meja.png') }}" alt="Meja" style="width: 24px; height: 24px;"> Not Available</div>
             </div>
             <div class="item">
-              <div class="sw" style="background:var(--green); font-size: 16px;"><img src="{{ asset('images/toilet.png') }}" alt="Toilet" style="width: 20px; height: 20px;"></div>
+              <div class="sw" style="background:var(--green); font-size: 16px;"><img src="{{ asset('images/toilet.png') }}" alt="Toilet" style="width: 24px; height: 24px;"></div>
               <div>Toilet</div>
             </div>
             <div class="item">
