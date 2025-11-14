@@ -50,11 +50,8 @@ class DokuSignatureHelper
 
 
     /**
-     * [FUNGSI BARU - LEBIH PINTAR]
+     * [FUNGSI PINTAR - UNTUK MEMPERBAIKI BUG KEDALUWARSA]
      * Memvalidasi tanda tangan notifikasi yang masuk dari DOKU.
-     *
-     * @param Request $request Request yang masuk dari DOKU
-     * @return bool True jika tanda tangan valid
      */
     public static function validate(Request $request): bool
     {
@@ -93,7 +90,6 @@ class DokuSignatureHelper
             $ourDigest = self::generateDigest($jsonBody);
 
             // 4. [PERBAIKAN] Buat ulang 'String-to-Sign'
-            // Menggunakan kunci 'Timestamp' yang benar
             $stringToSign = "Client-Id:" . $dokuClientId . "\n" .
                             "Request-Id:" . $dokuRequestId . "\n" .
                             $timestampHeaderKey . ":" . $dokuTimestamp . "\n" . // <-- PERBAIKAN DINAMIS

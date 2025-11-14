@@ -206,6 +206,7 @@ class BayarController extends Controller
         return redirect('/pilih-reservasi')->withErrors(['msg' => 'Pilih jenis reservasi.']);
     }
 
+
     // GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI DENGAN PERBAIKAN BUG)
     public function processPayment(Request $request): JsonResponse
     {
@@ -232,7 +233,7 @@ class BayarController extends Controller
         try {
             // 4. Siapkan data untuk tabel 'reservations'
             $reservationData = [
-                'id_transaksi' => $invoiceNumber, 'total_price' => $totalPrice, 'status' => 'pending', // <-- Anda bilang pakai 'pending' (lowercase)
+                'id_transaksi' => $invoiceNumber, 'total_price' => $totalPrice, 'status' => 'pending', 
                 'nama' => $customerData['nama'], 'email_customer' => $customerData['email'],
                 'nomor_telepon' => $customerData['nomor_telepon'], 'jumlah_orang' => $customerData['jumlah_orang'],
                 'tanggal' => $customerData['tanggal'], 'waktu' => $customerData['waktu'] . ':00',
@@ -248,17 +249,16 @@ class BayarController extends Controller
             
             
             // [PERBAIKAN BUG #2 - SIMPAN PRODUK KE PIVOT TABLE]
-            // Kita siapkan data untuk method attach()
+            // (Model Anda mengkonfirmasi 'products()' adalah relasi yang benar)
             $productsToSync = [];
             $products = $validationResult['products'];
             $itemsFromRequest = $validationResult['items'];
             
             foreach ($products as $product) {
                 $quantity = $itemsFromRequest[$product->id];
-                // Format: [product_id => ['kolom_pivot' => nilai]]
                 $productsToSync[$product->id] = [
                     'quantity' => $quantity,
-                    'price' => $product->price // Simpan harga saat itu
+                    'price' => $product->price 
                 ];
             }
             // Simpan ke tabel 'reservation_product'
@@ -266,7 +266,7 @@ class BayarController extends Controller
             // [AKHIR PERBAIKAN BUG #2]
 
             
-            // 6. Siapkan 'line_items' (sekarang kita bisa gunakan data $productsToSync)
+            // 6. Siapkan 'line_items' (Sudah Benar)
             $lineItems = [];
             foreach ($products as $product) {
                 $lineItems[] = [
@@ -279,21 +279,21 @@ class BayarController extends Controller
             $customerPhone = $customerData['nomor_telepon'];
             if (str_starts_with($customerPhone, '08')) { $customerPhone = '+62' . substr($customerPhone, 1); }
 
-            // 7. Buat FULL Request Body
+            // 7. Buat FULL Request Body (Sudah Benar)
             $requestBody = [
                 'order' => ['amount' => (int) $totalPrice, 'invoice_number' => $invoiceNumber, 'currency' => 'IDR', 'callback_url' => route('doku.notification'), 'callback_url_result' => route('payment.success', ['invoice' => $invoiceNumber]), 'line_items' => $lineItems],
-                'payment' => ['payment_due_date' => 60],
+                'payment' => ['payment_due_date' => 10], // Diubah ke 10 menit
                 'customer' => ['name' => $this->sanitizeForDoku($customerData['nama']), 'email' => $customerData['email'], 'phone' => $customerPhone, 'address' => $this->sanitizeForDoku('Plaza Asia Office Park Unit 3'), 'country' => 'ID']
             ];
             $requestTarget = '/checkout/v1/payment'; 
             $jsonBody = json_encode($requestBody, JSON_UNESCAPED_SLASHES);
             $headers = DokuSignatureHelper::generate($jsonBody, $requestTarget);
 
-            // 11. Hit API DOKU
+            // 11. Hit API DOKU (Sudah Benar)
             $response = Http::withHeaders($headers)->withBody($jsonBody, 'application/json')->post(config('doku.base_url') . $requestTarget);
             $dokuResponse = $response->json();
 
-            // 12. Periksa kegagalan
+            // 12. Periksa kegagalan (Sudah Benar)
             if (!isset($dokuResponse['response']['payment'])) {
                 DB::rollBack();
                 $errorMessage = 'DOKU mengembalikan respons tidak valid.';
@@ -303,13 +303,13 @@ class BayarController extends Controller
                 throw new \Exception($errorMessage);
             }
 
-            // 13. Sukses
+            // 13. Sukses (Sudah Benar)
             $reservation->payment_token = $dokuResponse['response']['payment']['token_id'];
             $reservation->expired_at = $dokuResponse['response']['payment']['expired_datetime']; 
             $reservation->save(); 
             DB::commit(); 
 
-            // 14. Kembalikan URL
+            // 14. Kembalikan URL (Sudah Benar)
             return response()->json([
                 'payment_url' => $dokuResponse['response']['payment']['url']
             ]);
@@ -320,7 +320,6 @@ class BayarController extends Controller
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
-
 
     // Pastikan fungsi sanitizeForDoku Anda ada di sini
     private function sanitizeForDoku(string $string): string
