@@ -206,14 +206,6 @@ class BayarController extends Controller
         return redirect('/pilih-reservasi')->withErrors(['msg' => 'Pilih jenis reservasi.']);
     }
 
-/**
-     * 🚀 Memproses pembayaran dan membuat invoice DOKU (via AJAX)
-     * Ini adalah method yang dipanggil oleh route('doku.createPayment')
-     * * [VERSI INI SUDAH DISESUAIKAN DENGAN SKEMA DB ANDA]
-     */
-// GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI LEBIH AMAN)
-// GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI LEBIH AMAN)
-  // GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI FINAL)
     // GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI DENGAN PERBAIKAN BUG)
     public function processPayment(Request $request): JsonResponse
     {
@@ -328,6 +320,7 @@ class BayarController extends Controller
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
+
 
     // Pastikan fungsi sanitizeForDoku Anda ada di sini
     private function sanitizeForDoku(string $string): string
