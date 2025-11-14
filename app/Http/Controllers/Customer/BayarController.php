@@ -214,9 +214,10 @@ class BayarController extends Controller
 // GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI LEBIH AMAN)
 // GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI LEBIH AMAN)
   // GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI FINAL)
+    // GANTI SELURUH FUNGSI ANDA DENGAN INI (VERSI DENGAN PERBAIKAN BUG)
     public function processPayment(Request $request): JsonResponse
     {
-        // 1. Validasi Keamanan & Data Pemesan (Sudah Benar)
+        // 1. Validasi Keamanan & Data Pemesan
         $validationResult = $this->validateOrderForPayment($request);
         if ($validationResult instanceof RedirectResponse) {
             return response()->json(['message' => 'Data pesanan tidak valid atau tidak memenuhi syarat.'], 422);
@@ -230,16 +231,16 @@ class BayarController extends Controller
             'waktu' => 'required|date_format:H:i',
         ]);
         
-        // 3. Siapkan Data Internal (Sudah Benar)
+        // 3. Siapkan Data Internal
         $totalPrice = $validationResult['totalPrice'];
         $invoiceNumber = 'INV-' . time() . Str::random(5);
 
         // --- MULAI TRANSAKSI DATABASE DAN LOGIKA DOKU ---
         DB::beginTransaction();
         try {
-            // 4. Siapkan data reservasi (Sudah Benar)
+            // 4. Siapkan data untuk tabel 'reservations'
             $reservationData = [
-                'id_transaksi' => $invoiceNumber, 'total_price' => $totalPrice, 'status' => 'pending',
+                'id_transaksi' => $invoiceNumber, 'total_price' => $totalPrice, 'status' => 'pending', // <-- Anda bilang pakai 'pending' (lowercase)
                 'nama' => $customerData['nama'], 'email_customer' => $customerData['email'],
                 'nomor_telepon' => $customerData['nomor_telepon'], 'jumlah_orang' => $customerData['jumlah_orang'],
                 'tanggal' => $customerData['tanggal'], 'waktu' => $customerData['waktu'] . ':00',
@@ -249,17 +250,44 @@ class BayarController extends Controller
             } elseif ($validationResult['reservationType'] === 'ruangan') {
                 $reservationData['nomor_ruangan'] = $validationResult['reservationFkId'];
             }
+            
+            // 5. Buat reservasi di DB
             $reservation = Reservation::create($reservationData);
             
-            // 6. Siapkan line_items & customerPhone (Sudah Benar)
-            $lineItems = []; $products = $validationResult['products']; $itemsFromRequest = $validationResult['items'];
+            
+            // [PERBAIKAN BUG #2 - SIMPAN PRODUK KE PIVOT TABLE]
+            // Kita siapkan data untuk method attach()
+            $productsToSync = [];
+            $products = $validationResult['products'];
+            $itemsFromRequest = $validationResult['items'];
+            
             foreach ($products as $product) {
-                $lineItems[] = ['name' => $this->sanitizeForDoku($product->name), 'price' => (int) $product->price, 'quantity' => (int) $itemsFromRequest[$product->id]];
+                $quantity = $itemsFromRequest[$product->id];
+                // Format: [product_id => ['kolom_pivot' => nilai]]
+                $productsToSync[$product->id] = [
+                    'quantity' => $quantity,
+                    'price' => $product->price // Simpan harga saat itu
+                ];
             }
+            // Simpan ke tabel 'reservation_product'
+            $reservation->products()->attach($productsToSync);
+            // [AKHIR PERBAIKAN BUG #2]
+
+            
+            // 6. Siapkan 'line_items' (sekarang kita bisa gunakan data $productsToSync)
+            $lineItems = [];
+            foreach ($products as $product) {
+                $lineItems[] = [
+                    'name' => $this->sanitizeForDoku($product->name),
+                    'price' => (int) $product->price,
+                    'quantity' => (int) $itemsFromRequest[$product->id]
+                ];
+            }
+            
             $customerPhone = $customerData['nomor_telepon'];
             if (str_starts_with($customerPhone, '08')) { $customerPhone = '+62' . substr($customerPhone, 1); }
 
-            // 7. Buat Request Body (Sudah Benar)
+            // 7. Buat FULL Request Body
             $requestBody = [
                 'order' => ['amount' => (int) $totalPrice, 'invoice_number' => $invoiceNumber, 'currency' => 'IDR', 'callback_url' => route('doku.notification'), 'callback_url_result' => route('payment.success', ['invoice' => $invoiceNumber]), 'line_items' => $lineItems],
                 'payment' => ['payment_due_date' => 60],
@@ -269,11 +297,11 @@ class BayarController extends Controller
             $jsonBody = json_encode($requestBody, JSON_UNESCAPED_SLASHES);
             $headers = DokuSignatureHelper::generate($jsonBody, $requestTarget);
 
-            // 11. Hit API DOKU (Sudah Benar)
+            // 11. Hit API DOKU
             $response = Http::withHeaders($headers)->withBody($jsonBody, 'application/json')->post(config('doku.base_url') . $requestTarget);
             $dokuResponse = $response->json();
 
-            // [PERBAIKAN FINAL] Kita periksa di JALUR YANG BENAR
+            // 12. Periksa kegagalan
             if (!isset($dokuResponse['response']['payment'])) {
                 DB::rollBack();
                 $errorMessage = 'DOKU mengembalikan respons tidak valid.';
@@ -282,22 +310,18 @@ class BayarController extends Controller
                 Log::error('DOKU API Error (Logic Fail): ' . $response->body(), ['request' => $requestBody, 'response' => $dokuResponse]);
                 throw new \Exception($errorMessage);
             }
-            // [AKHIR PERBAIKAN FINAL]
 
-            // 13. [PERBAIKAN FINAL] Kita ambil data dari JALUR YANG BENAR
+            // 13. Sukses
             $reservation->payment_token = $dokuResponse['response']['payment']['token_id'];
             $reservation->expired_at = $dokuResponse['response']['payment']['expired_datetime']; 
             $reservation->save(); 
             DB::commit(); 
 
-            // 14. [PERBAIKAN FINAL] Kembalikan URL dari JALUR YANG BENAR
+            // 14. Kembalikan URL
             return response()->json([
                 'payment_url' => $dokuResponse['response']['payment']['url']
             ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'Data pemesan tidak valid.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('DOKU Payment Error (Caught): ' . $e->getMessage());

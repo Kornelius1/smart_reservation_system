@@ -10,32 +10,7 @@ use Illuminate\Http\RedirectResponse; // <-- Ditambahkan
 
 class ReservationController extends Controller
 {
-    /**
-     * Menampilkan daftar semua reservasi.
-     */
-    // public function index(): View // <-- Ditambahkan return type
-    // {
-    //     // ==========================================================
-    //     // GABUNGAN: Memuat 'products' DAN mengurutkan status
-    //     // ==========================================================
-    //     $reservations = Reservation::with('products')
-    //         ->orderByRaw("
-    //             CASE 
-    //                 WHEN status = 'check-in' THEN 1    -- Diperbarui ke 'check-in'
-    //                 WHEN status = 'akan datang' THEN 2 -- Diperbarui ke 'akan datang'
-    //                 WHEN status = 'pending' THEN 3      -- Ditambahkan 'pending'
-    //                 WHEN status = 'selesai' THEN 4      -- Diperbarui ke 'selesai'
-    //                 WHEN status = 'dibatalkan' THEN 5   -- Diperbarui ke 'dibatalkan'
-    //                 ELSE 6
-    //             END
-    //         ")
-    //         ->orderBy('tanggal', 'asc') // Urutkan berdasarkan tanggal terdekat
-    //         ->orderBy('waktu', 'asc')   // Lalu berdasarkan waktu
-    //         ->get();
-        
-    //     return view('admin.manajemen-reservasi', compact('reservations'));
-    // }
-
+   
     /**
      * Mengubah status reservasi menjadi 'check-in'
      */
