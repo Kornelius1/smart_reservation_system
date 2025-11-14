@@ -1,5 +1,5 @@
-[v] npm uninstall daisyui
-[v] npm i -D daisyui@latest
-
-app.css
-[+] @plugin "daisyui";
+- [x] Ganti semua 🪑 dengan 🍽️ di ikon meja dan legenda
+- [x] Tambah CSS untuk .toilet-icon { color: #7a9a86; }
+- [x] Tambah CSS untuk .kasir-icon { color: #7a9a86; }
+- [x] Ganti semua emoji dengan gambar PNG custom (meja.png, toilet.png, kasir.png)
+- [x] Test perubahan dengan melihat halaman DenahMeja (server running on http://127.0.0.1:8000)

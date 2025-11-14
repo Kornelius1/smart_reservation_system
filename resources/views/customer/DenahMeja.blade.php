@@ -183,6 +183,26 @@
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
     transition: transform .2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    color: white;
+    position: relative;
+    gap: 2px;
+  }
+
+  .table-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+  }
+
+  .table-number {
+    font-size: 10px;
+    line-height: 1;
   }
 
   .table-btn:hover {
@@ -225,6 +245,18 @@
     height: 52px;
     background: var(--green);
     border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+  }
+
+  .toilet-icon {
+    background-image: url('{{ asset('images/toilet.png') }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 
   .kasir-box {
@@ -244,6 +276,15 @@
     background: var(--green);
     border-radius: 8px;
     margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    background-image: url('{{ asset('images/kasir.png') }}');
+    background-size: 52px 52px;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 
   footer {
@@ -367,11 +408,19 @@
           <div class="legend">
             <div class="item">
               <div class="sw" style="background:var(--green)"></div>
-              <div>Available</div>
+              <div><img src="{{ asset('images/meja.png') }}" alt="Meja" style="width: 24px; height: 24px;"> Available</div>
             </div>
             <div class="item">
               <div class="sw" style="background:linear-gradient(180deg,var(--gray-start),var(--gray-end))"></div>
-              <div>Not Available</div>
+              <div><img src="{{ asset('images/meja.png') }}" alt="Meja" style="width: 24px; height: 24px;"> Not Available</div>
+            </div>
+            <div class="item">
+              <div class="sw" style="background:var(--green); font-size: 16px;"><img src="{{ asset('images/toilet.png') }}" alt="Toilet" style="width: 20px; height: 20px;"></div>
+              <div>Toilet</div>
+            </div>
+            <div class="item">
+              <div class="sw" style="background:var(--green); font-size: 16px;"><img src="{{ asset('images/kasir.png') }}" alt="Kasir" style="width: 24px; height: 24px;"></div>
+              <div>Kasir</div>
             </div>
           </div>
         </div>
@@ -393,13 +442,14 @@
                         'table_number' => $meja->nomor_meja,
                         'min_order' => $minimumOrder  // Gunakan variabel dari controller
                       ]) }}" class="table-btn table-available" title="Pesan Meja {{ $meja->nomor_meja }}">
-                                {{-- Opsional: Tampilkan nomor meja dari kolom 'nomor_meja' --}}
-                                {{ $meja->nomor_meja }}
+                                <img src="{{ asset('images/meja.png') }}" class="table-icon" alt="Meja">
+                                <span class="table-number">{{ $meja->nomor_meja }}</span>
                               </a>
                     @else
                       {{-- JIKA TIDAK TERSEDIA: Buat tombol non-aktif --}}
                       <div class="table-btn table-unavailable" title="Meja {{ $meja->nomor_meja }} tidak tersedia">
-                        {{ $meja->nomor_meja }}
+                        <img src="{{ asset('images/meja.png') }}" class="table-icon" alt="Meja">
+                        <span class="table-number">{{ $meja->nomor_meja }}</span>
                       </div>
                     @endif
                   @endforeach
@@ -437,12 +487,13 @@
                         'table_number' => $meja->nomor_meja,
                         'min_order' => $minimumOrder
                       ]) }}" class="table-btn table-available" title="Pesan Meja {{ $meja->nomor_meja }}">
-
-                                {{ $meja->nomor_meja }}
+                                <img src="{{ asset('images/meja.png') }}" class="table-icon" alt="Meja">
+                                <span class="table-number">{{ $meja->nomor_meja }}</span>
                               </a>
                     @else
                       <div class="table-btn table-unavailable" title="Meja {{ $meja->nomor_meja }} tidak tersedia">
-                        {{ $meja->nomor_meja }}
+                        <img src="{{ asset('images/meja.png') }}" class="table-icon" alt="Meja">
+                        <span class="table-number">{{ $meja->nomor_meja }}</span>
                       </div>
                     @endif
                   @endforeach
@@ -462,12 +513,13 @@
                         'table_number' => $meja->nomor_meja,
                         'min_order' => $minimumOrder
                       ]) }}" class="table-btn table-available" title="Pesan Meja {{ $meja->nomor_meja }}">
-
-                                {{ $meja->nomor_meja }}
+                                <img src="{{ asset('images/meja.png') }}" class="table-icon" alt="Meja">
+                                <span class="table-number">{{ $meja->nomor_meja }}</span>
                               </a>
                     @else
                       <div class="table-btn table-unavailable" title="Meja {{ $meja->nomor_meja }} tidak tersedia">
-                        {{ $meja->nomor_meja }}
+                        <img src="{{ asset('images/meja.png') }}" class="table-icon" alt="Meja">
+                        <span class="table-number">{{ $meja->nomor_meja }}</span>
                       </div>
                     @endif
                   @endforeach
@@ -487,12 +539,13 @@
                         'table_number' => $meja->nomor_meja,
                         'min_order' => $minimumOrder
                       ]) }}" class="table-btn table-available" title="Pesan Meja {{ $meja->nomor_meja }}">
-
-                                {{ $meja->nomor_meja }}
+                                <img src="{{ asset('images/meja.png') }}" class="table-icon" alt="Meja">
+                                <span class="table-number">{{ $meja->nomor_meja }}</span>
                               </a>
                     @else
                       <div class="table-btn table-unavailable" title="Meja {{ $meja->nomor_meja }} tidak tersedia">
-                        {{ $meja->nomor_meja }}
+                        <img src="{{ asset('images/meja.png') }}" class="table-icon" alt="Meja">
+                        <span class="table-number">{{ $meja->nomor_meja }}</span>
                       </div>
                     @endif
                   @endforeach
