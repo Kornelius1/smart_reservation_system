@@ -210,18 +210,20 @@
         </div>
     </div>
 
-        {{-- 2. MODAL UNTUK RESERVASI INI (DIPINDAHKAN KE SINI) --}}
+
+@foreach ($reservations as $reservation)
+    {{-- 2. MODAL UNTUK RESERVASI INI --}}
     @if (!$reservation->products->isEmpty())
         <div wire:ignore>
             <dialog id="modal_{{ $reservation->id_reservasi }}" class="modal">
                 <div class="modal-box">
                     <h3 class="font-bold text-lg text-brand-text">Daftar Pesanan</h3>
                     <p class="py-2 text-brand-text">Invoice: {{ $reservation->id_transaksi }}</p>
-                    
+
                     <ul class="list-disc list-inside py-4 text-brand-text text-left">
                         @foreach ($reservation->products as $product)
                             <li class="text-sm">
-                                {{ $product->name }} 
+                                {{ $product->name }}
                                 <span class="font-semibold">
                                     ({{ $product->pivot->quantity }}x @ Rp {{ number_format($product->pivot->price) }})
                                 </span>
@@ -235,7 +237,7 @@
                         </form>
                     </div>
                 </div>
-                
+
                 {{-- Klik di luar untuk menutup --}}
                 <form method="dialog" class="modal-backdrop">
                     <button>close</button>
@@ -243,4 +245,5 @@
             </dialog>
         </div>
     @endif
+@endforeach
 </div>
