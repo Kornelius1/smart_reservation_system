@@ -200,34 +200,36 @@
 
                             {{-- 2. MODAL UNTUK RESERVASI INI (DIPINDAHKAN KE SINI) --}}
                             @if (!$reservation->products->isEmpty())
-                                <dialog id="modal_{{ $reservation->id_reservasi }}" class="modal">
-                                    <div class="modal-box">
-                                        <h3 class="font-bold text-lg text-brand-text">Daftar Pesanan</h3>
-                                        <p class="py-2 text-brand-text">Invoice: {{ $reservation->id_transaksi }}</p>
-                                        
-                                        <ul class="list-disc list-inside py-4 text-brand-text text-left">
-                                            @foreach ($reservation->products as $product)
-                                                <li class="text-sm">
-                                                    {{ $product->name }} 
-                                                    <span class="font-semibold">
-                                                        ({{ $product->pivot->quantity }}x @ Rp {{ number_format($product->pivot->price) }})
-                                                    </span>
-                                                </li>
-                                            @endforeach
-                                        </ul>
+                                <div wire:ignore>
+                                    <dialog id="modal_{{ $reservation->id_reservasi }}" class="modal">
+                                        <div class="modal-box">
+                                            <h3 class="font-bold text-lg text-brand-text">Daftar Pesanan</h3>
+                                            <p class="py-2 text-brand-text">Invoice: {{ $reservation->id_transaksi }}</p>
+                                            
+                                            <ul class="list-disc list-inside py-4 text-brand-text text-left">
+                                                @foreach ($reservation->products as $product)
+                                                    <li class="text-sm">
+                                                        {{ $product->name }} 
+                                                        <span class="font-semibold">
+                                                            ({{ $product->pivot->quantity }}x @ Rp {{ number_format($product->pivot->price) }})
+                                                        </span>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
 
-                                        <div class="modal-action">
-                                            <form method="dialog">
-                                                <button class="btn">Tutup</button>
-                                            </form>
+                                            <div class="modal-action">
+                                                <form method="dialog">
+                                                    <button class="btn">Tutup</button>
+                                                </form>
+                                            </div>
                                         </div>
-                                    </div>
-                                    
-                                    {{-- Klik di luar untuk menutup --}}
-                                    <form method="dialog" class="modal-backdrop">
-                                        <button>close</button>
-                                    </form>
-                                </dialog>
+                                        
+                                        {{-- Klik di luar untuk menutup --}}
+                                        <form method="dialog" class="modal-backdrop">
+                                            <button>close</button>
+                                        </form>
+                                    </dialog>
+                                </div>
                             @endif
 
                         @empty
