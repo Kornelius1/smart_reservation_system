@@ -53,6 +53,13 @@ class DokuSignatureHelper
      * [FUNGSI PINTAR - UNTUK MEMPERBAIKI BUG KEDALUWARSA]
      * Memvalidasi tanda tangan notifikasi yang masuk dari DOKU.
      */
+/**
+     * [FUNGSI PINTAR v2 - PRIORITAS DIPERBAIKI]
+     * Memvalidasi tanda tangan notifikasi yang masuk dari DOKU.
+     *
+     * @param Request $request Request yang masuk dari DOKU
+     * @return bool True jika tanda tangan valid
+     */
     public static function validate(Request $request): bool
     {
         try {
@@ -61,19 +68,19 @@ class DokuSignatureHelper
             $dokuRequestId = $request->header('Request-Id');
             $dokuSignature = $request->header('Signature');
             
-            // [PERBAIKAN] Tangani ambiguitas DOKU
-            // Cek 'Request-Timestamp' (dari tombol Tes)
-            // ATAU 'Response-Timestamp' (dari notifikasi Asli)
+            // [PERBAIKAN FINAL] Kita PRIORITASKAN 'Response-Timestamp'
+            // Notifikasi "asli" DOKU menggunakan ini.
             
             $timestampHeaderKey = '';
             $dokuTimestamp = null;
 
-            if ($request->hasHeader('Request-Timestamp')) {
-                $dokuTimestamp = $request->header('Request-Timestamp');
-                $timestampHeaderKey = 'Request-Timestamp';
-            } elseif ($request->hasHeader('Response-Timestamp')) {
+            if ($request->hasHeader('Response-Timestamp')) {
                 $dokuTimestamp = $request->header('Response-Timestamp');
                 $timestampHeaderKey = 'Response-Timestamp';
+            } elseif ($request->hasHeader('Request-Timestamp')) {
+                // Tombol "Test" DOKU menggunakan ini sebagai cadangan.
+                $dokuTimestamp = $request->header('Request-Timestamp');
+                $timestampHeaderKey = 'Request-Timestamp';
             }
 
             // 2. Ambil "Bahan Baku" dari Server Kita
@@ -91,10 +98,10 @@ class DokuSignatureHelper
 
             // 4. [PERBAIKAN] Buat ulang 'String-to-Sign'
             $stringToSign = "Client-Id:" . $dokuClientId . "\n" .
-                            "Request-Id:" . $dokuRequestId . "\n" .
-                            $timestampHeaderKey . ":" . $dokuTimestamp . "\n" . // <-- PERBAIKAN DINAMIS
-                            "Request-Target:" . $requestTarget . "\n" .
-                            "Digest:" . $ourDigest;
+                "Request-Id:" . $dokuRequestId . "\n" .
+                $timestampHeaderKey . ":" . $dokuTimestamp . "\n" . // <-- TITIK . DITAMBAHKAN
+                "Request-Target:" . $requestTarget . "\n" .
+                "Digest:" . $ourDigest;
 
             // 5. Buat ulang 'Signature'
             $ourSignature = self::generateHmac($stringToSign, $secretKey);

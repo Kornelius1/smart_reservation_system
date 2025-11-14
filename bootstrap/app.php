@@ -22,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
 
     ->withSchedule(function (Schedule $schedule) {
-        $schedule->command('reservations:update-status')->everyMinute(); // <-- INI YANG BARU & SUDAH DIGABUNG
+        $schedule->command('reservations:update-status')->everyMinute(); 
         })
 
     ->withExceptions(function (Exceptions $exceptions): void {
