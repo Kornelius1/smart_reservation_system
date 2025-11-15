@@ -49,7 +49,7 @@
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
 
-                   <input id="searchInput" type="text" placeholder="Cari berdasarkan meja..."
+                   <input id="searchInput" type="text" placeholder="Cari berdasarkan lokasi meja..."
                             class="input input-sm input-bordered w-full sm:w-72 pl-10" />
                 </div>
 

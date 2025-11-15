@@ -501,4 +501,59 @@ const isOrderMinimumMet = computed(() => {
     cursor: grabbing;
     cursor: -webkit-grabbing;
 }
+
+/* =========================================
+  KUSTOMISASI SEARCH BAR (DI SINI TEMPATNYA)
+ =========================================
+*/
+
+/* Target <label> yang punya kelas 'input' dan 'input-bordered'.
+*/
+label.input.input-bordered {
+    transition: all 0.3s ease-in-out;
+    
+    /* 1. Beri border tebal 2px, warna hijau muda */
+    border-width: 2px !important;
+    border-color: #CFE1B9 !important; /* Hijau muda */
+    
+    /* 2. Hapus bayangan (shadow) bawaan jika ada */
+    box-shadow: none !important; 
+    background-color: #ffffff !important;
+}
+
+/* --- Efek Hover --- */
+label.input.input-bordered:hover {
+    border-color: #75A47F !important; /* Hijau tua (brand-primary) */
+}
+
+/* --- Efek Focus (saat diklik) --- 
+  Gunakan :focus-within pada <label>
+*/
+label.input.input-bordered:focus-within {
+    border-color: #75A47F !important; /* Hijau tua */
+    
+    /* 3. Ganti 'ring' bawaan dengan 'glow' hijau */
+    box-shadow: 0 0 0 3px rgba(117, 164, 127, 0.3) !important; 
+    outline: none !important;
+}
+
+/* --- Ikon SVG di dalam search bar --- */
+label.input.input-bordered svg {
+    transition: color 0.3s ease-in-out;
+    color: #9ca3af; /* Abu-abu netral */
+}
+
+/* --- Ikon saat search bar di-klik --- */
+label.input.input-bordered:focus-within svg {
+    color: #75A47F !important; /* Hijau tua */
+}
+
+/* --- Input di dalamnya --- */
+label.input.input-bordered input.grow {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important; /* Pastikan inputnya transparan */
+}
+
 </style>

@@ -69,14 +69,7 @@
                     </div>
                 @endif
 
-                {{-- ================================================================== --}}
-                {{-- PERBAIKAN RESPONSIVE DIMULAI DARI SINI --}}
-                {{-- 
-                    - flex-col: Susun ke bawah di HP (default)
-                    - sm:flex-row: Susun ke samping di layar small (tablet) ke atas
-                    - sm:items-center: Sejajarkan vertikal di tengah (hanya di layar small ke atas)
-                    - gap-4: Beri jarak antar elemen (menggantikan space-x-4 dan my-2)
-                --}}
+               
                 <div class="flex flex-col sm:flex-row justify-start sm:items-center my-4 gap-4"> 
                     <div class="form-control relative"> {{-- my-2 dihapus krn sdh pakai gap-4 --}}
                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -88,7 +81,7 @@
                             - w-full: Lebar penuh di HP
                             - sm:w-72: Kembali ke lebar 72 di layar small ke atas
                         --}}
-                        <input id="searchInput" type="text" placeholder="Search..."
+                        <input id="searchInput" type="text" placeholder="Cari berdasarkan nama menu..."
                             class="input input-sm input-bordered w-full sm:w-72 pl-10" />
                     </div>
                     {{-- 
