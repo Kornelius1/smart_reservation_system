@@ -534,33 +534,32 @@ const isOrderMinimumMet = computed(() => {
   KUSTOMISASI SEARCH BAR (DI SINI TEMPATNYA)
  =========================================
 */
-
-/* Target <label> yang punya kelas 'input' dan 'input-bordered'.
-*/
 label.input.input-bordered {
-    transition: all 0.3s ease-in-out, transform 0.2s ease, box-shadow 0.2s ease;
-
-    border-width: 2px !important;
-    border-color: #cfe1b9 !important; 
-    box-shadow: none !important;
-    background-color: #ffffff !important;
+    /* Transisi untuk semua properti yang berubah */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    border-width: 1px !important; 
+    border-color: #CFE1B9 !important; 
+    background-color: #f9fafb !important; 
+    box-shadow: none !important; 
     border-radius: 9999px;
     padding-left: 1.25rem;
     padding-right: 1.25rem;
 }
 
-/* --- Efek Hover --- */
 label.input.input-bordered:hover {
-    border-color: #75a47f !important; /* Hijau tua (brand-primary) */
+    border-color: #aab8a1 !important; 
+    background-color: #ffffff !important; 
 }
 
-/* --- Efek Focus (saat diklik) --- 
-  Gunakan :focus-within pada <label>
-*/
+
 label.input.input-bordered:focus-within {
-    transform: scale(1.02);
-    border-color: #75a47f !important; 
-    box-shadow: 0 0 0 3px rgba(117, 164, 127, 0.3) !important;
+    transform: translateY(-2px); 
+    border-color: #738764 !important; 
+    background-color: #ffffff !important;
+    box-shadow: 
+        0 10px 15px -3px rgba(0, 0, 0, 0.05), 
+        0 4px 6px -2px rgba(0, 0, 0, 0.02) !important; 
     outline: none !important;
 }
 
