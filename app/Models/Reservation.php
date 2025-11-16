@@ -55,7 +55,7 @@ class Reservation extends Model
     protected $casts = [
         'tanggal' => 'date', 
         'status' => 'string',
-        'waktu' => 'datetime', 
+        'waktu' => 'string', 
         'expired_at' => 'datetime',
         'created_at' => 'datetime', 
         'updated_at' => 'datetime',
