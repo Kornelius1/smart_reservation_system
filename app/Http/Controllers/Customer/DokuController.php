@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Customer;
 
+
+use PDF;
 use App\Models\Reservation;
-use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
+
 
 class DokuController extends Controller
 {
@@ -51,5 +54,32 @@ class DokuController extends Controller
             'invoice' => $invoice,
             'message' => 'Pembayaran dibatalkan atau gagal. Silakan coba lagi.'
         ]);
+    }
+
+   
+   public function downloadReceipt(string $invoice)
+    {
+        try {
+            // 1. Cari reservasi (termasuk data produk)
+            $reservation = Reservation::with('products')
+                                ->where('id_transaksi', $invoice)
+                                ->firstOrFail(); // Gagal jika tidak ditemukan
+
+            // 2. Load view Blade yang kita buat tadi
+            $pdf = Pdf::loadView('customer.Receipt', [
+                'reservation' => $reservation
+            ]);
+
+            // 3. Buat nama file
+            $fileName = 'struk-reservasi-' . $reservation->id_transaksi . '.pdf';
+
+            // 4. Download file
+            return $pdf->download($fileName);
+
+        } catch (\Exception $e) {
+            // Jika reservasi tidak ditemukan atau ada error
+            return redirect()->route('customer.landing.page')
+                             ->with('error', 'Gagal men-download struk: Reservasi tidak ditemukan.');
+        }
     }
 }

@@ -136,6 +136,9 @@ Route::get('/pembayaran/sukses/{invoice}', [DokuController::class, 'handleSucces
 
 Route::get('/pembayaran/gagal/{invoice}', [DokuController::class, 'handleFailedRedirect'])
     ->name('payment.failed');
+
+Route::get('/reservasi/struk/{invoice}', [DokuController::class, 'downloadReceipt'])
+    ->name('payment.receipt');
     
 require __DIR__.'/auth.php';
 

@@ -45,6 +45,12 @@
             Kembali ke Beranda
         </a>
 
+       <a href="{{ route('payment.receipt', ['invoice' => $reservation->id_transaksi]) }}" 
+           class="btn btn-outline-primary mt-4 w-full max-w-xs"
+           target="_blank"> {{-- target="_blank" agar membuka di tab baru --}}
+            Download Struk (PDF)
+        </a> 
+
     </div>
 </div>
 @endsection
