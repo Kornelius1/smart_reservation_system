@@ -30,7 +30,7 @@
                 </p>
                 <p class="text-gray-700">
                     <span class="font-medium w-36 inline-block">Waktu:</span> 
-                    {{ \Carbon\Carbon::parse($reservation->tanggal . ' ' . $reservation->waktu_reservasi)->format('d F Y, H:i') }}
+                    {{ \Carbon\Carbon::parse($reservation->tanggal . ' ' . $reservation->waktu)->format('d F Y, H:i') }} WIB
                 </p>
             </div>
         @else
