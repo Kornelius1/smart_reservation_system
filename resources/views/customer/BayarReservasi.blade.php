@@ -26,7 +26,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('doku.createPayment') }}" id="form-pembayaran">
+            <form method="POST" action="{{ route('reservasi.confirm') }}" id="form-pembayaran">
                 @csrf
 
                 @foreach ($cartItems as $item)
@@ -90,7 +90,7 @@
                     <div>
                         <label for="jumlah_orang" class="block text-sm font-medium mb-1">Jumlah Orang</label>
                         <input type="number" id="jumlah_orang" name="jumlah_orang" value="{{ old('jumlah_orang') }}"
-                            required min="1"
+                            required min="1" max="{{ $kapasitas }}"
                             class="input input-bordered w-full bg-white/20 placeholder:text-white/50 pl-3 text-black">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
@@ -101,8 +101,17 @@
                         </div>
                         <div>
                             <label for="waktu" class="block text-sm font-medium mb-1">Waktu</label>
-                            <input type="time" id="waktu" name="waktu" value="{{ old('waktu') }}" required
+                            <select name="waktu" id="waktu" required
                                 class="input input-bordered w-full bg-white/20 pl-3 text-black">
+                                <option value="">-- Pilih Waktu --</option>
+
+                                @for ($hour = 10; $hour <= 22; $hour++)
+                                    <option value="{{ sprintf('%02d:00', $hour) }}">
+                                        {{ sprintf('%02d:00', $hour) }}
+                                    </option>
+                                @endfor
+                            </select>
+
                         </div>
                     </div>
                 </div>

@@ -26,7 +26,7 @@
 @endpush
 
 @section('content')
-    <div class="p-1 lg:p-8">
+    <div class="p-4 lg:p-8">
         <div class="flex items-center gap-3 mb-8">
             <button onclick="window.history.back()" class="btn btn-ghost btn-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"

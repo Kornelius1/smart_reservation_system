@@ -5,6 +5,7 @@ use App\Livewire\ManajemenReservasi;
 
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Customer\DokuController;
@@ -40,7 +41,6 @@ Route::get('/pilih-reservasi', function () {
     return view('customer.Reservasi');
 });
 
-
 Route::get('/reservasi-ruangan', [ReservasiRoomController::class, 'index'])
     ->name('reservasi-ruangan');
 
@@ -53,21 +53,15 @@ Route::get('/pesanmenu', [PesanMenuController::class, 'index'])->name('pesanmenu
 Route::controller(RescheduleController::class)->group(function () {
     Route::get('/reschedule', 'showForm')->name('reschedule.form');
     Route::get('/reschedule/find', 'findReservation')->name('reschedule.find');
-    Route::patch('/reschedule/update', 'updateSchedule')->name('reschedule.update'); // <-- GANTI JADI PATCH
+    Route::patch('/reschedule/update', 'updateSchedule')->name('reschedule.update'); 
 });
 
 
-// === ROUTES UNTUK HALAMAN ADMIN ===
-// Semua route di dalam grup ini akan:
-// 1. Membutuhkan login ('auth')
-// 2. Membutuhkan email terverifikasi ('verified')
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Mengarahkan /dashboard ke DashboardAdmin
-    Route::get('/dashboard', function () {
-        return view('admin.DashboardAdmin');
-    })->name('dashboard'); // <-- Nama 'dashboard' PENTING untuk redirect Breeze
+Route::get('/dashboard', [AdminController::class, 'index'])
+    ->name('dashboard');
 
     // Manajemen Meja
     Route::get('/manajemen-meja', [TableController::class, 'index'])->name('manajemen-meja');
@@ -75,7 +69,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
      ->name('admin.meja.toggleStatus');
 
     // Manajemen Reservasi
-    
     Route::get('/manajemen-reservasi', ManajemenReservasi::class)
          ->name('admin.reservasi.index');   
 
@@ -98,7 +91,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::get('laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
 
-    // Manajemen Ruangan (menggunakan prefix agar lebih rapi)
+    // Manajemen Ruangan 
     Route::prefix('admin/manajemen-ruangan')->name('admin.manajemen-ruangan.')->group(function () {
         Route::get('/', [ManajemenRuanganController::class, 'index'])->name('index');
         Route::post('/', [ManajemenRuanganController::class, 'store'])->name('store'); 
@@ -111,14 +104,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
   
     Route::get('/manajemen-menu', [ManajemenMenuController::class, 'index'])->name('menu.index');
     Route::post('/manajemen-menu', [ManajemenMenuController::class, 'store'])->name('menu.store');
-    
-    // PERBAIKAN: Menggunakan {id} agar konsisten dengan controller
     Route::patch('/manajemen-menu/{id}/status', [ManajemenMenuController::class, 'updateStatus'])->name('menu.updateStatus');
-    
-    // PERBAIKAN: Mengarah ke method 'update', bukan 'updateDetail'
     Route::put('/manajemen-menu/{id}', [ManajemenMenuController::class, 'update'])->name('menu.update');
-    
-    // TAMBAHAN: Rute untuk menghapus menu
     Route::delete('/manajemen-menu/{id}', [ManajemenMenuController::class, 'destroy'])->name('menu.destroy');
 });
 
@@ -126,17 +113,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::match(['get', 'post'], '/konfirmasi-pesanan', [BayarController::class, 'show'])
      ->name('payment.show');
-     
+
+Route::post('/reservasi/confirm', [BayarController::class, 'confirmReservation'])
+    ->name('reservasi.confirm');
 
 
 Route::post('/doku/create-payment', [BayarController::class, 'processPayment'])->name('doku.createPayment');
-
 Route::get('/pembayaran/sukses/{invoice}', [DokuController::class, 'handleSuccessRedirect']) 
     ->name('payment.success');
-
 Route::get('/pembayaran/gagal/{invoice}', [DokuController::class, 'handleFailedRedirect'])
     ->name('payment.failed');
-
 Route::get('/reservasi/struk/{invoice}', [DokuController::class, 'downloadReceipt'])
     ->name('payment.receipt');
 
