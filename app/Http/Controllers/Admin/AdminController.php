@@ -14,8 +14,7 @@ class AdminController extends Controller
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
 
-        // ✅ Status sesuai database (lowercase + spasi)
-        $statusAktif = ['check-in', 'akan datang']; // hanya yang sudah dikonfirmasi
+        $statusAktif = ['check-in', 'akan datang'];
         $statusSelesai = ['selesai'];
 
         // Statistik Bulan Ini
@@ -35,21 +34,28 @@ class AdminController extends Controller
             ->whereIn('status', $statusSelesai)
             ->count();
 
-        // Reservasi Mendatang (7 hari ke depan, hanya "akan datang")
-        $reservasiMendatang = Reservation::whereDate('tanggal', '>=', $now)
-            ->whereDate('tanggal', '<=', $now->copy()->addDays(7))
-            ->where('status', 'akan datang') // ⚠️ lowercase + spasi!
+        $daysAhead = 2;
+        $maxItems = 2;
+
+        $allReservasi = Reservation::whereDate('tanggal', '>=', $now)
+            ->whereDate('tanggal', '<=', $now->copy()->addDays($daysAhead))
+            ->where('status', 'akan datang')
             ->orderBy('tanggal')
             ->orderBy('waktu')
-            ->limit(5)
             ->get();
+
+        $reservasiMendatang = $allReservasi->take($maxItems);
+        $extraReservasi = $allReservasi->slice($maxItems);
+        $extraCount = $extraReservasi->count();
 
         return view('admin.DashboardAdmin', compact(
             'totalReservasi',
             'totalTamu',
             'totalPendapatan',
             'totalSelesai',
-            'reservasiMendatang'
+            'reservasiMendatang',
+            'extraReservasi',
+            'extraCount'
         ));
     }
 }

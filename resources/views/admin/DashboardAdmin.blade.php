@@ -75,7 +75,7 @@
         <!-- === BENTO FOOTER SECTION (DINAMIS - BULANAN + MENDATANG) === -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 max-w-7xl mx-auto">
             <!-- Statistik Bulan Ini -->
-            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm self-start order-last lg:order-first">
                 <h3 class="font-bold text-gray-800 text-lg mb-4 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
@@ -103,16 +103,15 @@
                     Data per {{ now()->format('d F Y') }}
                 </p>
             </div>
-
-            <!-- Reservasi Mendatang (7 hari) -->
-            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <!-- Jadwal Mendatang (Hari ini + 2 hari) -->
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm self-start order-last lg:order-first">
                 <h3 class="font-bold text-gray-800 text-lg mb-4 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-amber-500" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    Jadwal Mendatang (7 Hari)
+                    Jadwal Mendatang (Hari ini + 2 hari)
                 </h3>
                 <ul class="space-y-3 text-sm">
                     @forelse($reservasiMendatang as $res)
@@ -137,10 +136,47 @@
                             </div>
                         </li>
                     @empty
-                        <li class="text-gray-500 text-center py-4">Tidak ada reservasi dalam 7 hari ke depan</li>
+                        <li class="text-gray-500 text-center py-4">Tidak ada reservasi untuk 3 hari ke depan</li>
                     @endforelse
+                    @if($extraCount > 0)
+                        <li class="mt-2 flex justify-center">
+                            <button onclick="document.getElementById('extra-reservasi').classList.toggle('hidden')"
+                                class="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl font-semibold hover:bg-amber-200 transition-colors">
+                                ... {{ $extraCount }} reservasi lagi
+                            </button>
+                        </li>
+
+                        <ul id="extra-reservasi" class="hidden space-y-3 mt-2">
+                            @foreach($extraReservasi as $res)
+                                <li class="flex items-start pb-2 border-b border-gray-100 last:border-0 last:pb-0">
+                                    <div class="mr-3 mt-0.5">
+                                        <span class="w-2 h-2 bg-blue-500 rounded-full inline-block"></span>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="font-medium text-gray-800 truncate">{{ $res->nama }}</p>
+                                        <p class="text-gray-600 text-xs">
+                                            {{ \Carbon\Carbon::parse($res->tanggal)->translatedFormat('l, d F') }} •
+                                            {{ $res->waktu }}
+                                            @if($res->nomor_meja)
+                                                • Meja {{ $res->nomor_meja }}
+                                            @elseif($res->nomor_ruangan)
+                                                • Ruang {{ $res->nomor_ruangan }}
+                                            @endif
+                                        </p>
+                                        <div class="mt-1 flex items-center text-xs">
+                                            <span class="text-gray-500">Tamu:</span>
+                                            <span class="ml-1 font-medium">{{ $res->jumlah_orang }} orang</span>
+                                        </div>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
                 </ul>
             </div>
+
+
         </div>
+
     </div>
 @endsection
