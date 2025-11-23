@@ -22,13 +22,13 @@ class PaymentController extends Controller
 
         // Estimasi tinggi per baris produk
         // Font 9pt dengan line-height 1.3 + padding = sekitar 15-20 point per item
-        $height_per_item = 35; 
+        $height_per_item = 15; 
         
         // Hitung total item
         $total_items = $reservation->products->count();
 
         // Tambahkan buffer (jarak aman) sedikit
-        $buffer = 20;
+        $buffer = 10;
 
         // Total Tinggi (dalam point)
         $total_height = $height_base + ($total_items * $height_per_item) + $buffer;
