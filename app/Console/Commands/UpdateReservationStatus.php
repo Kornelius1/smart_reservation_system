@@ -3,15 +3,14 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\Reservation; 
+use App\Models\Reservation;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log; 
+use Illuminate\Support\Facades\Log;
 
 class UpdateReservationStatus extends Command
 {
     /**
      * Nama dan signature dari command.
-     * (Sekarang ini adalah satu-satunya command yang Anda perlukan)
      */
     protected $signature = 'reservations:update-status';
     protected $description = 'Memperbarui SEMUA status reservasi otomatis (Kedaluwarsa, Selesai, No-Show, Check-in).';
@@ -21,43 +20,62 @@ class UpdateReservationStatus extends Command
      */
     public function handle()
     {
-        Log::info('======= MENJALANKAN UPDATE STATUS RESERVASI =======');
+        // 1. WAKTU LOKAL (INDONESIA / WIB)
+        // Kita set eksplisit ke 'Asia/Jakarta' (WIB).
+        // Ini memastikan logika Check-in & No-Show mengikuti jam Indonesia,
+        // tidak peduli lokasi fisik server Anda ada di mana.
+        $nowLocal = Carbon::now('Asia/Jakarta'); 
+        $todayDateString = $nowLocal->toDateString();
         
-        $now = Carbon::now(); 
-        $todayDateString = $now->toDateString(); 
+        // 2. WAKTU UTC (KHUSUS DOKU)
+        // Doku / Payment Gateway biasanya menyimpan expired_at dalam UTC.
+        // Kita butuh pembanding yang setara (Apple-to-Apple).
+        $nowUtc = Carbon::now('UTC');
+
         $totalChanged = 0;
 
-        Log::info('Waktu server: ' . $now->toDateTimeString() . ' | Tanggal hari ini: ' . $todayDateString);
+        Log::info('======= RUNNING RESERVATION SCHEDULER (TARGET: INDO) =======');
+        Log::info("Local Time (WIB): " . $nowLocal->toDateTimeString());
+        Log::info("UTC Time (Doku):  " . $nowUtc->toDateTimeString());
 
-        // Kita beri "masa tenggang" (grace period), misal 30 MENIT.
-        // Ini memberi waktu bagi notifikasi 'SUCCESS' DOKU untuk tiba, 
-        // bahkan jika pelanggan membayar tepat di detik-detik terakhir.
-        // Anda bisa mengubah angka 30 ini jika dirasa terlalu lama/cepat.
-        $cutoffTime = $now->copy()->subMinutes(30);
+        // =================================================================
+        // 1. UPDATE STATUS: PENDING -> KEDALUWARSA (LOGIKA UTC)
+        // =================================================================
+        
+        // Grace period 10 menit untuk delay callback payment gateway
+        $gracePeriodMinutes = 10;
+        
+        // Gunakan Waktu UTC untuk menghitung batas waktu
+        $expiryCutoff = $nowUtc->copy()->subMinutes($gracePeriodMinutes);
 
+        // Debug log (optional, bisa dihapus kalau log terlalu penuh)
+        // Log::info("Checking expired. Cutoff UTC: {$expiryCutoff->toDateTimeString()}");
 
-
-        // HANYA batalkan reservasi yang 'pending' DAN 
-        // 'expired_at'-nya sudah lewat LEBIH DARI 30 MENIT.
-        $expired = Reservation::where('status', 'pending')
+        $expiredQuery = Reservation::where('status', 'pending')
             ->whereNotNull('expired_at')
-            ->where('expired_at', '<=', $cutoffTime) // <-- Menggunakan waktu batas baru
-            ->update(['status' => 'kedaluwarsa']);
+            // Bandingkan expired_at (UTC) dengan Waktu UTC sekarang
+            ->where('expired_at', '<=', $expiryCutoff); 
 
-        if ($expired > 0) {
-            $this->info($expired . ' reservasi "pending" diubah menjadi "kedaluwarsa".');
-            Log::info($expired . ' reservasi "pending" diubah menjadi "kedaluwarsa".');
-            $totalChanged += $expired;
+        $countExpired = $expiredQuery->count();
+
+        if ($countExpired > 0) {
+            $sample = $expiredQuery->first();
+            Log::warning("EXPIRING {$countExpired} RESERVATIONS. Sample ID: {$sample->id}, Expired At (UTC): {$sample->expired_at}");
+            
+            $expiredQuery->update(['status' => 'kedaluwarsa']);
+            
+            $this->info($countExpired . ' reservasi "pending" diubah menjadi "kedaluwarsa".');
+            $totalChanged += $countExpired;
         }
 
         // =================================================================
-        // LOGIKA ANDA YANG SUDAH ADA (TIDAK BERUBAH)
+        // 2. UPDATE STATUS: CHECK-IN -> SELESAI (LOGIKA LOKAL WIB)
         // =================================================================
+        // Logika: Tanggal reservasi < Hari ini (WIB)
 
-        // Skenario: 'check-in' -> 'selesai'
         $completed = Reservation::whereDate('tanggal', '<', $todayDateString)
-                                ->where('status', 'check-in')
-                                ->update(['status' => 'selesai']);
+            ->where('status', 'check-in')
+            ->update(['status' => 'selesai']);
 
         if ($completed > 0) {
             $this->info($completed . ' reservasi "check-in" diubah menjadi "selesai".');
@@ -65,10 +83,14 @@ class UpdateReservationStatus extends Command
             $totalChanged += $completed;
         }
 
-        // Skenario: 'akan datang' -> 'dibatalkan' (No-Show)
+        // =================================================================
+        // 3. UPDATE STATUS: AKAN DATANG -> DIBATALKAN (LOGIKA LOKAL WIB)
+        // =================================================================
+        // Logika: Tanggal reservasi < Hari ini (WIB), tapi orangnya tidak datang
+
         $noShow = Reservation::whereDate('tanggal', '<', $todayDateString)
-                                ->where('status', 'akan datang')
-                                ->update(['status' => 'dibatalkan']);
+            ->where('status', 'akan datang')
+            ->update(['status' => 'dibatalkan']);
         
         if ($noShow > 0) {
             $this->info($noShow . ' reservasi "akan datang" diubah menjadi "dibatalkan" (No-Show).');
@@ -76,11 +98,15 @@ class UpdateReservationStatus extends Command
             $totalChanged += $noShow;
         }
 
-        // Skenario: 'akan datang' -> 'check-in' (Otomatis Check-in HARI INI)
+        // =================================================================
+        // 4. UPDATE STATUS: AKAN DATANG -> CHECK-IN (LOGIKA LOKAL WIB)
+        // =================================================================
+        // Logika: Tanggal = Hari ini, DAN Jam (WIB) <= Jam Sekarang (WIB)
+        
         $ongoing = Reservation::whereDate('tanggal', '=', $todayDateString)
-                                ->whereTime('waktu', '<=', $now->toTimeString())
-                                ->where('status', 'akan datang')
-                                ->update(['status' => 'check-in']);
+            ->whereTime('waktu', '<=', $nowLocal->toTimeString())
+            ->where('status', 'akan datang')
+            ->update(['status' => 'check-in']);
 
         if ($ongoing > 0) {
             $this->info($ongoing . ' reservasi "akan datang" diubah menjadi "check-in" (Otomatis).');
@@ -88,11 +114,8 @@ class UpdateReservationStatus extends Command
             $totalChanged += $ongoing;
         }
 
-        // =================================================================
-
         if ($totalChanged == 0) {
             $this->info('Tidak ada status reservasi yang perlu diperbarui.');
-            // (Kita tidak perlu log ini)
         }
     }
 }
