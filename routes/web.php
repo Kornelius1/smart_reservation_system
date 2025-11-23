@@ -113,10 +113,11 @@ Route::get('/dashboard', [AdminController::class, 'index'])
 
 
 Route::match(['get', 'post'], '/konfirmasi-pesanan', [BayarController::class, 'show'])
-     ->name('payment.show');
-
+    ->name('payment.show');
 Route::post('/reservasi/confirm', [BayarController::class, 'confirmReservation'])
     ->name('reservasi.confirm');
+Route::post('/api/check-available-times', [BayarController::class, 'getAvailableTimes'])
+    ->name('check-available-times');;
 
 
 Route::post('/doku/create-payment', [BayarController::class, 'processPayment'])->name('doku.createPayment');
