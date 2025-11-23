@@ -1,7 +1,7 @@
 <style>
     /* --- Warna premium emas gelap --- */
     :root {
-        --gold-dark: #1F2937 ;
+        --gold-dark: #1F2937;
     }
 
     /* Text & icon gold */
@@ -18,7 +18,7 @@
     /* Hover */
     .mobile-menu-item:hover {
         color: var(--gold-dark) !important;
-        background: rgba(176, 141, 87, 0.12);
+        background: rgba(255, 255, 255, 0.5);
     }
 
     .mobile-menu-glass {
@@ -101,8 +101,7 @@
                 <!-- Ikon burger original -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 6h16M4 12h16M4 18h16" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
 
@@ -110,8 +109,7 @@
     </div>
 
     <!-- MOBILE DROPDOWN PREMIUM GOLD -->
-    <div id="mobileDropdown"
-        class="absolute top-full left-0 right-0 mx-3 mt-2 rounded-2xl shadow-xl mobile-menu-glass
+    <div id="mobileDropdown" class="absolute top-full left-0 right-0 mx-3 mt-2 rounded-2xl shadow-xl mobile-menu-glass
                transition-all duration-300 opacity-0 -translate-y-3 pointer-events-none z-30">
 
         <ul class="menu p-3 space-y-1 text-[#B89B39]">
@@ -124,13 +122,13 @@
 
             <!-- RESERVASI -->
             <li><a href="/pilih-reservasi" class="mobile-menu-item flex items-center gap-3">
-                    @include('icons.book')
+                    @include('icons.reservasi')
                     Reservasi
                 </a></li>
 
             <!-- RESCHEDULE -->
             <li><a href="/reschedule" class="mobile-menu-item flex items-center gap-3">
-                    @include('icons.reload')
+                    @include('icons.reschedule')
                     Reschedule
                 </a></li>
 
