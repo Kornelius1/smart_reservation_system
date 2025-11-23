@@ -22,6 +22,7 @@ use App\Http\Controllers\Customer\ReservasiRoomController;
 use App\Http\Controllers\Admin\ManajemenRescheduleController;
 
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -127,7 +128,6 @@ Route::get('/pembayaran/gagal/{invoice}', [DokuController::class, 'handleFailedR
     ->name('payment.failed');
 Route::get('/struk/{invoice}', [PaymentController::class, 'downloadReceipt'])
     ->name('payment.receipt.pdf');
-
     
 require __DIR__.'/auth.php';
 

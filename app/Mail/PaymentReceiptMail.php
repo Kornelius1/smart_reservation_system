@@ -38,10 +38,8 @@ class PaymentReceiptMail extends Mailable
         // 2. Load View PDF dengan data di atas
         // Pastikan ukuran kertas diset sesuai kebutuhan (custom thermal size atau A4)
         // Di sini saya set auto/custom sesuai CSS kamu (@page margin 0)
-        $pdf = Pdf::loadView('customer.invoice_pdf', $shopData)
-                  ->setPaper([0, 0, 226.77, 500], 'portrait'); 
-                  // 226.77 pt = 80mm (Ukuran kertas thermal standar)
-                  // Panjang 500 pt (fleksibel)
+        $pdf = Pdf::loadView('receipts.pdf', $shopData) 
+                ->setPaper([0, 0, 226.77, 600], 'portrait');
 
         // 3. Render Email
         return $this->subject('E-Struk Pembayaran - Homey Cafe')
