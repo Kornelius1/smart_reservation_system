@@ -54,6 +54,6 @@ class PaymentController extends Controller
 
         $pdf->render();
 
-        return $pdf->stream("struk-{$invoice}.pdf");
+        return $pdf->download("struk-{$invoice}.pdf");
     }
 }
