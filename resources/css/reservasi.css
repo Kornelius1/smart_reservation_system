@@ -1,10 +1,7 @@
 .body-custom {
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-        "Segoe UI", Roboto;
     background: linear-gradient(
           rgba(248, 244, 234, 0.85),
-            rgba(248, 244, 234, 0.205)
-         
+          rgba(248, 244, 234, 0.205)
         ),
         url("../images/bg-4.webp");
     background-size: cover;
@@ -13,7 +10,13 @@
     color: #3c4b44;
 }
 
-/* Kelas-kelas custom yang digunakan di kedua halaman */
+
+@media (max-width: 768px) {
+    .body-custom {
+        background-attachment: scroll;
+    }
+}
+
 .bg-dark-green {
     background-color: #3c4b44;
 }
@@ -30,4 +33,3 @@
 .btn-custom:hover {
     background-color: #2e3833;
 }
-

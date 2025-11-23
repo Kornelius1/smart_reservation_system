@@ -5,6 +5,7 @@ use App\Livewire\ManajemenReservasi;
 
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\LaporanController;
@@ -123,8 +124,8 @@ Route::get('/pembayaran/sukses/{invoice}', [DokuController::class, 'handleSucces
     ->name('payment.success');
 Route::get('/pembayaran/gagal/{invoice}', [DokuController::class, 'handleFailedRedirect'])
     ->name('payment.failed');
-Route::get('/reservasi/struk/{invoice}', [DokuController::class, 'downloadReceipt'])
-    ->name('payment.receipt');
+Route::get('/struk/{invoice}', [PaymentController::class, 'downloadReceipt'])
+    ->name('payment.receipt.pdf');
 
     
 require __DIR__.'/auth.php';
