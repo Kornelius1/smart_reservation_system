@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Validator;
 class BayarController extends Controller
 {
     private const MINIMUM_ORDER_FOR_TABLE = 50000;
-    private const DURATION_MEJA = 1;  
+    private const DURATION_MEJA = 12;  
     private const DURATION_RUANGAN = 3;  
     private const BUFFER_MINUTES = 15;   
 
