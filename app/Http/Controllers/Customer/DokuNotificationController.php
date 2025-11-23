@@ -7,9 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Helpers\DokuSignatureHelper; // Pastikan 'use' ini ada
+use App\Helpers\DokuSignatureHelper; 
 use App\Http\Controllers\Controller;
-use Carbon\Carbon; // <-- TAMBAHKAN 'use' Carbon
+use Illuminate\Support\Facades\Mail; 
+use App\Mail\PaymentReceiptMail;     
+use Carbon\Carbon; 
+
 
 class DokuNotificationController extends Controller
 {
@@ -105,6 +108,23 @@ class DokuNotificationController extends Controller
 
             $reservation->status = $newStatus;
             $reservation->save();
+
+            if (!$reservation->receipt_sent) {
+                try {
+                    // Menggunakan email_customer sesuai database kamu
+                    Mail::to($reservation->email_customer)->send(new PaymentReceiptMail($reservation));
+                    
+                    // Tandai sudah terkirim di database
+                    $reservation->receipt_sent = true; 
+                    $reservation->save();
+
+                    Log::info('Email receipt sent via Webhook', ['invoice' => $invoiceNumber]);
+                } catch (\Exception $e) {
+                    // Log error saja, jangan batalkan transaksi utama
+                    Log::error('Failed to send email receipt', ['error' => $e->getMessage()]);
+                }
+            }
+
             DB::commit();
 
             Log::info('DOKU Notification: Processed successfully (Overwrote status)', [
