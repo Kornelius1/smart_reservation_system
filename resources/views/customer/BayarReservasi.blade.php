@@ -220,7 +220,7 @@
                     });
                 } else {
                     const option = document.createElement('option');
-                    option.textContent = 'Tidak ada jam tersedia';
+                    option.textContent = 'Tidak ada jam tersedia. Silahkan pilih tanggal lain';
                     option.disabled = true;
                     waktuSelect.appendChild(option);
                 }
