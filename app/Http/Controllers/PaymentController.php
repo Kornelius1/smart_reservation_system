@@ -16,22 +16,44 @@ class PaymentController extends Controller
             }
         ])->where('id_transaksi', $invoice)->firstOrFail();
 
+        // Estimasi tinggi Header (Logo, Alamat, Info Transaksi) + Footer (Total, Note)
+        // Nilai ini didapat dari kira-kira layout HTML (sekitar 5-6 cm)
+        $height_base = 240; 
+
+        // Estimasi tinggi per baris produk
+        // Font 9pt dengan line-height 1.3 + padding = sekitar 15-20 point per item
+        $height_per_item = 35; 
+        
+        // Hitung total item
+        $total_items = $reservation->products->count();
+
+        // Tambahkan buffer (jarak aman) sedikit
+        $buffer = 20;
+
+        // Total Tinggi (dalam point)
+        $total_height = $height_base + ($total_items * $height_per_item) + $buffer;
+
         $data = [
             'reservation' => $reservation,
             'app_name' => config('Homey Cafe', 'Homey Cafe'),
             'alamat' => 'Jl. Mawar, Simpang Baru, Kec. Tampan, Kota Pekanbaru, Riau 28293',
-            'telp' => '@homey.cafe',
+            'ig' => '@homey.cafe',
         ];
+
+        $customPaper = [0, 0, 227, $total_height];
 
         // Gunakan lebar 80mm (226.77 pt), tinggi otomatis (gunakan nilai besar agar tidak terpotong)
         $pdf = Pdf::loadView('receipts.pdf', $data)
-            ->setPaper([0, 0, 250, 360], 'portrait') // Tinggi 1000pt ≈ 353mm — cukup untuk struk panjang
+            ->setPaper($customPaper, 'portrait') // Tinggi 1000pt ≈ 353mm — cukup untuk struk panjang
             ->setOptions([
-                'defaultFont' => 'DejaVu Sans',
+                'defaultFont' => 'Courier',
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled' => true,
+                'dpi' => 72,
             ]);
 
-        return $pdf->download("struk-{$invoice}.pdf");
+        $pdf->render();
+
+        return $pdf->stream("struk-{$invoice}.pdf");
     }
 }

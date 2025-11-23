@@ -6,21 +6,18 @@
     <title>Struk - {{ $reservation->id_transaksi }}</title>
     <style>
         @page {
-            margin: 10;
+            margin: 0px;
         }
 
 
         body {
-            font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
-            font-size: 9pt;
-            /* gunakan pt, bukan px */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 8pt;
             margin: 0;
-            padding: 8pt 6pt;
-            width: 220pt;
-            /* ≈ 78mm */
-            max-width: 220pt;
-            line-height: 1.3;
+            padding: 5pt;
+            width: 95%;
             box-sizing: border-box;
+            overflow: hidden;
         }
 
         .center {
@@ -37,64 +34,67 @@
 
         .divider {
             border-bottom: 1px dashed #000;
-            margin: 3pt 0;
+            margin: 4pt 0;
         }
 
         .double-divider {
-            border-bottom: 1px solid #000;
-            margin: 4pt 0;
+            border-bottom: 1px double #000;
+            margin: 4pt 0;   
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
-            /* 🔑 ini penting agar lebar kolom dihormati */
         }
 
         td {
-            padding: 1pt 0;
             vertical-align: top;
             word-wrap: break-word;
+            word-break: break-all;
             overflow-wrap: break-word;
         }
 
         .header h2 {
-            margin: 2pt 0;
-            font-size: 12pt;
+            font-size: 20pt;
+            margin-bottom: 2pt;
         }
 
         .header p {
-            margin: 0;
-            padding: 0;
-            font-size: 8pt;
+            font-size: 8.3pt;
             line-height: 1.1;
-
+            padding-top: 2pt;
         }
 
         .item-name {
-            width: 50%;
+            width: 35%;
         }
 
         .item-qty {
-            width: 12%;
+            width: 10%;
             text-align: center;
         }
 
         .item-price {
-            width: 18%;
+            width: 25%;
             text-align: right;
         }
 
         .item-total {
-            width: 20%;
+            width: 30%;
             text-align: right;
         }
 
         .footer-note {
-            font-size: 7.5pt;
+            font-size: 7pt;
             margin-top: 4pt;
             line-height: 1.2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
         }
     </style>
 </head>
@@ -103,8 +103,10 @@
 
     <div class="header center">
         <h2>{{ $app_name }}</h2>
-        <p>{{ $alamat }}</p>
-        <p>{{ $telp }}</p>
+        <p>
+            {{ $alamat }}<br>
+            {{ $ig }}
+        </p>
     </div>
 
     <div class="double-divider"></div>
