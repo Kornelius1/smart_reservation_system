@@ -8,7 +8,8 @@
             <!-- Header seperti struk -->
             <div class="bg-gray-800 text-white p-4 text-center">
                 <h2 class="font-mono font-bold text-lg">{{ $app_name ?? 'Homey Cafe' }}</h2>
-                <p class="font-mono text-xs mt-1">{{ $alamat ?? 'Jl. Mawar, Simpang Baru, Kec. Tampan, Kota Pekanbaru, Riau 28293' }}</p>
+                <p class="font-mono text-xs mt-1">
+                    {{ $alamat ?? 'Jl. Mawar, Simpang Baru, Kec. Tampan, Kota Pekanbaru, Riau 28293' }}</p>
                 <p class="font-mono text-xs">{{ $telp ?? 'Ig: @homey.cafe' }}</p>
             </div>
 
@@ -72,6 +73,11 @@
 
                         <hr class="border-t border-dashed border-gray-500 my-2">
 
+                        <p class="flex justify-between text-gray-700 mb-1 text-[11px]">
+                            <span class="font-medium w-36 inline-block">Biaya Layanan:</span>
+                            Rp {{ number_format($serviceFee, 0, ',', '.') }}
+                        </p>
+
                         <div class="flex justify-between font-bold text-sm">
                             <span>TOTAL</span>
                             <span class="text-right">Rp {{ number_format($reservation->total_price, 0, ',', '.') }}</span>
@@ -89,7 +95,7 @@
                     <!-- Tombol Cetak (PDF) -->
                     <div class="mt-6">
                         <a href="{{ route('payment.receipt.pdf', ['invoice' => $reservation->id_transaksi]) }}"
-                           class="btn btn-primary w-full">
+                            class="btn btn-primary w-full">
                             <i class="fas fa-print mr-2"></i> Cetak / Simpan Struk (PDF)
                         </a>
                     </div>

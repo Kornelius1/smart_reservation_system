@@ -296,6 +296,7 @@ class BayarController extends Controller
             'tanggal' => 'required|date|',
             'waktu' => 'required|date_format:H:i',
         ]);
+        
 
         $productTotal = $validationResult['totalPrice']; 
         $serviceFee = config('doku.service_fee', 4440); 
@@ -348,18 +349,42 @@ class BayarController extends Controller
                 ];
             })->toArray();
 
+            // ---------------------------------------------------------------
+            // [LANGKAH 2] Tambahkan Biaya Layanan
+            // ---------------------------------------------------------------
+            $serviceFee = (int) config('doku.service_fee', 4440);
+            $lineItems[] = [
+                'name' => 'Biaya Layanan',
+                'price' => $serviceFee,
+                'quantity' => 1
+            ];
+
+            // ---------------------------------------------------------------
+            // [PERBAIKAN FATAL] Hitung Ulang & Update Database
+            // ---------------------------------------------------------------
+            $calculatedTotal = 0;
+            foreach ($lineItems as $item) {
+                $calculatedTotal += ($item['price'] * $item['quantity']);
+            }
+
+            // [WAJIB] Update reservasi yang sudah dibuat dengan total baru
+            $reservation->update(['total_price' => $calculatedTotal]);
+
+            // ---------------------------------------------------------------
+            // [LANGKAH 3] Buat Request Body
+            // ---------------------------------------------------------------
             $customerPhone = str_starts_with($customerData['nomor_telepon'], '08')
                 ? '+62' . substr($customerData['nomor_telepon'], 1)
                 : $customerData['nomor_telepon'];
 
             $requestBody = [
                 'order' => [
-                    'amount' => (int) $finalTotal,
+                    'amount' => $calculatedTotal, // <-- Gunakan hasil hitung ulang
                     'invoice_number' => $invoiceNumber,
                     'currency' => 'IDR',
                     'callback_url' => route('pesanmenu'),
                     'callback_url_result' => route('payment.success', ['invoice' => $invoiceNumber]),
-                    'line_items' => $lineItems
+                    'line_items' => $lineItems 
                 ],
                 'payment' => ['payment_due_date' => 10],
                 'customer' => [

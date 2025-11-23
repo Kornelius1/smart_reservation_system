@@ -39,6 +39,7 @@ class DokuController extends Controller
             'reservation' => $reservation,
             'statusMessage' => $statusMessage,
             'isSuccess' => $reservation->status === 'akan datang' || $reservation->status === 'check-in',
+            'serviceFee' => config('doku.service_fee', 4440),
         ]);
     }
 
