@@ -164,6 +164,16 @@
                     <td class="item-total">{{ number_format($subtotal, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
+
+            @php
+                $serviceFee = config('doku.service_fee', 4440); // Ambil dari config
+            @endphp
+            <tr>
+                <td class="item-name">Biaya Layanan</td>
+                <td class="item-qty">x1</td>
+                <td class="item-price">{{ number_format($serviceFee, 0, ',', '.') }}</td>
+                <td class="item-total">{{ number_format($serviceFee, 0, ',', '.') }}</td>
+            </tr>
         </tbody>
     </table>
 

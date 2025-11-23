@@ -116,7 +116,7 @@
 
                 <div class="flex justify-between font-bold text-base">
                     <span>Total Pembayaran</span>
-                    <span>Rp {{ number_format($totalPrice) }}</span>
+                    <span>Rp {{ number_format($totalPrice + config('doku.service_fee')) }}</span>
                 </div>
 
                 <div class="mt-8">

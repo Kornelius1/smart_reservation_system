@@ -297,7 +297,9 @@ class BayarController extends Controller
             'waktu' => 'required|date_format:H:i',
         ]);
 
-        $totalPrice = $validationResult['totalPrice'];
+        $productTotal = $validationResult['totalPrice']; 
+        $serviceFee = config('doku.service_fee', 4440); 
+        $finalTotal = $productTotal + $serviceFee; 
         $invoiceNumber = 'INV-' . time() . Str::random(5);
         $type = $validationResult['reservationType'] === 'ruangan' ? 'room' : 'table';
         $id = $validationResult['reservationFkId'];
@@ -315,7 +317,7 @@ class BayarController extends Controller
         try {
             $reservationData = [
                 'id_transaksi' => $invoiceNumber,
-                'total_price' => $totalPrice,
+                'total_price' => $finalTotal,
                 'status' => 'pending',
                 'nama' => $customerData['nama'],
                 'email_customer' => $customerData['email'],
@@ -352,7 +354,7 @@ class BayarController extends Controller
 
             $requestBody = [
                 'order' => [
-                    'amount' => (int) $totalPrice,
+                    'amount' => (int) $finalTotal,
                     'invoice_number' => $invoiceNumber,
                     'currency' => 'IDR',
                     'callback_url' => route('pesanmenu'),

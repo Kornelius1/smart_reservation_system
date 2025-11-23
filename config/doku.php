@@ -9,4 +9,6 @@ return [
     'base_url' => env('DOKU_ENV', 'sandbox') === 'production' 
         ? 'https://api.doku.com' 
         : 'https://api-sandbox.doku.com',
+
+    'service_fee' => env('DOKU_SERVICE_FEE', 4440),
 ];
