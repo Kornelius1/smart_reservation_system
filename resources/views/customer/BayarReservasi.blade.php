@@ -26,7 +26,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('doku.createPayment') }}" id="form-pembayaran">
+            <form method="POST" action="{{ route('reservasi.confirm') }}" id="form-pembayaran">
                 @csrf
 
                 @foreach ($cartItems as $item)
@@ -90,7 +90,7 @@
                     <div>
                         <label for="jumlah_orang" class="block text-sm font-medium mb-1">Jumlah Orang</label>
                         <input type="number" id="jumlah_orang" name="jumlah_orang" value="{{ old('jumlah_orang') }}"
-                            required min="1"
+                            required min="1" max="{{ $kapasitas }}"
                             class="input input-bordered w-full bg-white/20 placeholder:text-white/50 pl-3 text-black">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
@@ -101,8 +101,12 @@
                         </div>
                         <div>
                             <label for="waktu" class="block text-sm font-medium mb-1">Waktu</label>
-                            <input type="time" id="waktu" name="waktu" value="{{ old('waktu') }}" required
+                            <select name="waktu" id="waktu" required
                                 class="input input-bordered w-full bg-white/20 pl-3 text-black">
+                                <option value="">-- Pilih Tanggal Dulu --</option>
+                            </select>
+                            <div id="loading-times" class="text-sm text-blue-500 mt-1 hidden">Memuat jam tersedia...
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -131,108 +135,176 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Set tanggal minimal (logika ini sudah benar)
-            const tanggalInput = document.getElementById('tanggal');
-            const today = new Date().toISOString().split('T')[0];
-            tanggalInput.setAttribute('min', today);
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- 1. Referensi Elemen ---
+        const tanggalInput = document.getElementById('tanggal');
+        const tombolBayar = document.getElementById('tombol-bayar');
+        const form = document.getElementById('form-pembayaran');
+        const waktuSelect = document.getElementById('waktu');
+        const loadingIndicator = document.getElementById('loading-times');
+        
+        // Ambil elemen input hidden
+        const mejaInput = document.querySelector('input[name="reservation_table_number"]');
+        const ruanganInput = document.querySelector('input[name="reservation_room_name"]');
 
-            const tombolBayar = document.getElementById('tombol-bayar');
-            const form = document.getElementById('form-pembayaran');
+        // Pastikan elemen kritis ada sebelum lanjut
+        if (!tombolBayar || !form || !waktuSelect || !tanggalInput) return;
 
-            tombolBayar.addEventListener('click', async function (event) {
-                console.log('TOMBOL DIKLIK!');
-                event.preventDefault();
+        // --- 2. Setup Awal (Tanggal Min & Data Blade) ---
+        const today = new Date().toISOString().split('T')[0];
+        tanggalInput.setAttribute('min', today);
 
-                // 1. Validasi Frontend (SweetAlert untuk error)
-                if (!form.checkValidity()) {
-                    // Temukan input pertama yang tidak valid
-                    const firstInvalidField = form.querySelector(':invalid');
-                    let errorMessage = 'Silakan isi semua data pemesan dengan benar.';
+        // Data dari Laravel Blade (Safe JSON)
+        const mejaList = @json(isset($mejas) ? $mejas->map(fn($m) => ['id' => $m->id, 'nomor_meja' => $m->nomor_meja])->toArray() : []);
+        const roomList = @json(isset($rooms) ? $rooms->map(fn($r) => ['id' => $r->id, 'nama_ruangan' => $r->nama_ruangan])->toArray() : []);
 
-                    if (firstInvalidField) {
-                        // Ambil pesan error dari 'title' (untuk No. Telp) atau 'label'
-                        const label = firstInvalidField.labels[0]?.textContent || 'Kolom';
-                        errorMessage = `Input '${label}' sepertinya belum valid. ${firstInvalidField.title || ''}`;
-                    }
+        // --- 3. Helper: Identifikasi Pilihan ---
+        function getReservationSelection() {
+            const tableNumber = mejaInput ? mejaInput.value : null;
+            const roomName = ruanganInput ? ruanganInput.value : null;
 
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Data Belum Lengkap',
-                        text: errorMessage,
-                    });
+            if (tableNumber) {
+                // Konversi ke string agar aman saat membandingkan
+                const meja = mejaList.find(m => String(m.nomor_meja) === String(tableNumber));
+                return meja ? { type: 'meja', id: meja.id } : null;
+            }
 
-                    // (Opsional) Fokus ke field pertama yang error
-                    // firstInvalidField?.focus(); 
-                    return;
-                }
+            if (roomName) {
+                const room = roomList.find(r => r.nama_ruangan === roomName);
+                return room ? { type: 'ruangan', id: room.id } : null;
+            }
 
-                // --- Validasi Bisnis Sederhana (Opsional) ---
-                // Catatan: Seharusnya ini sudah divalidasi oleh controller 'show()',
-                // tapi ini adalah 'pertahanan lapis kedua' yang baik.
-                @if (count($cartItems) === 0)
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Keranjang Kosong',
-                        text: 'Anda tidak bisa membayar dengan keranjang kosong.',
-                    });
-                    return;
-                @endif
+            return null;
+        }
 
+        // --- 4. Core: Muat Jam Tersedia ---
+        async function loadAvailableTimes() {
+            const tanggal = tanggalInput.value;
+            const selection = getReservationSelection();
 
-                // 2. Tampilkan Loading (SweetAlert untuk proses)
-                Swal.fire({
-                    title: 'Memproses Pembayaran...',
-                    text: 'Mohon tunggu, Anda akan diarahkan ke halaman pembayaran.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+            // Reset dropdown
+            waktuSelect.innerHTML = '<option value="">-- Pilih Waktu --</option>';
+            
+            // Validasi: Jangan fetch jika tanggal kosong atau jenis reservasi tidak terdeteksi
+            if (!tanggal || !selection) return;
+
+            // UI Loading
+            if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+            waktuSelect.disabled = true; // Disable dropdown saat loading
+
+            try {
+                const response = await fetch('{{ route("check-available-times") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        tanggal: tanggal,
+                        reservation_type: selection.type,
+                        id: selection.id
+                    })
                 });
 
-                // 3. Kirim Data (Fetch API)
-                const formData = new FormData(form);
-                const url = form.action;
-                const csrfToken = form.querySelector('input[name="_token"]').value;
+                const data = await response.json();
 
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json' // Penting: Minta JSON
-                        },
-                        body: formData
+                // Populate Dropdown
+                if (data.available_times && data.available_times.length > 0) {
+                    data.available_times.forEach(time => {
+                        const option = document.createElement('option');
+                        option.value = time;
+                        option.textContent = time;
+                        waktuSelect.appendChild(option);
                     });
-
-                    const responseData = await response.json();
-
-                    if (response.ok) {
-                        // 4. Sukses (Redirect ke DOKU)
-                        // SweetAlert akan otomatis tertutup saat halaman redirect
-                        window.location.href = responseData.payment_url;
-                    } else {
-                        // 5. Gagal dari Backend (SweetAlert untuk error)
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops! Terjadi Kesalahan',
-                            // 'message' adalah standar error JSON Laravel
-                            text: responseData.message || 'Gagal membuat pembayaran. Silakan coba lagi.'
-                        });
-                    }
-                } catch (error) {
-                    // 6. Gagal Jaringan (SweetAlert untuk error)
-                    console.error('Fetch Error:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Kesalahan Jaringan',
-                        text: 'Tidak dapat terhubung ke server. Periksa koneksi Anda.'
-                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.textContent = 'Tidak ada jam tersedia. Silahkan pilih tanggal lain';
+                    option.disabled = true;
+                    waktuSelect.appendChild(option);
                 }
+            } catch (err) {
+                console.error('API Error:', err);
+                const option = document.createElement('option');
+                option.textContent = 'Gagal memuat jam';
+                waktuSelect.appendChild(option);
+            } finally {
+                // UI Reset
+                if (loadingIndicator) loadingIndicator.classList.add('hidden');
+                waktuSelect.disabled = false;
+            }
+        }
+
+        // --- 5. Event Listeners ---
+        tanggalInput.addEventListener('change', loadAvailableTimes);
+        
+        // Panggil sekali saat load (jika user back, atau ada value default)
+        if (tanggalInput.value) {
+            loadAvailableTimes();
+        }
+
+        // --- 6. Logika Pembayaran ---
+        tombolBayar.addEventListener('click', async function(event) {
+            event.preventDefault();
+
+            // Validasi HTML5 Native
+            if (!form.checkValidity()) {
+                form.reportValidity(); // Memunculkan tooltip browser bawaan
+                return;
+            }
+
+            // Validasi Keranjang Kosong (Blade Logic)
+            @if(isset($cartItems) && count($cartItems) === 0)
+                Swal.fire('Keranjang Kosong', 'Anda tidak bisa membayar dengan keranjang kosong.', 'error');
+                return;
+            @endif
+
+            // UX: Loading State & Disable Button
+            Swal.fire({
+                title: 'Memproses Pembayaran...',
+                text: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
             });
+            tombolBayar.disabled = true;
+            tombolBayar.classList.add('opacity-50', 'cursor-not-allowed');
+
+            try {
+                const formData = new FormData(form);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name="_token"]')?.value;
+
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.payment_url) {
+                    window.location.href = result.payment_url;
+                } else {
+                    throw new Error(result.message || 'Gagal memproses pembayaran');
+                }
+            } catch (error) {
+                console.error('Payment Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: error.message || 'Terjadi kesalahan jaringan.'
+                });
+                
+                // Re-enable button jika error
+                tombolBayar.disabled = false;
+                tombolBayar.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
         });
-    </script>
+    });
+</script>
 </body>
 
 </html>

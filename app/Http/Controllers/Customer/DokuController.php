@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Models\Reservation;
-use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
+
 
 class DokuController extends Controller
 {

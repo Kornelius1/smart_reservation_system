@@ -20,12 +20,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/doku/test-notification', function(Request $request) {
-    Log::info('TEST NOTIF BODY:', $request->all());
-    return response()->json(['success' => true]);
-});
-
-
 Route::get('/products', [ProductController::class, 'index'])->name('api.products.index');
 
 Route::post('/doku/notification', [DokuNotificationController::class, 'handle'])

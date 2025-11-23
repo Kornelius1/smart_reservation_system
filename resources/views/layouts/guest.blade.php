@@ -7,6 +7,7 @@
     <title>@yield('title', 'Homey Cafe')</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link rel="preload" as="image" href="{{ asset('images/bg-4.webp') }}" type="image/webp">
     @vite(['resources/css/app.css', 'resources/css/reservasi.css', 'resources/js/app.js'])
     @stack('styles')
 </head>

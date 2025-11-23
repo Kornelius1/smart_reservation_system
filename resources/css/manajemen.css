@@ -7,7 +7,7 @@
     --secondary: #f000b8;
     --accent: #37cdbe;
     --neutral: #3d4451;
-    --base-100: #ffffff; /* Latar utama, misal card */
+    --base-100: #ffffff;
     --base-200: #f2f2f2;
     --base-300: #e5e6e6;
     --base-content: #1f2937;
@@ -157,3 +157,52 @@
 * {
   outline: 1px solid red !important;
 } */
+
+/* =========================================
+  5. KUSTOMISASI SEARCH BAR (VERSI SOLID)
+ =========================================
+*/
+
+.form-control.relative {
+    position: relative;
+}
+
+/* --- Ikon SVG (Lup) --- */
+.form-control.relative svg {
+    transition: color 0.3s ease-in-out;
+    color: #9ca3af; 
+    position: absolute;
+    left: 0.85rem; /* 14px */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.15rem; /* 18px */
+    height: 1.15rem;
+    z-index: 10; 
+}
+
+.form-control.relative .input {
+    border-radius: 9999px !important; 
+    transition: all 0.3s ease-in-out;
+    
+      border-width: 2px !important;
+    border-color: #CFE1B9 !important; 
+    background-color: #ffffff !important; 
+    box-shadow: none !important; 
+
+}
+
+.form-control.relative .input:hover {
+    border-color: #75A47F !important; 
+}
+
+.form-control.relative .input:focus {
+    outline: none !important;
+    background-color: #ffffff !important; 
+    
+    border-color: #75A47F !important; 
+    box-shadow: 0 0 0 3px rgba(117, 164, 127, 0.3) !important; 
+}
+
+.form-control.relative:focus-within svg {
+    color: #75A47F; 
+}

@@ -7,7 +7,7 @@ import ProductCard from "@/components/ProductCard.vue";
 const allProducts = ref([]);
 // [PERBAIKAN 1] Set default isLoading ke false.
 // Kita tidak tahu apakah kita perlu memuat, sampai validasi selesai.
-const isLoading = ref(false); 
+const isLoading = ref(false);
 const error = ref(null);
 const searchQuery = ref("");
 const debouncedSearchQuery = ref("");
@@ -40,15 +40,15 @@ onMounted(async () => {
         minimumOrder.value = parseInt(minOrder, 10);
     } else {
         // [PERBAIKAN 2] Ganti alert() dengan SweetAlert
-        
+
         // Hentikan eksekusi 'onMounted' karena kita akan redirect.
         // Tampilkan pop-up
         await Swal.fire({
-            icon: 'warning',
-            title: 'Oops... Anda Belum Memilih',
-            text: 'Silakan pilih meja atau ruangan terlebih dahulu.',
-            confirmButtonText: 'Pilih Reservasi',
-            allowOutsideClick: false // Mencegah user menutup pop-up
+            icon: "warning",
+            title: "Oops... Anda Belum Memilih",
+            text: "Silakan pilih meja atau ruangan terlebih dahulu.",
+            confirmButtonText: "Pilih Reservasi",
+            allowOutsideClick: false, // Mencegah user menutup pop-up
         });
 
         // Setelah pengguna mengklik "Pilih Reservasi", alihkan halaman.
@@ -61,8 +61,8 @@ onMounted(async () => {
     // dan mulai mengambil data.
     try {
         // [PERBAIKAN 3] Pindahkan isLoading.value = true ke sini.
-        isLoading.value = true; 
-        
+        isLoading.value = true;
+
         const response = await axios.get("/api/products");
         allProducts.value = response.data.map((product) => ({
             ...product,
@@ -155,6 +155,12 @@ function handleMouseMove(e) {
     slider.scrollLeft = scrollLeft.value - walk;
 }
 
+function clearSearch() {
+    searchQuery.value = "";
+    // Fokus akan otomatis kembali ke input jika perlu,
+    // tapi biasanya mengosongkan saja sudah cukup.
+}
+
 // --- COMPUTED PROPERTIES UNTUK KERANJANG (Tidak berubah) ---
 const totalItems = computed(() => {
     return allProducts.value.reduce((total, p) => total + p.quantity, 0);
@@ -207,12 +213,6 @@ const isOrderMinimumMet = computed(() => {
             </div>
 
             <label class="input input-bordered flex items-center gap-2">
-                <input
-                    type="text"
-                    class="grow"
-                    placeholder="Cari menu favoritmu..."
-                    v-model="searchQuery"
-                />
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 16 16"
@@ -225,6 +225,34 @@ const isOrderMinimumMet = computed(() => {
                         clip-rule="evenodd"
                     />
                 </svg>
+
+                <input
+                    type="text"
+                    class="grow"
+                    placeholder="Cari menu favoritmu..."
+                    v-model="searchQuery"
+                />
+
+                <button
+                    v-if="searchQuery"
+                    @click="clearSearch"
+                    type="button"
+                    class="btn-clear"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                        class="h-4 w-4"
+                    >
+                        <path
+                            d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14Zm0-1A6 6 0 1 0 8 2a6 6 0 0 0 0 12Z"
+                        />
+                        <path
+                            d="M10.854 4.854a.5.5 0 0 0-.708-.708L8 7.293 5.854 5.146a.5.5 0 1 0-.708.708L7.293 8l-2.147 2.146a.5.5 0 0 0 .708.708L8 8.707l2.146 2.147a.5.5 0 0 0 .708-.708L8.707 8l2.147-2.146Z"
+                        />
+                    </svg>
+                </button>
             </label>
 
             <h1 class="text-4xl font-bold py-8 text-[#738764]">Daftar Menu</h1>
@@ -501,4 +529,81 @@ const isOrderMinimumMet = computed(() => {
     cursor: grabbing;
     cursor: -webkit-grabbing;
 }
+
+/* =========================================
+  KUSTOMISASI SEARCH BAR (DI SINI TEMPATNYA)
+ =========================================
+*/
+label.input.input-bordered {
+    /* Transisi untuk semua properti yang berubah */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    border-width: 1px !important; 
+    border-color: #CFE1B9 !important; 
+    background-color: #f9fafb !important; 
+    box-shadow: none !important; 
+    border-radius: 9999px;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+label.input.input-bordered:hover {
+    border-color: #aab8a1 !important; 
+    background-color: #ffffff !important; 
+}
+
+
+label.input.input-bordered:focus-within {
+    transform: translateY(-2px); 
+    border-color: #738764 !important; 
+    background-color: #ffffff !important;
+    box-shadow: 
+        0 10px 15px -3px rgba(0, 0, 0, 0.05), 
+        0 4px 6px -2px rgba(0, 0, 0, 0.02) !important; 
+    outline: none !important;
+}
+
+/* --- Ikon SVG di dalam search bar --- */
+label.input.input-bordered svg {
+    transition: color 0.3s ease-in-out;
+    color: #9ca3af; /* Abu-abu netral */
+}
+
+/* --- Ikon saat search bar di-klik --- */
+label.input.input-bordered:focus-within svg {
+    color: #75a47f !important; /* Hijau tua */
+}
+
+/* --- Input di dalamnya --- */
+label.input.input-bordered input.grow {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important; /* Pastikan inputnya transparan */
+}
+
+label.input.input-bordered input.grow::placeholder {
+    color: #aab8a1; /* Warna abu-hijau yang lebih lembut */
+    transition: opacity 0.3s ease;
+}
+
+label.input.input-bordered:focus-within input.grow::placeholder {
+    opacity: 0.5; /* Redupkan placeholder saat fokus */
+}
+
+.btn-clear {
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af; /* Warna abu-abu netral */
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-clear:hover {
+    color: #75A47F; 
+    transform: scale(1.2); 
+}
+
 </style>
